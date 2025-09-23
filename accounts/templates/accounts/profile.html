@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="profile-page">
+
+  <!-- Profile Header -->
+  <section class="profile-header">
+    <div class="profile-photo">
+      <img src="{% static 'styles/profile_placeholder.png' %}" alt="Profile Picture">
+      <button class="btn btn-upload">Upload Photo</button>
+    </div>
+    <div class="profile-info">
+      <h1>{{ user.username }}</h1>
+      <p class="bio">
+        {% if user.profile.bio %}
+          {{ user.profile.bio }}
+        {% else %}
+          Add a short description about yourself!
+        {% endif %}
+      </p>
+      <a href="#" class="btn btn-edit">Edit Profile</a>
+    </div>
+  </section>
+
+  <!-- Customization Section -->
+  <section class="profile-details">
+    <h2>About Me</h2>
+    <p>{{ user.profile.description|default:"No description yet." }}</p>
+
+    <h2>Skills & Interests</h2>
+    {% if user.profile.skills %}
+      <ul class="skills-list">
+        {% for skill in user.profile.skills %}
+          <li>{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No skills added yet. Click edit to customize your profile.</p>
+    {% endif %}
+  </section>
+
+  <!-- Example Section for Saved Jobs -->
+  <section class="saved-jobs">
+    <h2>My Saved Jobs</h2>
+    {% if saved_jobs %}
+      <ul>
+        {% for job in saved_jobs %}
+          <li>{{ job.title }} at {{ job.company }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You haven’t saved any jobs yet.</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}
