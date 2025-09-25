@@ -10,3 +10,4 @@ staticfiles/
 # Environment
 .env
 venv/
+migrations/

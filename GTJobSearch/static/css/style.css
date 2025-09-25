@@ -1,133 +1,53 @@
-/* Added some CSS specifically for job app, configure as necessary */
-/* General Page Setup */
-/* General Page Setup */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #1E1E1E; /* Dark theme */
+/* Reset */
+body, h1, h2, h3, p, ul {
     margin: 0;
     padding: 0;
-    color: #D6DBD4; /* Light gray text */
 }
-
-/* Page container */
-.page-container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 20px;
-}
-
-/* Filter form */
-.filter-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 30px;
-    justify-content: center;
-}
-
-/* Enlarged centered search bar */
-.search-bar {
-    flex: 1 1 60%;
-    padding: 14px;
-    font-size: 1.2em;
-    border-radius: 8px;
-    border: 2px solid #54585A; /* Gray Matter */
-    background-color: #2C2C2C; /* Darker input background */
-    color: #FFFFFF;
-}
-
-.filter-form input, .filter-form select {
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #54585A;
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    font-size: 1em;
-}
-
-.filter-form button {
-    padding: 12px 22px;
-    font-size: 1.1em;
-    border-radius: 6px;
-    background-color: #003057; /* Navy Blue */
-    color: #FFFFFF;
-    border: none;
-    cursor: pointer;
-}
-.filter-form button:hover {
-    background-color: #1A4C7C;
-}
-
-/* Job list */
-.jobs-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Job card (applies to index and detail) */
-.job-card {
-    background-color: #2C2C2C;
-    border: 2px solid #003057;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* Titles */
-.job-title {
-    font-size: 2em;
-    font-weight: bold;
-    color: #FFFFFF;
-    margin: 0;
-}
-.company-name {
-    font-size: 1.4em;
-    color: #B3A369; /* Tech Gold kept subtle for accent */
-    margin: 8px 0;
-}
-.job-location {
-    font-size: 1.1em;
-    color: #D6DBD4;
-}
-
-/* Salary */
-.job-salary {
-    font-weight: bold;
-    color: #E0E0E0;
-    margin: 10px 0;
-}
-
-/* Description */
-.job-description {
-    margin: 15px 0;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9fafc;
+    color: #333;
     line-height: 1.6;
-    color: #CCCCCC;
 }
 
-/* Apply Button */
-.apply-btn {
-    background-color: #003057; /* Navy Blue */
-    color: #FFFFFF;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #003366;
+    padding: 1rem 2rem;
+}
+.navbar .logo a {
+    color: #fff;
+    font-size: 1.5rem;
     text-decoration: none;
+    font-weight: bold;
 }
-.apply-btn:hover {
-    background-color: #1A4C7C;
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+.nav-links a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.nav-links a:hover {
+    color: #ffcc00;
 }
 
-/* Logo */
-.job-logo {
-    text-align: right;
+/* Main content */
+main {
+    padding: 2rem;
 }
-.job-logo img {
-    max-width: 150px;
-    max-height: 150px;
-    border-radius: 8px;
-    object-fit: contain;
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #003366;
+    color: #fff;
+    margin-top: 2rem;
 }
-/* End of job CSS */

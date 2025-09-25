@@ -3,6 +3,12 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
 
+def signup(request):
+    return render(request, "accounts/signup.html")
+
+def login_view(request):
+    return render(request, "accounts/login.html")
+
 # Signup choice landing page
 def signup_choice(request):
     return render(request, "accounts/signup_choice.html")

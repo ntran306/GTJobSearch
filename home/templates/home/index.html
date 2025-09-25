@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="homepage">
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Welcome to GTJobSearch</h1>
+      <p>Your one-stop platform for connecting students with career opportunities.</p>
+      <div class="cta-buttons">
+            <a href="{% url 'accounts:signup_choice' %}" class="btn btn-primary">Create Profile</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Log In</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="{% static 'img/job_search_banner.png' %}" alt="Job Search Illustration" />
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <img src="{% static 'img/step1.png' %}" alt="Step 1">
+        <h3>1. Create Your Profile</h3>
+        <p>Tell us about your skills, interests, and career goals.</p>
+      </div>
+      <div class="step">
+        <img src="{% static 'img/step2.png' %}" alt="Step 2">
+        <h3>2. Browse Opportunities</h3>
+        <p>Explore jobs, internships, and events tailored to you.</p>
+      </div>
+      <div class="step">
+        <img src="{% static 'img/step3.png' %}" alt="Step 3">
+        <h3>3. Apply & Grow</h3>
+        <p>Apply directly and track your progress in one place.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
