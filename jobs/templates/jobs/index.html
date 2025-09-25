@@ -1,0 +1,58 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Listings</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- Search & Filter Form -->
+    <form method="get" action="" class="filter-form">
+        <input type="text" name="search" class="search-bar" placeholder="Search by job title or company..." value="{{ request.GET.search }}">
+        
+        <input type="text" name="location" placeholder="Search by location..." value="{{ request.GET.location }}">
+
+        <select name="pay_type">
+            <option value="all">All Pay Types</option>
+            <option value="annual" {% if request.GET.pay_type == "annual" %}selected{% endif %}>Annual</option>
+            <option value="monthly" {% if request.GET.pay_type == "monthly" %}selected{% endif %}>Monthly</option>
+            <option value="hourly" {% if request.GET.pay_type == "hourly" %}selected{% endif %}>Hourly</option>
+        </select>
+
+        <input type="number" name="min_salary" placeholder="Min salary" value="{{ request.GET.min_salary }}">
+        <input type="number" name="max_salary" placeholder="Max salary" value="{{ request.GET.max_salary }}">
+
+        <button type="submit" class="apply-btn">Search</button>
+    </form>
+
+    <!-- Job Listings -->
+    <div class="jobs-list">
+        {% for job in jobs %}
+            <div class="job-card">
+                <div class="job-card-info">
+                    <h2 class="job-title">{{ job.name }}</h2>
+                    <h3 class="company-name">{{ job.company }}</h3>
+                    <p class="job-location">{{ job.location }}</p>
+                    <p class="job-salary">
+                        ${{ job.pay_min }} – ${{ job.pay_max }}
+                        ({{ job.get_pay_type_display }})
+                    </p>
+                </div>
+                <div class="job-card-actions">
+                    <a href="{% url 'jobs.show' job.id %}" class="apply-btn">View Details</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>No jobs found matching your criteria.</p>
+        {% endfor %}
+    </div>
+
+</div>
+
+</body>
+</html>

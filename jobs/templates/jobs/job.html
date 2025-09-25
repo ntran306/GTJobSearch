@@ -1,0 +1,43 @@
+<!-- Feel free to edit as necessary, just crude template for now -->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ job.name }} | {{ job.company }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="job-container job-card">
+
+    <!-- Left: Job details -->
+    <div class="job-info">
+        <h1 class="job-title">{{ job.name }}</h1>
+        <h2 class="company-name">{{ job.company }}</h2>
+        <p class="job-location">{{ job.location }}</p>
+
+        <p class="job-salary">
+            Salary: ${{ job.pay_min }} – ${{ job.pay_max }}
+            ({{ job.get_pay_type_display }})
+        </p>
+
+        <p class="job-description">{{ job.description }}</p>
+
+        <button class="apply-btn">Apply Now</button>
+    </div>
+
+    <!-- Right: Logo -->
+    <div class="job-logo">
+        {% if job.image %}
+            <img src="{{ job.image.url }}" alt="{{ job.company }} Logo">
+        {% else %}
+            <p style="color:#D6DBD4;">No logo available</p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>
