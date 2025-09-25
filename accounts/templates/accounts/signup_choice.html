@@ -1,0 +1,14 @@
+<h2>Create an Account</h2>
+<p>Choose your role to get started:</p>
+
+<div style="margin: 20px 0;">
+  <a href="{% url 'accounts:jobseeker_signup' %}">
+    <button type="button">I’m a Job Seeker</button>
+  </a>
+</div>
+
+<div>
+  <a href="{% url 'accounts:recruiter_signup' %}">
+    <button type="button">I’m a Recruiter</button>
+  </a>
+</div>
