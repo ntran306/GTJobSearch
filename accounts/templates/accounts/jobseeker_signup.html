@@ -1,0 +1,7 @@
+<h2>Job Seeker Sign Up</h2>
+<form method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Sign Up</button>
+</form>
+<p>Are you a recruiter? <a href="{% url 'recruiter_signup' %}">Sign up here</a></p>

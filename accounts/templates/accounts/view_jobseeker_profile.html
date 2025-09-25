@@ -1,0 +1,13 @@
+<h2>{{ profile.user.username }}'s Profile (Job Seeker)</h2>
+<p><strong>Email:</strong> {{ profile.user.email }}</p>
+<p><strong>Headline:</strong> {{ profile.headline }}</p>
+<p><strong>Skills:</strong> {{ profile.skills }}</p>
+<p><strong>Education:</strong> {{ profile.education }}</p>
+<p><strong>Work Experience:</strong> {{ profile.work_experience }}</p>
+<p><strong>Links:</strong>
+  {% if profile.links %}
+    <a href="{{ profile.links }}" target="_blank">{{ profile.links }}</a>
+  {% else %}
+    None
+  {% endif %}
+</p>
