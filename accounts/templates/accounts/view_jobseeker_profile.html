@@ -1,13 +1,94 @@
-<h2>{{ profile.user.username }}'s Profile (Job Seeker)</h2>
-<p><strong>Email:</strong> {{ profile.user.email }}</p>
-<p><strong>Headline:</strong> {{ profile.headline }}</p>
-<p><strong>Skills:</strong> {{ profile.skills }}</p>
-<p><strong>Education:</strong> {{ profile.education }}</p>
-<p><strong>Work Experience:</strong> {{ profile.work_experience }}</p>
-<p><strong>Links:</strong>
-  {% if profile.links %}
-    <a href="{{ profile.links }}" target="_blank">{{ profile.links }}</a>
-  {% else %}
-    None
-  {% endif %}
-</p>
+{% load static %}
+
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
+</head>
+
+<div class="container">
+    <!-- Profile Header Card -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <div class="avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+            
+            <div class="profile-info">
+                <h1 class="profile-name">{{ profile.user.username }}</h1>
+                <p class="profile-subtitle">Job Seeker</p>
+                <div class="profile-contact">
+                    <span class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        {{ profile.user.email }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profile-sections">
+        <!-- Headline Section -->
+        <div class="card profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-quote-left"></i> Professional Headline</h2>
+            </div>
+            <div class="section-content">
+                <p>{{ profile.headline }}</p>
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="card profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-tools"></i> Skills</h2>
+            </div>
+            <div class="section-content">
+                <div class="skills-display">
+                    {% for skill in profile.skills|split:"," %}
+                        <span class="skill-tag">{{ skill|strip }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Education Section -->
+        <div class="card profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+            </div>
+            <div class="section-content">
+                <p>{{ profile.education|linebreaks }}</p>
+            </div>
+        </div>
+
+        <!-- Work Experience Section -->
+        <div class="card profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+            </div>
+            <div class="section-content">
+                <p>{{ profile.work_experience|linebreaks }}</p>
+            </div>
+        </div>
+
+        <!-- Links Section -->
+        <div class="card profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-link"></i> Links</h2>
+            </div>
+            <div class="section-content">
+                {% if profile.links %}
+                    <a href="{{ profile.links }}" target="_blank" class="profile-link">
+                        <i class="fas fa-external-link-alt"></i>
+                        {{ profile.links }}
+                    </a>
+                {% else %}
+                    <p class="no-content">No links provided</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
