@@ -2,46 +2,56 @@
 {% load static %}
 
 {% block content %}
-<div class="homepage">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ job.name }} | {{ job.company }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-text">
-      <h1>Welcome to GT Job Seekers</h1>
-      <p>Your one-stop platform for connecting students with career opportunities.</p>
-      <a href="{% url 'jobs:index' %}" class="btn btn-primary">Browse Jobs Now -></a> <br><br>
-      <a href="{% url 'accounts:signup_choice' %}" class="btn btn-secondary">Create Your Profile -></a>
-    </div>
+<body>
 
-    <div class="hero-image">
-      <img src="{% static 'img/job_search_banner.png' %}" alt="Job Search Illustration" />
-    </div>
-  </section>
+  <div class="homepage">
 
-  <!-- How It Works -->
-  <section class="how-it-works">
-    <h2>How It Works</h2>
-    <div class="steps">
-      <div class="step">
-        <h3>1. Create Your Profile</h3>
-        <p>Tell us about your skills, education, and work expirence so we can match you with relevant opportunities that align with your interests and career goals.</p>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Welcome to GT Job Seekers</h1>
+        <p>Your one-stop platform for connecting students with career opportunities.</p>
+        <a href="{% url 'jobs:index' %}" class="btn btn-primary">Browse Jobs Now -></a> <br><br>
+        <a href="{% url 'accounts:signup_choice' %}" class="btn btn-secondary">Create Your Profile -></a>
       </div>
-      <div class="step">
-        <h3>2. Browse Opportunities</h3>
-        <p>Explore jobs, internships, and co-ops that are tailored to you. Find jobs at companies like Google, Microsoft, Amazon, Facebook, Apple, and more!</p>
-        <p>Sort through job listings based on salary range, industry, and location Use our filters to find jobs tailor to what you are looking for!</p>
-      </div>
-      <div class="step">
-        <h3>3. Apply & Grow</h3>
-        <p>Apply directly on the site with your resume and cover letter. We'll help you stand out from other applicants by highlighting your unique qualifications and experiences.</p>
-      </div>
-        <h2>That's All!</h2>
-        <p>Wait for a response from the company! It's as easy as that. Job searching has never been easier than this! We're here to make sure you get hired!</p>
-      <div class="cta-buttons">
-            <a href="{% url 'home:about' %}" class="btn btn-primary">Learn More About the Company -></a> <br>
-      </div>
-    </div>
-  </section>
 
-</div>
+      <div class="hero-image">
+        <img src="{% static 'img/job_search_banner.png' %}" alt="Job Search Illustration" />
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <h3>1. Create Your Profile</h3>
+          <p>Tell us about your skills, education, and work expirence so we can match you with relevant opportunities that align with your interests and career goals.</p>
+        </div>
+        <div class="step">
+          <h3>2. Browse Opportunities</h3>
+          <p>Explore jobs, internships, and co-ops that are tailored to you. Find jobs at companies like Google, Microsoft, Amazon, Facebook, Apple, and more!</p>
+          <p>Sort through job listings based on salary range, industry, and location Use our filters to find jobs tailor to what you are looking for!</p>
+        </div>
+        <div class="step">
+          <h3>3. Apply & Grow</h3>
+          <p>Apply directly on the site with your resume and cover letter. We'll help you stand out from other applicants by highlighting your unique qualifications and experiences.</p>
+        </div>
+          <h2>That's All!</h2>
+          <p>Wait for a response from the company! It's as easy as that. Job searching has never been easier than this! We're here to make sure you get hired!</p>
+        <div class="cta-buttons">
+              <a href="{% url 'home:about' %}" class="btn btn-primary">Learn More About the Company -></a> <br>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</body>
 {% endblock %}
