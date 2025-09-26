@@ -1,6 +1,7 @@
 from django.shortcuts import render,  get_object_or_404
 from .models import Job
 
+
 def index(request):
     search_term = request.GET.get('search')
     pay_type = request.GET.get('pay_type') # Trying to allow filtering by job name, company name, and pay type
