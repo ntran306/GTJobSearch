@@ -51,3 +51,5 @@ class RecruiterSignUpForm(UserCreationForm):
                 name=self.cleaned_data["name"],
             )
         return user
+    
+    
