@@ -1,5 +1,9 @@
+{% extends "base.html" %}
+
+{% block nav_profile %}active{% endblock %}
 {% load static %}
 
+{% block content %}
 <head>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
@@ -47,9 +51,13 @@
             </div>
             <div class="section-content">
                 <div class="skills-display">
-                    {% for skill in profile.skills|split:"," %}
-                        <span class="skill-tag">{{ skill|strip }}</span>
-                    {% endfor %}
+                   {% if skills_list %}
+                        {% for skill in skills_list %}
+                            <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p>No skills added yet. Click edit to customize your profile.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -92,3 +100,5 @@
         </div>
     </div>
 </div>
+
+{% endblock %}

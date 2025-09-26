@@ -21,10 +21,41 @@
                 </div>
                 
                 <ul class="nav-links">
-                    <li><a href="{% url 'home:index' %}" class="active">Home</a></li>
-                    <li><a href="{% url 'accounts:signup_choice' %}">Create Profile</a></li>
-                    <li><a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm">Log In</a></li>
+                    {% if user.is_authenticated %}
+                        <!-- Home -->
+                        <li>
+                            <a href="{% url 'home:index' %}" class="{% block nav_home %}{% endblock %}">Home</a>
+                        </li>
+
+                        <!-- Profile -->
+                        <li>
+                            <a href="{% url 'accounts:view_jobseeker_profile' %}" class="{% block nav_profile %}{% endblock %}">Profile</a>
+                        </li>
+
+                        <!-- Jobs -->
+                        <li>
+                            <a href="{% url 'jobs:index' %}" class="{% block nav_jobs %}{% endblock %}">Jobs</a>
+                        </li>
+
+                        <!-- Logout -->
+                        <li>
+                            <a href="{% url 'accounts:logout' %}" class="{% block nav_logout %}{% endblock %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <!-- Create Profile -->
+                        <li>
+                            <a href="{% url 'accounts:signup_choice' %}" class="{% block nav_signup %}{% endblock %}">Create Profile</a>
+                        </li>
+
+                        <!-- Login -->
+                        <li>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm {% block nav_login %}{% endblock %}">Login</a>
+                        </li>
+                    {% endif %}
                 </ul>
+
+
+
                 
                 <button class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>

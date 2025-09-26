@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block nav_profile %}active{% endblock %}
+
 {% block content %}
 <head>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -18,8 +20,8 @@
     <div class="profile-info">
       <h1>{{ user.username }}</h1>
       <p class="bio">
-        {% if user.profile.bio %}
-          {{ user.profile.bio }}
+        {% if profile and profile.bio %}
+          {{ profile.bio }}
         {% else %}
           Add a short description about yourself!
         {% endif %}
@@ -31,18 +33,25 @@
   <!-- Customization Section -->
   <section class="profile-details">
     <h2>About Me</h2>
-    <p>{{ user.profile.description|default:"No description yet." }}</p>
+    <p>
+      {% if profile and profile.description %}
+        {{ profile.description }}
+      {% else %}
+        No description yet.
+      {% endif %}
+    </p>
 
     <h2>Skills & Interests</h2>
-    {% if user.profile.skills %}
+    {% if skills_list %}
       <ul class="skills-list">
-        {% for skill in user.profile.skills %}
-          <li>{{ skill }}</li>
+        {% for skill in skills_list %}
+          <li class="skill-tag">{{ skill }}</li>
         {% endfor %}
       </ul>
     {% else %}
       <p>No skills added yet. Click edit to customize your profile.</p>
     {% endif %}
+
   </section>
 
   <!-- Example Section for Saved Jobs -->

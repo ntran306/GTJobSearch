@@ -1060,6 +1060,7 @@ footer {
     background-position: right 0.7rem center;
     background-size: 1.2rem;
     padding-right: 2.5rem;
+    appearance: none;
 }
 
 .search-btn {
