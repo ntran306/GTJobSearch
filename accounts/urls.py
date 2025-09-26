@@ -7,6 +7,8 @@ urlpatterns = [
     # Original ones
     path("signup/", views.signup, name="signup"),
     path("login/", views.login_view, name="login"),
+    path('logout/', views.logout_view, name='logout'),
+
 
     # Extended ones
     path("signup/choice/", views.signup_choice, name="signup_choice"),
@@ -16,3 +18,4 @@ urlpatterns = [
     path("profile/jobseeker/", views.view_jobseeker_profile, name="view_jobseeker_profile"),
     path("profile/recruiter/", views.view_recruiter_profile, name="view_recruiter_profile"),
 ]
+

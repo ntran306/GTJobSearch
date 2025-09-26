@@ -17,11 +17,9 @@
             {% csrf_token %}
             
             <!-- Username or Email -->
-            <div class="form-group">
-              <label class="form-label" for="id_username">Username or Email *</label>
-              <input type="text" name="username" id="id_username" class="form-control" required>
-            
-                {{ form.username }}
+           <div class="form-group">
+                <label class="form-label" for="{{ form.username.id_for_label }}">Username or Email *</label>
+                {{ form.username }}  <!-- Only this line -->
                 {% if form.username.errors %}
                     {% for error in form.username.errors %}
                         <span class="error-message">{{ error }}</span>
@@ -29,11 +27,8 @@
                 {% endif %}
             </div>
 
-            <!-- Password -->
             <div class="form-group">
-              <label class="form-label" for="id_password">Password *</label>
-              <input type="password" name="password" id="id_password" class="form-control" required>
-            
+                <label class="form-label" for="{{ form.password.id_for_label }}">Password *</label>
                 {{ form.password }}
                 {% if form.password.errors %}
                     {% for error in form.password.errors %}
@@ -41,6 +36,7 @@
                     {% endfor %}
                 {% endif %}
             </div>
+
 
             <!-- Remember me checkbox (if you have it) -->
             {% if form.remember_me %}
