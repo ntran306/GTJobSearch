@@ -8,12 +8,13 @@ def index(request):
     min_salary = request.GET.get('min_salary')
     max_salary = request.GET.get('max_salary')
     location = request.GET.get('location') # Will try to implement location filtering later, but just checks like name
+    skills_filter = request.GET.getlist('skills')  # Get list of skills
 
     jobs = Job.objects.all()
 
     # Filter by job/company name
     if search_term:
-        jobs = Job.filter(name__icontains=search_term) | Job.filter(company__icontains=search_term)
+        jobs = jobs.filter(name__icontains=search_term) | Job.filter(company__icontains=search_term)
 
     # Filter by pay type & salary range
     if pay_type and pay_type != 'all':
@@ -26,6 +27,10 @@ def index(request):
     # Filter by location (just a simple substring match for now)
     if location:
         jobs = jobs.filter(location__icontains=location)
+
+    if skills_filter:
+        for skill in skills_filter:
+            jobs = jobs.filter(skills_required__icontains=skill)
     
     template_data = {}
     template_data['title'] = 'Job Listings'
