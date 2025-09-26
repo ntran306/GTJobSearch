@@ -1,7 +1,141 @@
-<h2>Job Seeker Sign Up</h2>
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Sign Up</button>
-</form>
-<p>Are you a recruiter? <a href="{% url 'accounts:recruiter_signup' %}">Sign up here</a></p>
+{% load static %}
+
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
+</head>
+
+<div class="signin-container">
+    <div class="signin-card">
+        <div class="signin-header">
+            <h1><i class="fas fa-user"></i> GT Job Seeker Sign Up</h1>
+            <p>Create your account and start your job search journey</p>
+        </div>
+
+        <form method="POST" class="professional-form">
+            {% csrf_token %}
+            
+            <!-- Username -->
+            <div class="form-group">
+                <label class="form-label" for="id_username">Username *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    {% for error in form.username.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label" for="id_email">Email *</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Password1 -->
+            <div class="form-group">
+                <label class="form-label" for="id_password1">Password *</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    {% for error in form.password1.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Password2 -->
+            <div class="form-group">
+                <label class="form-label" for="id_password2">Confirm Password *</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    {% for error in form.password2.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Headline -->
+            <div class="form-group">
+                <label class="form-label" for="id_headline">Professional Headline *</label>
+                {{ form.headline }}
+                {% if form.headline.errors %}
+                    {% for error in form.headline.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <small class="help-text">e.g., "Frontend Developer with 3+ years experience"</small>
+            </div>
+
+            <!-- Skills -->
+            <div class="form-group">
+                <label class="form-label" for="id_skills">Skills *</label>
+                {{ form.skills }}
+                {% if form.skills.errors %}
+                    {% for error in form.skills.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <small class="help-text">List your key skills separated by commas</small>
+            </div>
+
+            <!-- Education -->
+            <div class="form-group">
+                <label class="form-label" for="id_education">Education *</label>
+                {{ form.education }}
+                {% if form.education.errors %}
+                    {% for error in form.education.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <small class="help-text">Your educational background</small>
+            </div>
+
+            <!-- Work Experience -->
+            <div class="form-group">
+                <label class="form-label" for="id_work_experience">Work Experience *</label>
+                {{ form.work_experience }}
+                {% if form.work_experience.errors %}
+                    {% for error in form.work_experience.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <small class="help-text">Your relevant work experience</small>
+            </div>
+
+            <!-- Links -->
+            <div class="form-group">
+                <label class="form-label" for="id_links">Portfolio/LinkedIn URL</label>
+                {{ form.links }}
+                {% if form.links.errors %}
+                    {% for error in form.links.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <small class="help-text">Optional: Your portfolio, LinkedIn, or personal website</small>
+            </div>
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="signin-btn">
+                <i class="fas fa-user-plus"></i>
+                Create Account
+            </button>
+        </form>
+
+        <div class="form-footer">
+            <p>Are you a recruiter? <a href="{% url 'accounts:recruiter_signup' %}">Sign up here</a></p>
+        </div>
+    </div>
+</div>
