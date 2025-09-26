@@ -85,6 +85,46 @@
       </div>
     </section>
 
+    <!-- Privacy Settings -->
+  <section class="card profile-section">
+    <div class="section-header">
+      <h2><i class="fas fa-user-shield"></i> Privacy Settings</h2>
+    </div>
+    <div class="section-content">
+      <form method="post" action="{% url 'update_privacy_settings' %}">
+        {% csrf_token %}
+
+        <div class="privacy-option">
+          <label>
+            <input type="radio" name="privacy" value="employers"
+                   {% if profile.privacy == "employers" %}checked{% endif %}>
+            <strong>Employers</strong><br>
+            <span class="text-sm text-gray-600">
+              Your profile will be visible to employers.  
+              You may receive messages about potential job opportunities.
+            </span>
+          </label>
+        </div>
+
+        <div class="privacy-option" style="margin-top: 1rem;">
+          <label>
+            <input type="radio" name="privacy" value="private"
+                   {% if profile.privacy == "private" %}checked{% endif %}>
+            <strong>Private</strong><br>
+            <span class="text-sm text-gray-600">
+              You'll be able to apply for jobs but won't get contacted by employers.  
+              When you check in with an employer during a career fair, they’ll see your basic info and can message you.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
+          Save Privacy Settings
+        </button>
+      </form>
+    </div>
+  </section>
+
     <section class="card profile-section">
       <div class="section-header">
         <h2><i class="fas fa-bookmark"></i> Saved Jobs</h2>
