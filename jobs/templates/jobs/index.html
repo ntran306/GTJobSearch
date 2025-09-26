@@ -1,58 +1,125 @@
+{% extends "base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block content %}
 <head>
     <meta charset="UTF-8">
     <title>Job Listings</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
-<div class="page-container">
+    <div class="page-container">
+    <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-briefcase"></i> Find Your Dream Job</h1>
+            <p class="page-subtitle">Discover amazing opportunities from top companies</p>
+        </div>
 
-    <!-- Search & Filter Form -->
-    <form method="get" action="" class="filter-form">
-        <input type="text" name="search" class="search-bar" placeholder="Search by job title or company..." value="{{ request.GET.search }}">
-        
-        <input type="text" name="location" placeholder="Search by location..." value="{{ request.GET.location }}">
+        <!-- Search & Filter Form -->
+        <form method="get" action="" class="filter-form">
+            <input type="text" 
+                name="search" 
+                placeholder="Search by job title or company..." 
+                value="{{ request.GET.search }}">
+            
+            <input type="text" 
+                name="location" 
+                placeholder="Search by location..." 
+                value="{{ request.GET.location }}">
 
-        <select name="pay_type">
-            <option value="all">All Pay Types</option>
-            <option value="annual" {% if request.GET.pay_type == "annual" %}selected{% endif %}>Annual</option>
-            <option value="monthly" {% if request.GET.pay_type == "monthly" %}selected{% endif %}>Monthly</option>
-            <option value="hourly" {% if request.GET.pay_type == "hourly" %}selected{% endif %}>Hourly</option>
-        </select>
+            <select name="pay_type">
+                <option value="all">All Pay Types</option>
+                <option value="annual" {% if request.GET.pay_type == "annual" %}selected{% endif %}>Annual</option>
+                <option value="monthly" {% if request.GET.pay_type == "monthly" %}selected{% endif %}>Monthly</option>
+                <option value="hourly" {% if request.GET.pay_type == "hourly" %}selected{% endif %}>Hourly</option>
+            </select>
 
-        <input type="number" name="min_salary" placeholder="Min salary" value="{{ request.GET.min_salary }}">
-        <input type="number" name="max_salary" placeholder="Max salary" value="{{ request.GET.max_salary }}">
+            <input type="number" 
+                name="min_salary" 
+                placeholder="Min salary" 
+                value="{{ request.GET.min_salary }}">
+            
+            <input type="number" 
+                name="max_salary" 
+                placeholder="Max salary" 
+                value="{{ request.GET.max_salary }}">
 
-        <button type="submit" class="apply-btn">Search</button>
-    </form>
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i>
+                Search Jobs
+            </button>
+        </form>
 
-    <!-- Job Listings -->
-    <div class="jobs-list">
-        {% for job in jobs %}
-            <div class="job-card">
-                <div class="job-card-info">
-                    <h2 class="job-title">{{ job.name }}</h2>
-                    <h3 class="company-name">{{ job.company }}</h3>
-                    <p class="job-location">{{ job.location }}</p>
-                    <p class="job-salary">
-                        ${{ job.pay_min }} – ${{ job.pay_max }}
-                        ({{ job.get_pay_type_display }})
-                    </p>
-                </div>
-                <div class="job-card-actions">
-                    <a href="{% url 'jobs.show' job.id %}" class="apply-btn">View Details</a>
-                </div>
+        <!-- Results Header -->
+        <div class="results-header">
+            <div class="results-count">
+                <i class="fas fa-list"></i>
+                {{ jobs|length }} job{{ jobs|length|pluralize }} found
             </div>
-        {% empty %}
-            <p>No jobs found matching your criteria.</p>
-        {% endfor %}
+            <div class="sort-options">
+                <select onchange="this.form.submit()" name="sort">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="salary_high">Highest Salary</option>
+                    <option value="salary_low">Lowest Salary</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Job Listings -->
+        <div class="jobs-list">
+            {% for job in jobs %}
+                <div class="job-card">
+                    <div class="job-card-info">
+                        <h2 class="job-title">{{ job.name }}</h2>
+                        <h3 class="company-name">{{ job.company }}</h3>
+                        
+                        <div class="job-details">
+                            <div class="job-detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ job.location }}</span>
+                            </div>
+                            <div class="job-detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ job.get_pay_type_display }}</span>
+                            </div>
+                            <div class="job-detail-item">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Posted recently</span>
+                            </div>
+                        </div>
+                        
+                        <div class="job-salary">
+                            <i class="fas fa-dollar-sign"></i>
+                            ${{ job.pay_min }} – ${{ job.pay_max }} 
+                            <span style="font-weight: normal; color: #718096;">({{ job.get_pay_type_display }})</span>
+                        </div>
+                    </div>
+                    
+                    <div class="job-card-actions">
+                        <a href="{% url 'jobs.show' job.id %}" class="apply-btn">
+                            <i class="fas fa-eye"></i>
+                            View Details
+                        </a>
+                        <a href="#" class="save-btn">
+                            <i class="fas fa-heart"></i>
+                            Save Job
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>No Jobs Found</h3>
+                    <p>No jobs found matching your criteria. Try adjusting your search filters.</p>
+                </div>
+            {% endfor %}
+        </div>
+
     </div>
 
-</div>
-
 </body>
-</html>
+{% endblock %}
