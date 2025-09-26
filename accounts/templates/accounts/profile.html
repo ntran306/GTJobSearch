@@ -1,63 +1,130 @@
 {% extends "base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
-<head>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
-</head>
-
-<div class="profile-page">
+<div class="container profile-page">
 
   <!-- Profile Header -->
-  <section class="profile-header">
-    <div class="profile-photo">
-      <img src="{% static 'styles/profile_placeholder.png' %}" alt="Profile Picture">
-      <button class="btn btn-upload">Upload Photo</button>
+  <section class="profile-card profile-header">
+    <div class="profile-avatar">
+      <div class="avatar-placeholder">
+        <i class="fas fa-user"></i>
+      </div>
+      <button class="btn btn-outline btn-sm">Upload Photo</button>
     </div>
+
     <div class="profile-info">
-      <h1>{{ user.username }}</h1>
+      <h1 class="profile-name">{{ user.username }}</h1>
       <p class="bio">
-        {% if user.profile.bio %}
-          {{ user.profile.bio }}
+        {% if profile_type == "jobseeker" and profile.headline %}
+          {{ profile.headline }}
+        {% elif profile_type == "recruiter" %}
+          Recruiter at {{ profile.name }}
         {% else %}
           Add a short description about yourself!
         {% endif %}
       </p>
-      <a href="#" class="btn btn-edit">Edit Profile</a>
+      <p class="text-sm text-gray-600">
+        <i class="fas fa-envelope"></i> {{ user.email }}
+      </p>
+      <p class="text-sm text-gray-600">
+        <i class="fas fa-calendar-alt"></i> Member since {{ user.date_joined|date:"F Y" }}
+      </p>
+      <a href="#" class="btn btn-primary btn-sm">Edit Profile</a>
     </div>
   </section>
 
-  <!-- Customization Section -->
-  <section class="profile-details">
-    <h2>About Me</h2>
-    <p>{{ user.profile.description|default:"No description yet." }}</p>
+  <!-- Jobseeker-specific sections -->
+  {% if profile_type == "jobseeker" %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-tools"></i> Skills</h2>
+      </div>
+      <div class="section-content skills-display">
+        {% if profile.skills %}
+          {% for skill in profile.skills|split:"," %}
+           <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
+        {% else %}
+          <p>No skills added yet.</p>
+        {% endif %}
+      </div>
+    </section>
 
-    <h2>Skills & Interests</h2>
-    {% if user.profile.skills %}
-      <ul class="skills-list">
-        {% for skill in user.profile.skills %}
-          <li>{{ skill }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No skills added yet. Click edit to customize your profile.</p>
-    {% endif %}
-  </section>
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+      </div>
+      <div class="section-content">
+        <p>{{ profile.education|linebreaks|default:"No education listed." }}</p>
+      </div>
+    </section>
 
-  <!-- Example Section for Saved Jobs -->
-  <section class="saved-jobs">
-    <h2>My Saved Jobs</h2>
-    {% if saved_jobs %}
-      <ul>
-        {% for job in saved_jobs %}
-          <li>{{ job.title }} at {{ job.company }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>You haven’t saved any jobs yet.</p>
-    {% endif %}
-  </section>
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+      </div>
+      <div class="section-content">
+        <p>{{ profile.work_experience|linebreaks|default:"No work experience added." }}</p>
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-link"></i> Links</h2>
+      </div>
+      <div class="section-content">
+        {% if profile.links %}
+          <a href="{{ profile.links }}" target="_blank" class="profile-link">
+            <i class="fas fa-external-link-alt"></i> {{ profile.links }}
+          </a>
+        {% else %}
+          <p>No links provided</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-bookmark"></i> Saved Jobs</h2>
+      </div>
+      <div class="section-content">
+        {% if saved_jobs %}
+          <ul>
+            {% for job in saved_jobs %}
+              <li>{{ job.title }} at {{ job.company }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>You haven’t saved any jobs yet.</p>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Recruiter-specific sections -->
+  {% if profile_type == "recruiter" %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-id-card"></i> Company/Recruiter Name</h2>
+      </div>
+      <div class="section-content">
+        <p>{{ profile.name }}</p>
+      </div>
+    </section>
+
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-rocket"></i> Quick Actions</h2>
+      </div>
+      <div class="section-content action-buttons">
+        <a href="#" class="action-btn"><i class="fas fa-plus"></i> Post Job</a>
+        <a href="#" class="action-btn"><i class="fas fa-search"></i> Browse Candidates</a>
+        <a href="#" class="action-btn"><i class="fas fa-chart-bar"></i> View Analytics</a>
+      </div>
+    </section>
+  {% endif %}
 
 </div>
 {% endblock %}

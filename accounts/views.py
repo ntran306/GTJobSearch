@@ -20,15 +20,10 @@ def jobseeker_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("/jobseeker/home")
+            return redirect("accounts:profile")
     else:
         form = JobSeekerSignUpForm()
     return render(request, "accounts/jobseeker_signup.html", {"form": form})
-
-@login_required
-def view_jobseeker_profile(request):
-    profile = request.user.jobseekerprofile
-    return render(request, "accounts/view_jobseeker_profile.html", {"profile": profile})
 
 # Recruiter signup
 def recruiter_signup(request):
@@ -37,12 +32,26 @@ def recruiter_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("/recruiter/home")
+            return redirect("accounts:profile")
     else:
         form = RecruiterSignUpForm()
     return render(request, "accounts/recruiter_signup.html", {"form": form})
 
 @login_required
-def view_recruiter_profile(request):
-    profile = request.user.recruiterprofile
-    return render(request, "accounts/view_recruiter_profile.html", {"profile": profile})
+def profile_view(request):
+    user = request.user
+    context = {}
+
+    # Detect profile type
+    if hasattr(user, "jobseekerprofile"):
+        context["profile_type"] = "jobseeker"
+        context["profile"] = user.jobseekerprofile
+        context["saved_jobs"] = []  
+    elif hasattr(user, "recruiterprofile"):
+        context["profile_type"] = "recruiter"
+        context["profile"] = user.recruiterprofile
+    else:
+        context["profile_type"] = None
+        context["profile"] = None
+
+    return render(request, "accounts/profile.html", context)

@@ -158,11 +158,12 @@ ul, ol {
 
 .navbar-inner {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 clamp(16px, 4vw, 48px);
+    width: 100%; 
+    max-width: none; 
+    margin: 0;
 }
 
 .navbar .logo a {
