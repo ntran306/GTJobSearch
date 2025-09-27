@@ -1109,7 +1109,9 @@ footer {
 /* Job Listings */
 .jobs-list {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+    margin-top: 2rem;
 }
 
 .job-card {
@@ -1362,4 +1364,41 @@ footer {
     background: #f7fafc;
     text-decoration: none;
     color: #667eea;
+}
+
+/* status css */
+
+.status-tracker {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.status-step {
+    text-align: center;
+    flex: 1;
+    opacity: 0.5;
+}
+.status-step.active {
+    color: #3182ce;
+    font-weight: bold;
+    opacity: 1;
+}
+.status-step.disabled {
+    opacity: 0.2;
+}
+.step-icon {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+.application-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
