@@ -16,7 +16,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("home.urls")),         # homepage
     path("accounts/", include("accounts.urls")),  # accounts app
-    # path("jobs/", include("jobs.urls")),
+    path("jobs/", include("jobs.urls")),
     path("jobseeker/home", jobseeker_home, name="jobseeker_home"),
     path("recruiter/home", recruiter_home, name="recruiter_home"),
 ]
