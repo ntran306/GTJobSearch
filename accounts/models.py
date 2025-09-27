@@ -18,5 +18,3 @@ class RecruiterProfile(models.Model):
 
     def __str__(self):
         return f"{self.name} (Recruiter)"
-
-#test comment

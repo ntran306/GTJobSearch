@@ -35,29 +35,15 @@ def jobseeker_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("/jobs/")  # 👈 redirect to jobs page after signup
+            return redirect("accounts:profile")
     else:
         form = JobSeekerSignUpForm()
     return render(request, "accounts/jobseeker_signup.html", {"form": form})
 
 @login_required
 def view_jobseeker_profile(request):
-    profile = getattr(request.user, 'jobseekerprofile', None)
-    
-    # Convert skills CSV to list if profile exists
-    skills_list = []
-    if profile and profile.skills:
-        skills_list = [skill.strip() for skill in profile.skills.split(",")]
-
-    saved_jobs = []  # placeholder; adjust if you have saved jobs
-
-    return render(request, "accounts/view_jobseeker_profile.html", {
-        "profile": profile,
-        "skills_list": skills_list,
-        "saved_jobs": saved_jobs
-    })
-
-
+    profile = request.user.jobseekerprofile
+    return render(request, "accounts/view_jobseeker_profile.html", {"profile": profile})
 
 # Recruiter signup
 def recruiter_signup(request):
@@ -66,15 +52,29 @@ def recruiter_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("/jobs/")  # 👈 redirect to jobs page after signup
+            return redirect("accounts:profile")
     else:
         form = RecruiterSignUpForm()
     return render(request, "accounts/recruiter_signup.html", {"form": form})
 
 @login_required
-def view_recruiter_profile(request):
-    profile = request.user.recruiterprofile
-    return render(request, "accounts/view_recruiter_profile.html", {"profile": profile})
+def profile_view(request):
+    user = request.user
+    context = {}
+
+    # Detect profile type
+    if hasattr(user, "jobseekerprofile"):
+        context["profile_type"] = "jobseeker"
+        context["profile"] = user.jobseekerprofile
+        context["saved_jobs"] = []  
+    elif hasattr(user, "recruiterprofile"):
+        context["profile_type"] = "recruiter"
+        context["profile"] = user.recruiterprofile
+    else:
+        context["profile_type"] = None
+        context["profile"] = None
+
+    return render(request, "accounts/profile.html", context)
 
 @login_required
 def logout_view(request):
