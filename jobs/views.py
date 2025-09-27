@@ -13,7 +13,7 @@ def index(request):
 
     # Filter by job/company name
     if search_term:
-        jobs = Job.filter(name__icontains=search_term) | Job.filter(company__icontains=search_term)
+        jobs = jobs.filter(name__icontains=search_term) | jobs.filter(company__icontains=search_term)
 
     # Filter by pay type & salary range
     if pay_type and pay_type != 'all':
@@ -33,8 +33,8 @@ def index(request):
     return render(request, 'jobs/index.html', {'jobs': jobs})
 
 def show(request, id):
-    job = Job.objects.get(id=id)
+    job = get_object_or_404(Job, id=id)
     template_data = {}
     template_data['title'] = job.name
     template_data['job'] = job
-    return render(request, 'jobs/job.html', {'job_id': template_data})
+    return render(request, 'jobs/job.html', template_data)

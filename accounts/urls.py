@@ -15,7 +15,7 @@ urlpatterns = [
     path("signup/jobseeker/", views.jobseeker_signup, name="jobseeker_signup"),
     path("signup/recruiter/", views.recruiter_signup, name="recruiter_signup"),
 
-    #Universal profile
+    # Universal profile
     path("profile/", views.profile_view, name="profile"),
 ]
 

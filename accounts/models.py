@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class JobSeekerProfile(models.Model):
+    # Privacy choices for profile visibility
+    PRIVACY_CHOICES = [
+        ('public', 'Visible to All Employers and Job Seekers'),
+        ('employers_only', 'Visible to Employers Only'),
+        ('private', 'Visible to Me Only'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     headline = models.CharField(max_length=255, blank=True)
     skills = models.TextField(blank=True)

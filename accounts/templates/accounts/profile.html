@@ -93,10 +93,21 @@
       <h2><i class="fas fa-user-shield"></i> Privacy Settings</h2>
     </div>
     <div class="section-content">
-      <form method="post" action="{% url 'update_privacy_settings' %}">
+      <form method="post" action="{% url 'accounts:profile' %}">
         {% csrf_token %}
 
         <div class="privacy-option">
+          <label>
+            <input type="radio" name="privacy" value="public"
+                   {% if profile.privacy == "public" %}checked{% endif %}>
+            <strong>Public</strong><br>
+            <span class="text-sm text-gray-600">
+              You'll be visible to all employers and other job seekers being able to receive messages from everyone.
+            </span>
+          </label>
+        </div>
+
+        <div class="privacy-option" style="margin-top: 1rem;">
           <label>
             <input type="radio" name="privacy" value="employers"
                    {% if profile.privacy == "employers" %}checked{% endif %}>
@@ -115,7 +126,7 @@
             <strong>Private</strong><br>
             <span class="text-sm text-gray-600">
               You'll be able to apply for jobs but won't get contacted by employers.  
-              When you check in with an employer during a career fair, they’ll see your basic info and can message you.
+              When you check in with an employer during a career fair, they'll see your basic info and can message you.
             </span>
           </label>
         </div>

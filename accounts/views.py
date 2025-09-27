@@ -6,6 +6,7 @@ from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
 from django.contrib.auth import logout
 from django.shortcuts import get_object_or_404
 from .models import JobSeekerProfile, RecruiterProfile
+from django.contrib import messages
 
 
 
@@ -56,13 +57,33 @@ def recruiter_signup(request):
 @login_required
 def profile_view(request):
     user = request.user
+    
+    # Handle privacy settings update (POST request)
+    if request.method == 'POST' and 'privacy' in request.POST:
+        privacy_setting = request.POST.get('privacy')
+        
+        if hasattr(user, "jobseekerprofile"):
+            profile = user.jobseekerprofile
+            if privacy_setting in ['employers', 'private']:
+                profile.privacy = privacy_setting
+                profile.save()
+                messages.success(request, 'Privacy settings updated successfully!')
+            else:
+                messages.error(request, 'Invalid privacy setting.')
+        else:
+            messages.error(request, 'Unable to update privacy settings.')
+        
+        return redirect('accounts:profile')
+    
+    # Displays profile
     context = {}
 
     # Detect profile type
     if hasattr(user, "jobseekerprofile"):
         context["profile_type"] = "jobseeker"
         context["profile"] = user.jobseekerprofile
-        context["saved_jobs"] = []  
+        context["saved_jobs"] = []
+
     elif hasattr(user, "recruiterprofile"):
         context["profile_type"] = "recruiter"
         context["profile"] = user.recruiterprofile
@@ -76,3 +97,24 @@ def profile_view(request):
 def logout_view(request):
     logout(request)
     return redirect('accounts:login')  # send them back to login page
+
+# Update privacy settings specifically for JobSeekers
+@login_required
+def update_privacy_settings(request):
+    if request.method == 'POST':
+        privacy_setting = request.POST.get('privacy')
+
+        if hasattr(request.user, 'jobseekerprofile'):
+            profile = request.user.jobseekerprofile
+            if privacy_setting in ['employers', 'private']:
+                profile.privacy = privacy_setting
+                profile.save()
+                messages.success(request, 'Privacy settings updated successfully!')
+            else:
+                messages.error(request, 'Invalid privacy setting.')
+        else:
+            messages.error(request, 'Profile not found.')
+        
+        return redirect('accounts:profile')
+    
+    return redirect('accounts:profile')
