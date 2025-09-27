@@ -1,14 +1,37 @@
-<h2>Create an Account</h2>
-<p>Choose your role to get started:</p>
+{% load static %}
 
-<div style="margin: 20px 0;">
-  <a href="{% url 'accounts:jobseeker_signup' %}">
-    <button type="button">I’m a Job Seeker</button>
-  </a>
-</div>
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
+</head>
 
-<div>
-  <a href="{% url 'accounts:recruiter_signup' %}">
-    <button type="button">I’m a Recruiter</button>
-  </a>
+<div class="signin-container">
+    <div class="signin-card">
+        <div class="signin-header">
+            <h1>Welcome to GT Job Seekers</h1>
+            <p>Choose your role to get started</p>
+        </div>
+
+        <div class="user-type-selection">
+            <a href="{% url 'accounts:jobseeker_signup' %}" class="user-type-card">
+                <div class="user-type-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-type-title">I'm a Job Seeker</div>
+                <div class="user-type-desc">Find your dream job and advance your career with top companies</div>
+            </a>
+
+            <a href="{% url 'accounts:recruiter_signup' %}" class="user-type-card">
+                <div class="user-type-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="user-type-title">I'm a Recruiter</div>
+                <div class="user-type-desc">Find top talent and build your dream team</div>
+            </a>
+        </div>
+
+        <div class="form-footer">
+            <p>Already have an account? <a href="{% url 'accounts:login' %}">Sign in here</a></p>
+        </div>
+    </div>
 </div>

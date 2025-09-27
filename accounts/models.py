@@ -7,7 +7,7 @@ class JobSeekerProfile(models.Model):
     skills = models.TextField(blank=True)
     education = models.TextField(blank=True)
     work_experience = models.TextField(blank=True)
-    links = models.URLField(blank=True)
+    links = models.URLField(blank=True, null=True)  # <-- make optional
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -18,5 +18,3 @@ class RecruiterProfile(models.Model):
 
     def __str__(self):
         return f"{self.name} (Recruiter)"
-
-#test comment
