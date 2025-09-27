@@ -12,14 +12,14 @@ from .models import JobSeekerProfile, RecruiterProfile
 def signup(request):
     return render(request, "accounts/signup.html")
 
-# ✅ Custom login view that actually logs in and redirects to jobs page
+
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect("/jobs/")  # 👈 Redirect to jobs page
+            return redirect("accounts:profile") 
     else:
         form = AuthenticationForm()
     return render(request, "accounts/login.html", {"form": form})
@@ -40,10 +40,6 @@ def jobseeker_signup(request):
         form = JobSeekerSignUpForm()
     return render(request, "accounts/jobseeker_signup.html", {"form": form})
 
-@login_required
-def view_jobseeker_profile(request):
-    profile = request.user.jobseekerprofile
-    return render(request, "accounts/view_jobseeker_profile.html", {"profile": profile})
 
 # Recruiter signup
 def recruiter_signup(request):
