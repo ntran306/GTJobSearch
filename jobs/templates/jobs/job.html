@@ -4,13 +4,13 @@
 {% block content %}
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ job.name }} | {{ job.company }}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-
     <div class="page-container">
         <!-- Back Navigation -->
         <div class="back-nav">
@@ -53,10 +53,8 @@
                         <img src="{{ job.image.url }}" alt="{{ job.company }} Logo">
                     {% else %}
                         <div class="no-logo">
-                            <div>
-                                <i class="fas fa-building" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                                <br>{{ job.company }}
-                            </div>
+                            <i class="fas fa-building" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <br>{{ job.company }}
                         </div>
                     {% endif %}
                 </div>
@@ -109,7 +107,7 @@
                                     <i class="fas fa-heart"></i>
                                     Save Job
                                 </button>
-                                <button class="share-btn">
+                                <button class="share-btn" onclick="shareJob('{{ job.name }}', '{{ job.company }}')">
                                     <i class="fas fa-share"></i>
                                     Share Job
                                 </button>
@@ -120,12 +118,30 @@
             </div>
         </div>
 
-        <!-- Similar Jobs Section (placeholder) -->
+        <!-- Similar Jobs Section -->
         <div class="similar-jobs">
             <h3><i class="fas fa-lightbulb"></i> You Might Also Like</h3>
             <p style="text-align: center; color: #718096;">Similar job recommendations coming soon...</p>
         </div>
     </div>
 
+    <script>
+        // JavaScript function for share functionality
+        function shareJob(jobName, companyName) {
+            // Simple share functionality
+            if (navigator.share) {
+                navigator.share({
+                    title: jobName + ' at ' + companyName,
+                    text: 'Check out this job opportunity: ' + jobName + ' at ' + companyName,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copy URL to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Job URL copied to clipboard!');
+                });
+            }
+        }
+    </script>
 </body>
 {% endblock content %}
