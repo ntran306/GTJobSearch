@@ -33,7 +33,7 @@
       <p class="text-sm text-gray-600">
         <i class="fas fa-calendar-alt"></i> Member since {{ user.date_joined|date:"F Y" }}
       </p>
-      <a href="#" class="btn btn-primary btn-sm">Edit Profile</a>
+      <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary btn-sm">Edit Profile</a>
     </div>
   </section>
 

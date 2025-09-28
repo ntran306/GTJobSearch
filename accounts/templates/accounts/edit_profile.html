@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block nav_profile %}active{% endblock %}
+{% block title %}Edit Profile | GT Job Search{% endblock %}
+
+{% block content %}
+<div class="container profile-page">
+
+  <form method="post" enctype="multipart/form-data" class="edit-profile-form">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="form-errors">
+        <p>Please correct the errors below:</p>
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <!-- Profile Header -->
+    <section class="profile-card profile-header">
+      <div class="profile-avatar centered-avatar">
+        <div class="avatar-placeholder">
+          {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="{{ user.username }}'s avatar" class="avatar-img">
+          {% else %}
+            <i class="fas fa-user avatar-icon"></i>
+          {% endif %}
+        </div>
+
+        {% if form.avatar %}
+          <div class="avatar-input">
+            <!-- label triggers the hidden file input (we hide the native file input with CSS) -->
+            <label for="{{ form.avatar.id_for_label }}" class="btn btn-outline btn-sm">Change Photo</label>
+            {{ form.avatar }}
+            {% if form.avatar.errors %}
+              <span class="error-message">{{ form.avatar.errors|striptags }}</span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="profile-info">
+        <h1 class="profile-name">Edit Profile</h1>
+        <p class="text-sm text-gray-600">Update your details below</p>
+      </div>
+    </section>
+
+    <!-- Headline -->
+    {% if form.headline %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-user-tag"></i> Headline</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.headline.label_tag }}
+          {{ form.headline }}
+          {% if form.headline.errors %}<span class="error-message">{{ form.headline.errors|striptags }}</span>{% endif %}
+          {% if form.headline.help_text %}<span class="help-text">{{ form.headline.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Skills -->
+    {% if form.skills %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-tools"></i> Skills</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.skills.label_tag }}
+          {{ form.skills }}
+          {% if form.skills.errors %}<span class="error-message">{{ form.skills.errors|striptags }}</span>{% endif %}
+          {% if form.skills.help_text %}<span class="help-text">{{ form.skills.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Education -->
+    {% if form.education %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.education.label_tag }}
+          {{ form.education }}
+          {% if form.education.errors %}<span class="error-message">{{ form.education.errors|striptags }}</span>{% endif %}
+          {% if form.education.help_text %}<span class="help-text">{{ form.education.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Work Experience -->
+    {% if form.work_experience %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.work_experience.label_tag }}
+          {{ form.work_experience }}
+          {% if form.work_experience.errors %}<span class="error-message">{{ form.work_experience.errors|striptags }}</span>{% endif %}
+          {% if form.work_experience.help_text %}<span class="help-text">{{ form.work_experience.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Links -->
+    {% if form.links %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-link"></i> Links</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.links.label_tag }}
+          {{ form.links }}
+          {% if form.links.errors %}<span class="error-message">{{ form.links.errors|striptags }}</span>{% endif %}
+          {% if form.links.help_text %}<span class="help-text">{{ form.links.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Submit -->
+    <div class="form-actions" style="margin: 1.25rem 0;">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
