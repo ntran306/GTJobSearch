@@ -1617,30 +1617,6 @@ footer {
     color: #667eea;
 }
 
-/* Back Button */
-.back-nav {
-    margin-bottom: 2rem;
-}
-
-.back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    background: white;
-    border: 1px solid #e2e8f0;
-}
-
-.back-btn:hover {
-    background: #f7fafc;
-    text-decoration: none;
-    color: #667eea;
-}
 
 /* status css */
 
@@ -1652,11 +1628,127 @@ footer {
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
 }
+.status-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
 .status-step {
     text-align: center;
     flex: 1;
     opacity: 0.5;
 }
+.status-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+.status-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.status-header p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+.status-selector {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    background: #f7fafc;
+    font-family: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.5rem;
+    padding-right: 3rem;
+}
+
+.status-selector:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.status-preview {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid #667eea;
+}
+
+.status-preview h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-applied { background: #e6f3ff; color: #0066cc; }
+.status-interview { background: #fff4e6; color: #cc6600; }
+.status-review { background: #f0e6ff; color: #6600cc; }
+.status-offer { background: #e6ffe6; color: #00cc00; }
+.status-rejected { background: #ffe6e6; color: #cc0000; }
+
+.update-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.update-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 1rem;
+    }
+    
+    .status-header {
+        padding: 1.5rem;
+    }
+    
+    .status-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .status-form {
+        padding: 1.5rem;
+    }
+}
+
 .status-step.active {
     color: #3182ce;
     font-weight: bold;
@@ -1722,4 +1814,268 @@ footer {
 
 .dropdown-checklist .arrow {
   font-size: 12px;
+}
+
+
+
+/* ========================================
+   APPLICAITON STATUS PAGE
+   ======================================== */
+
+   .applications-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #718096;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.applications-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.container-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.container-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.applications-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.applications-table thead {
+    background: #f7fafc;
+}
+
+.applications-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.applications-table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.applications-table tr {
+    transition: background-color 0.2s ease;
+}
+
+.applications-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.job-title-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.job-title-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.company-name {
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-applied { background: #e6f3ff; color: #0066cc; }
+.status-interview { background: #fff4e6; color: #cc6600; }
+.status-review { background: #f0e6ff; color: #6600cc; }
+.status-offer { background: #e6ffe6; color: #00cc00; }
+.status-rejected { background: #ffe6e6; color: #cc0000; }
+
+.date-applied {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.view-btn {
+    background: #f7fafc;
+    color: #4a5568;
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.view-btn:hover {
+    background: #edf2f7;
+    text-decoration: none;
+    color: #2d3748;
+}
+
+.no-applications {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #718096;
+}
+
+.no-applications i {
+    font-size: 3rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+}
+
+.no-applications h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+}
+
+.browse-jobs-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.browse-jobs-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 1rem;
+    }
+    
+    .applications-table {
+        font-size: 0.9rem;
+    }
+    
+    .applications-table th,
+    .applications-table td {
+        padding: 0.75rem 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .container-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+
+/* ========================================
+   STATUS TRACKER JOBS PAGE BUTTONS
+   ======================================== */
+
+
+.my-applications-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    max-width:18rem;
+    text-align:center;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.my-applications-btn-container {
+    display: flex;
+    justify-content: center; /* centers horizontally */
+    margin-bottom: 1.5rem;
+}
+
+
+.my-applications-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tracker-button-container {
+        position: static;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .page-header {
+        position: static;
+    }
 }

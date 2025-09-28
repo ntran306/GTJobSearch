@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ job.name }} | {{ job.company }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+<div class="page-container">
+    <!-- Back Navigation -->
+    <div class="back-nav">
+        <a href="{% url 'applications:view_applications' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Applications
+        </a>
+    </div>
+
+    <div class="status-card">
+        <!-- Header -->
+        <div class="status-header">
+            <h1><i class="fas fa-edit"></i> Update Application Status</h1>
+            <p>{{ application.job.name }} at {{ application.job.company }}</p>
+        </div>
+
+        <!-- Form -->
+        <div class="status-form">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="status">
+                        <i class="fas fa-tasks"></i> Application Status
+                    </label>
+                    <select name="status" id="status" class="status-selector">
+                        {% for value, label in application.STATUS_CHOICES %}
+                            <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status Preview -->
+                <div class="status-preview">
+                    <h3>Current Status:</h3>
+                    <span class="status-badge status-{{ application.status }}">
+                        <i class="fas fa-circle"></i>
+                        {{ application.get_status_display }}
+                    </span>
+                </div>
+
+                <button type="submit" class="update-btn">
+                    <i class="fas fa-save"></i>
+                    Update Status
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+
+{% endblock %}
