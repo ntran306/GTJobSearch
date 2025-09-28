@@ -2,11 +2,17 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import JobSeekerProfile, RecruiterProfile
+from jobs.models import Skill
 
 class JobSeekerSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
     headline = forms.CharField(max_length=255)
-    skills = forms.CharField(widget=forms.Textarea)
+    skills = forms.ModelMultipleChoiceField(
+        queryset=Skill.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text="Select the skills you have (you can select multiple)"
+    )
     education = forms.CharField(widget=forms.Textarea)
     work_experience = forms.CharField(widget=forms.Textarea)
     links = forms.URLField(required=False)
@@ -23,14 +29,16 @@ class JobSeekerSignUpForm(UserCreationForm):
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
-            JobSeekerProfile.objects.create(
+            profile = JobSeekerProfile.objects.create(
                 user=user,
                 headline=self.cleaned_data["headline"],
-                skills=self.cleaned_data["skills"],
                 education=self.cleaned_data["education"],
                 work_experience=self.cleaned_data["work_experience"],
                 links=self.cleaned_data["links"],
             )
+            # Then set the many-to-many skills relationship
+            if self.cleaned_data.get('skills'):
+                profile.skills.set(self.cleaned_data['skills'])
         return user
 
 class RecruiterSignUpForm(UserCreationForm):
@@ -53,6 +61,13 @@ class RecruiterSignUpForm(UserCreationForm):
         return user
     
 class JobSeekerProfileForm(forms.ModelForm):
+    skills = forms.ModelMultipleChoiceField(
+        queryset=Skill.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text="Select the skills you have"
+    )
+
     class Meta:
         model = JobSeekerProfile
         fields = ['headline', 'skills', 'education', 'work_experience', 'links']
@@ -61,6 +76,9 @@ class JobSeekerProfileForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         for name, field in self.fields.items():
+            if name == 'skills':
+                continue
+            
             existing = field.widget.attrs.get('class', "")
             classes = (existing + " form-input").strip()
             field.widget.attrs['class'] = classes

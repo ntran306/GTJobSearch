@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="applications-container">
+    <h1>Your Applications</h1>
+
+    {% if applications %}
+        <table class="applications-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Applied On</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'jobs:show' app.job.id %}">
+                                {{ app.job.name }}
+                            </a>
+                        </td>
+                        <td>{{ app.job.company }}</td>
+                        <td>{{ app.get_status_display }}</td>
+                        <td>{{ app.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You haven’t applied for any jobs yet.</p>
+    {% endif %}
+</div>
+
+<style>
+.applications-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.applications-container h1 {
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    color: #2d3748;
+}
+.applications-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.applications-table th, .applications-table td {
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem;
+    text-align: left;
+}
+.applications-table th {
+    background: #f7fafc;
+}
+.applications-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+</style>
+{% endblock %}
