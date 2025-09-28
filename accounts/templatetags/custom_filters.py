@@ -3,8 +3,17 @@ from django import template
 register = template.Library()
 
 @register.filter
-def split(value, delimiter=","):
-    """Split a string by delimiter and return a list."""
-    if value:
-        return [item.strip() for item in value.split(delimiter)]
-    return []
+def split(value, delimiter=','):
+    """
+    Split a string by delimiter, or return queryset items for many-to-many fields
+    """
+    # If it's a ManyRelatedManager (many-to-many field), return all items
+    if hasattr(value, 'all'):
+        return value.all()
+    
+    # If it's a string, split it
+    if isinstance(value, str):
+        return value.split(delimiter)
+    
+    # Otherwise return as-is
+    return value
