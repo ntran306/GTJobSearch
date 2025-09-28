@@ -5,8 +5,6 @@ import requests
 from decimal import Decimal
 from .utils import haversine
 
-<<<<<<< HEAD
-=======
 # Predefined skills list
 PREDEFINED_SKILLS = [
     # Programming Languages
@@ -45,12 +43,12 @@ PREDEFINED_SKILLS = [
 ]
 
 # Will try to make it nicer and more flexible in terms of salary filtering
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e
 PAY_TYPE_CHOICES = [
     ('annual', 'Annual'),
     ('hourly', 'Hourly'),
     ('monthly', 'Monthly'),
 ]
+
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, blank=True)  # Optional categorization
@@ -83,17 +81,11 @@ class Job(models.Model):
     pay_max = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     pay_type = models.CharField(max_length=20, choices=PAY_TYPE_CHOICES, default='annual')
     description = models.TextField()
-<<<<<<< HEAD
     image = models.ImageField(upload_to='job_images/', blank=True, null=True)
-
-    objects = JobQuerySet.as_manager()
-
-=======
-    image = models.ImageField(upload_to='job_images/', blank=True, null=True)  # allow optional images
     required_skills = models.ManyToManyField(Skill, blank=True, related_name='jobs_requiring')
     preferred_skills = models.ManyToManyField(Skill, blank=True, related_name='jobs_preferring')
+    objects = JobQuerySet.as_manager()
     
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e
     def __str__(self):
         return str(self.id) + " - " + self.name + " | " + self.company
 

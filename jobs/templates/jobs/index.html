@@ -56,6 +56,22 @@
             <i class="fas fa-search"></i>
             Search Jobs
         </button>
+
+        <div class="dropdown-checklist">
+            <div class="dropdown-header" onclick="toggleDropdown()">
+                <i class="fas fa-tools"></i> Filter by Skills
+                <span class="arrow">&#9662;</span>
+            </div>
+            <div id="skillsDropdown" class="dropdown-list" style="display: none;">
+                {% for skill in all_skills %}
+                <label class="dropdown-item">
+                    <input type="checkbox" name="skills" value="{{ skill.name }}"
+                        {% if skill.name in selected_skills %}checked{% endif %}>
+                    {{ skill.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
     </form>
 
     <!-- Results Header -->
@@ -71,56 +87,6 @@
                 <option value="salary_high">Highest Salary</option>
                 <option value="salary_low">Lowest Salary</option>
             </select>
-<<<<<<< HEAD
-=======
-
-            <input type="number" 
-                name="min_salary" 
-                placeholder="Min salary" 
-                value="{{ request.GET.min_salary }}">
-            
-            <input type="number" 
-                name="max_salary" 
-                placeholder="Max salary" 
-                value="{{ request.GET.max_salary }}">
-
-            <div class="dropdown-checklist">
-                <div class="dropdown-header" onclick="toggleDropdown()">
-                    <i class="fas fa-tools"></i> Filter by Skills
-                    <span class="arrow">&#9662;</span>
-                </div>
-                <div id="skillsDropdown" class="dropdown-list" style="display: none;">
-                    {% for skill in all_skills %}
-                    <label class="dropdown-item">
-                        <input type="checkbox" name="skills" value="{{ skill.name }}"
-                            {% if skill.name in selected_skills %}checked{% endif %}>
-                        {{ skill.name }}
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <button type="submit" class="search-btn">
-                <i class="fas fa-search"></i>
-                Search Jobs
-            </button>
-        </form>
-
-        <!-- Results Header -->
-        <div class="results-header">
-            <div class="results-count">
-                <i class="fas fa-list"></i>
-                {{ jobs|length }} job{{ jobs|length|pluralize }} found
-            </div>
-            <div class="sort-options">
-                <select onchange="this.form.submit()" name="sort">
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="salary_high">Highest Salary</option>
-                    <option value="salary_low">Lowest Salary</option>
-                </select>
-            </div>
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e
         </div>
     </div>
 
@@ -184,14 +150,12 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- Google Maps API + Autocomplete -->
 <script>
   const jobMarkers = JSON.parse('{{ job_markers_json|escapejs }}');
   let map;
 
   window.initAutocomplete = function () {
-    // Autocomplete setup
     const input = document.getElementById("location-input");
     const autocomplete = new google.maps.places.Autocomplete(input);
     autocomplete.setFields(["geometry", "formatted_address"]);
@@ -208,13 +172,11 @@
       }
     });
 
-    // Create the map
     map = new google.maps.Map(document.getElementById("map"), {
       zoom: 4,
       center: { lat: 39.8283, lng: -98.5795 }
     });
 
-    // Add markers
     const bounds = new google.maps.LatLngBounds();
 
     jobMarkers.forEach((md) => {
@@ -254,6 +216,11 @@
       card.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
+
+  function toggleDropdown() {
+    const dropdown = document.getElementById("skillsDropdown");
+    dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
+  }
 </script>
 
 <script
@@ -261,13 +228,3 @@
   async defer>
 </script>
 {% endblock %}
-=======
-    <script>
-        function toggleDropdown() {
-        const dropdown = document.getElementById("skillsDropdown");
-        dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
-        }
-    </script>
-</body>
-{% endblock %}
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e

@@ -1,26 +1,17 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
-<<<<<<< HEAD
 from django.conf import settings
-from .models import Job
+from .models import Job, Skill
 from .utils import haversine
 from django.core.serializers.json import DjangoJSONEncoder
-import math, json
+import json
 
 def index(request):
-=======
-from .models import Job, Skill
-
-
-def index(request):
-    search_term = request.GET.get("search")
     pay_type = request.GET.get("pay_type")
     min_salary = request.GET.get("min_salary")
     max_salary = request.GET.get("max_salary")
-    location = request.GET.get("location")
     skills_filter = request.GET.getlist('skills')  # Get skills filter
 
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e
     jobs = Job.objects.all()
 
     # name and company filter
@@ -47,20 +38,6 @@ def index(request):
         except ValueError:
             pass
 
-    # radius and location filter
-    radius = request.GET.get("radius")
-    lat = request.GET.get("lat")
-    lng = request.GET.get("lng")
-
-<<<<<<< HEAD
-    lat_f = lng_f = radius_f = None
-    if radius and lat and lng:
-        try:
-            radius_f = float(radius)
-            lat_f = float(lat)
-            lng_f = float(lng)
-            jobs = jobs.filter_within_radius(lat_f, lng_f, radius_f)
-=======
     # Filter by skills
     if skills_filter and skills_filter != ['']:
         jobs = jobs.filter(
@@ -71,12 +48,18 @@ def index(request):
     # Get all skills for the dropdown
     all_skills = Skill.objects.all().order_by('name')
 
-    return render(request, "jobs/index.html", {
-        "jobs": jobs,
-        "all_skills": all_skills,
-        "selected_skills": skills_filter
-    })
->>>>>>> 97309239c08880cabd6c8637f309242bd48fa57e
+    # radius and location filter
+    radius = request.GET.get("radius")
+    lat = request.GET.get("lat")
+    lng = request.GET.get("lng")
+
+    lat_f = lng_f = radius_f = None
+    if radius and lat and lng:
+        try:
+            radius_f = float(radius)
+            lat_f = float(lat)
+            lng_f = float(lng)
+            jobs = jobs.filter_within_radius(lat_f, lng_f, radius_f)
 
             # calculate distance for each job
             for job in jobs:
@@ -110,6 +93,8 @@ def index(request):
 
     return render(request, "jobs/index.html", {
         "jobs": jobs,
+        "all_skills": all_skills,
+        "selected_skills": skills_filter,
         "job_markers_json": job_markers_json,
         "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
     })
