@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -136,3 +138,6 @@ MEDIA_URL = '/media/'
 LOGIN_REDIRECT_URL = 'accounts:profile'   # login redirect to jobs page
 LOGOUT_REDIRECT_URL = '/accounts/login/'  # logout redirect to login page
 LOGIN_URL = '/accounts/login/'
+
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+GOOGLE_MAPS_SERVER_KEY = os.environ.get("GOOGLE_MAPS_SERVER_KEY")
