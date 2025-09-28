@@ -37,6 +37,11 @@
                             <a href="{% url 'jobs:index' %}" class="{% block nav_jobs %}{% endblock %}">Jobs</a>
                         </li>
 
+                        <!-- Applications -->
+                        <li>
+                            <a href="{% url 'applications:view_applications' %}" class="{% block nav_applications %}{% endblock %}">Applications</a>
+                        </li>
+
                         <!-- Logout -->
                         <li>
                             <a href="{% url 'accounts:logout' %}" class="{% block nav_logout %}{% endblock %}">Logout</a>
