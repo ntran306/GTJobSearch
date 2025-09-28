@@ -1054,6 +1054,244 @@ footer {
     font-size: 1.2rem;
 }
 
+/* Added Job Page Stuff */
+.job-container {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-2xl);
+    margin-top: var(--space-lg);
+}
+
+/* Header */
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    gap: 2rem;
+}
+
+.job-header-info {
+    flex: 1;
+}
+
+.job-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.company-name {
+    font-size: 1.25rem;
+    color: var(--gray-600);
+    margin-bottom: var(--space-md);
+}
+
+.job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: var(--space-md);
+}
+
+.job-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-600);
+    font-size: 0.95rem;
+}
+
+.job-salary-highlight {
+    background: var(--primary-50);
+    border: 1px solid var(--primary-100);
+    color: var(--primary-700);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-lg);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Company Logo & Default/Placeholder */
+.job-logo {
+    width: 160px;
+    height: 160px;
+    border-radius: var(--radius-lg);
+    background: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-md);
+}
+
+.job-logo img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.no-logo {
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 0.85rem;
+}
+
+/* Job Content Layout */
+.job-content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.job-section {
+    margin-bottom: var(--space-xl);
+}
+
+.job-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: var(--gray-800);
+}
+
+.job-description {
+    line-height: 1.7;
+    color: var(--gray-700);
+}
+
+/* Sidebar */
+.job-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.sidebar-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar-card h4 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-md);
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.job-details-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.job-details-list .detail-label {
+    font-weight: 600;
+    color: var(--gray-600);
+    display: block;
+}
+
+.job-details-list .detail-value {
+    color: var(--gray-800);
+    font-size: 0.95rem;
+}
+
+/* Action Buttons */
+.job-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.job-actions button {
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.apply-btn {
+    background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+    color: white;
+}
+
+.apply-btn:hover {
+    background: linear-gradient(135deg, var(--primary-700), var(--secondary-700));
+}
+
+.save-btn {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.save-btn:hover {
+    background: var(--gray-200);
+}
+
+.share-btn {
+    background: var(--primary-50);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-100);
+}
+
+.share-btn:hover {
+    background: var(--primary-100);
+}
+
+/* Similar Jobs */
+.similar-jobs {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.similar-jobs h3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--space-md);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+@media (max-width: 992px) {
+    .job-content-grid {
+        grid-template-columns: 1fr;
+    }
+    .job-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .job-logo {
+        margin-top: var(--space-md);
+    }
+}
+
 /* Filter Form */
 .filter-form {
     background: white;
