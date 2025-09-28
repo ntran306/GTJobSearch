@@ -21,6 +21,7 @@ urlpatterns = [
     path("jobs/", include("jobs.urls")),
     path("jobseeker/home", jobseeker_home, name="jobseeker_home"),
     path("recruiter/home", recruiter_home, name="recruiter_home"),
+    path("applications/", include("applications.urls", namespace="applications")),
 ]
 
 if settings.DEBUG:
