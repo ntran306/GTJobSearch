@@ -52,4 +52,43 @@ class RecruiterSignUpForm(UserCreationForm):
             )
         return user
     
-    
+class JobSeekerProfileForm(forms.ModelForm):
+    class Meta:
+        model = JobSeekerProfile
+        fields = ['headline', 'skills', 'education', 'work_experience', 'links']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', "")
+            classes = (existing + " form-input").strip()
+            field.widget.attrs['class'] = classes
+
+            if isinstance(field.widget, forms.widgets.Textarea):
+                field.widget.attrs.setdefault('rows', 5)
+                field.widget.attrs.setdefault('style', 'min-height:100px;')
+
+            if not field.widget.attrs.get('placeholder'):
+                field.widget.attrs['placeholder'] = field.label if field.label else ""
+
+
+class RecruiterProfileForm(forms.ModelForm):
+    class Meta:
+        model = RecruiterProfile
+        fields = ['name', 'company', 'website', 'description']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', "")
+            classes = (existing + " form-input").strip()
+            field.widget.attrs['class'] = classes
+
+            if isinstance(field.widget, forms.widgets.Textarea):
+                field.widget.attrs.setdefault('rows', 5)
+                field.widget.attrs.setdefault('style', 'min-height:100px;')
+
+            if not field.widget.attrs.get('placeholder'):
+                field.widget.attrs['placeholder'] = field.label if field.label else ""

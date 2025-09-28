@@ -6,7 +6,7 @@ from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
 from django.contrib.auth import logout
 from django.shortcuts import get_object_or_404
 from .models import JobSeekerProfile, RecruiterProfile
-from django.contrib import messages
+from .forms import JobSeekerProfileForm, RecruiterProfileForm, JobSeekerSignUpForm, RecruiterSignUpForm
 
 
 
@@ -64,21 +64,15 @@ def profile_view(request):
         
         if hasattr(user, "jobseekerprofile"):
             profile = user.jobseekerprofile
-            if privacy_setting in ['employers', 'private']:
+            if privacy_setting in ['public','employers', 'private']:
                 profile.privacy = privacy_setting
                 profile.save()
-                messages.success(request, 'Privacy settings updated successfully!')
-            else:
-                messages.error(request, 'Invalid privacy setting.')
-        else:
-            messages.error(request, 'Unable to update privacy settings.')
         
         return redirect('accounts:profile')
-    
-    # Displays profile
     context = {}
-
-    # Detect profile type
+    
+    # Displays profile & account type
+    context = {}
     if hasattr(user, "jobseekerprofile"):
         context["profile_type"] = "jobseeker"
         context["profile"] = user.jobseekerprofile
@@ -106,15 +100,34 @@ def update_privacy_settings(request):
 
         if hasattr(request.user, 'jobseekerprofile'):
             profile = request.user.jobseekerprofile
-            if privacy_setting in ['employers', 'private']:
+            if privacy_setting in ['public','employers', 'private']:
                 profile.privacy = privacy_setting
                 profile.save()
-                messages.success(request, 'Privacy settings updated successfully!')
-            else:
-                messages.error(request, 'Invalid privacy setting.')
-        else:
-            messages.error(request, 'Profile not found.')
         
         return redirect('accounts:profile')
     
     return redirect('accounts:profile')
+
+# Ability to edit profile (currently still separate from update privacy settings so can be fixed later)
+@login_required
+def edit_profile(request):
+    user = request.user
+
+    if hasattr(user, "jobseekerprofile"):
+        profile = user.jobseekerprofile
+        form_class = JobSeekerProfileForm
+    elif hasattr(user, "recruiterprofile"):
+        profile = user.recruiterprofile
+        form_class = RecruiterProfileForm
+    else:
+        return redirect("accounts:profile")  # fallback if no profile
+
+    if request.method == "POST":
+        form = form_class(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("accounts:profile")
+    else:
+        form = form_class(instance=profile)
+
+    return render(request, "accounts/edit_profile.html", {"form": form})
