@@ -113,10 +113,10 @@
                         <!-- Action Buttons -->
                         <div class="sidebar-card">
                             <div class="job-actions">
-                                <button class="apply-btn">
+                                <a href="{% url 'applications:apply_to_job' job.id %}" class="apply-btn">
                                     <i class="fas fa-paper-plane"></i>
                                     Apply Now
-                                </button>
+                                </a>
                                 <button class="save-btn">
                                     <i class="fas fa-heart"></i>
                                     Save Job
