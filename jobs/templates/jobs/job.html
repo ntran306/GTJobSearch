@@ -44,7 +44,15 @@
                     
                     <div class="job-salary-highlight">
                         <i class="fas fa-dollar-sign"></i>
-                        ${{ job.pay_min }} – ${{ job.pay_max }} ({{ job.get_pay_type_display }})
+                        {% if job.pay_min and job.pay_max %}
+                            ${{ job.pay_min }} – ${{ job.pay_max }}
+                        {% elif job.pay_min %}
+                            From ${{ job.pay_min }}
+                        {% elif job.pay_max %}
+                            Up to ${{ job.pay_max }}
+                        {% else %}
+                            Salary not specified
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -79,11 +87,17 @@
                             <ul class="job-details-list">
                                 <li>
                                     <span class="detail-label">Salary Range</span>
-                                    <span class="detail-value">${{ job.pay_min }} - ${{ job.pay_max }}</span>
-                                </li>
-                                <li>
-                                    <span class="detail-label">Pay Type</span>
-                                    <span class="detail-value">{{ job.get_pay_type_display }}</span>
+                                    <span class="detail-value">
+                                        {% if job.pay_min and job.pay_max %}
+                                            ${{ job.pay_min }} - ${{ job.pay_max }}
+                                        {% elif job.pay_min %}
+                                            From ${{ job.pay_min }}
+                                        {% elif job.pay_max %}
+                                            Up to ${{ job.pay_max }}
+                                        {% else %}
+                                            Not specified
+                                        {% endif %}
+                                    </span>
                                 </li>
                                 <li>
                                     <span class="detail-label">Location</span>
@@ -107,7 +121,7 @@
                                     <i class="fas fa-heart"></i>
                                     Save Job
                                 </button>
-                                <button class="share-btn" onclick="shareJob('{{ job.name }}', '{{ job.company }}')">
+                                <button class="share-btn" onclick="shareJob('{{ job.name|escapejs }}', '{{ job.company|escapejs }}')">
                                     <i class="fas fa-share"></i>
                                     Share Job
                                 </button>
@@ -126,9 +140,7 @@
     </div>
 
     <script>
-        // JavaScript function for share functionality
         function shareJob(jobName, companyName) {
-            // Simple share functionality
             if (navigator.share) {
                 navigator.share({
                     title: jobName + ' at ' + companyName,
@@ -136,7 +148,6 @@
                     url: window.location.href
                 });
             } else {
-                // Fallback: copy URL to clipboard
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     alert('Job URL copied to clipboard!');
                 });

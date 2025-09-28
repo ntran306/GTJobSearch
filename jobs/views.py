@@ -33,4 +33,4 @@ def index(request):
 
 def show(request, id):
     job = get_object_or_404(Job, id=id)
-    return render(request, "jobs/jobs.html", {"job": job})
+    return render(request, "jobs/job.html", {"job": job})
