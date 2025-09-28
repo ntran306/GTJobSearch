@@ -38,6 +38,11 @@ def index(request):
         except ValueError:
             pass
 
+    # visa sponsorship filter
+    visa = request.GET.get("visa")  # could be "on" if checkbox is checked
+    if visa == "on":
+        jobs = jobs.filter(visa_sponsorship=True)
+
     # Filter by skills
     if skills_filter and skills_filter != ['']:
         jobs = jobs.filter(
