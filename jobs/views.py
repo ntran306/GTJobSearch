@@ -96,6 +96,21 @@ def index(request):
 
     job_markers_json = json.dumps(job_markers, cls=DjangoJSONEncoder)
 
+    # Count user's applications if logged in
+    user_application_count = 0
+    if request.user.is_authenticated:
+        from applications.models import Application
+        user_application_count = Application.objects.filter(user=request.user).count()
+    
+    return render(request, "jobs/index.html", {
+        "jobs": jobs,
+        "all_skills": all_skills,
+        "selected_skills": skills_filter,
+        "job_markers_json": job_markers_json,
+        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
+        "user_application_count": user_application_count,  # Add this
+    })
+
     return render(request, "jobs/index.html", {
         "jobs": jobs,
         "all_skills": all_skills,

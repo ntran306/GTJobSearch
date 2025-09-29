@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import JobSeekerProfile, RecruiterProfile
 from jobs.models import Skill
+from .models import JobSeekerProfile
+
 
 class JobSeekerSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -67,7 +69,6 @@ class JobSeekerProfileForm(forms.ModelForm):
         required=False,
         help_text="Select the skills you have"
     )
-
     class Meta:
         model = JobSeekerProfile
         fields = ['headline', 'skills', 'education', 'work_experience', 'links']
