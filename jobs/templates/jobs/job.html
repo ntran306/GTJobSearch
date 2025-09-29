@@ -144,10 +144,10 @@
                         <!-- Action Buttons -->
                         <div class="sidebar-card">
                             <div class="job-actions">
-                                <a href="{% url 'applications:apply_to_job' job.id %}" class="apply-btn">
+                                <button class="apply-btn" onclick="showApplicationNote({{ job.id }})">
                                     <i class="fas fa-paper-plane"></i>
                                     Apply Now
-                                </a>
+                                </button>
                                 <button class="save-btn">
                                     <i class="fas fa-heart"></i>
                                     Save Job
@@ -185,5 +185,66 @@
             }
         }
     </script>
+    <div id="applicationModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Write a personalized note for your application</h3>
+            <textarea id="applicationNote" rows="5" cols="50" placeholder="Type your message here..."></textarea>
+            <br>
+            <button onclick="submitApplication()">Submit</button>
+        </div>
+    </div>
+
+    <style>
+    .modal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+    }
+    .close {
+        float: right;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    textarea {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    </style>
+    <script>
+    let currentJobId = null;
+
+    function showApplicationNote(jobId) {
+        currentJobId = jobId;
+        document.getElementById('applicationModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('applicationModal').style.display = 'none';
+        document.getElementById('applicationNote').value = ""; // clear note
+    }
+
+    function submitApplication() {
+        const note = document.getElementById('applicationNote').value;
+        console.log("Note for job", currentJobId, ":", note); // just logs for now
+
+        // Redirect to your apply URL
+        window.location.href = `/applications/apply/${currentJobId}/`;
+
+        closeModal();
+    }
+    </script>
+
 </body>
 {% endblock content %}

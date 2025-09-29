@@ -108,15 +108,7 @@ def index(request):
         "selected_skills": skills_filter,
         "job_markers_json": job_markers_json,
         "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
-        "user_application_count": user_application_count,  # Add this
-    })
-
-    return render(request, "jobs/index.html", {
-        "jobs": jobs,
-        "all_skills": all_skills,
-        "selected_skills": skills_filter,
-        "job_markers_json": job_markers_json,
-        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
+        "user_application_count": user_application_count,
     })
 
 def show(request, id):
