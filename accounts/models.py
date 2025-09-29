@@ -12,7 +12,7 @@ class JobSeekerProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     headline = models.CharField(max_length=255, blank=True)
-    skills = models.ManyToManyField('jobs.Skill', blank=True, help_text="Select your skills")
+    skills = models.ManyToManyField('jobs.Skill', blank=True, related_name='jobseekers')
     education = models.TextField(blank=True)
     work_experience = models.TextField(blank=True)
     links = models.URLField(blank=True, null=True)  # <-- make optional

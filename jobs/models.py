@@ -5,6 +5,7 @@ import requests
 from decimal import Decimal
 from .utils import haversine
 
+
 # Predefined skills list
 PREDEFINED_SKILLS = [
     # Programming Languages
@@ -48,6 +49,8 @@ PAY_TYPE_CHOICES = [
     ('hourly', 'Hourly'),
     ('monthly', 'Monthly'),
 ]
+
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -106,3 +109,4 @@ class Job(models.Model):
             except Exception as e:
                 print(f"Geocoding failed for {self.location}: {e}")
         super().save(*args, **kwargs)
+
