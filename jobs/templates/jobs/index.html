@@ -55,6 +55,12 @@
             placeholder="Max salary" 
             value="{{ request.GET.max_salary }}">
 
+        <!-- Visa Sponsorship Filter -->
+        <label style="margin-left: 10px;">
+            <input type="checkbox" name="visa" {% if request.GET.visa %}checked{% endif %}>
+            Visa Sponsorship
+        </label>
+
         <button type="submit" class="search-btn">
             <i class="fas fa-search"></i>
             Search Jobs

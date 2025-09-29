@@ -77,6 +77,7 @@ class Job(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
+    visa_sponsorship = models.BooleanField(default=False)
     location = models.CharField(max_length=255, default='Remote')
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
