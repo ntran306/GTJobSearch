@@ -50,8 +50,6 @@ PAY_TYPE_CHOICES = [
     ('monthly', 'Monthly'),
 ]
 
-
-
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, blank=True)  # Optional categorization
@@ -96,7 +94,7 @@ class Job(models.Model):
     def save(self, *args, **kwargs):
         if self.location and (not self.latitude or not self.longitude):
             try:
-                api_key = settings.GOOGLE_MAPS_API_KEY
+                api_key = settings.GOOGLE_MAPS_API_KEY_BACKEND
                 url = (
                     f"https://maps.googleapis.com/maps/api/geocode/json"
                     f"?address={self.location}&key={api_key}"
