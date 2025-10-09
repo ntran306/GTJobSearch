@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
 from django.conf import settings
 from .models import Job, Skill
-from .utils import haversine
+from .utils import haversine, batch_road_distance_and_time
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
@@ -14,17 +14,17 @@ def index(request):
 
     jobs = Job.objects.all()
 
-    # name and company filter
+    # Name and company filter
     search = request.GET.get("search")
     if search:
         jobs = jobs.filter(Q(name__icontains=search) | Q(company__icontains=search))
 
-    # pay type filter
+    # Pay type filter
     pay_type = request.GET.get("pay_type")
     if pay_type and pay_type != "all":
         jobs = jobs.filter(pay_type=pay_type)
 
-    # salary filter
+    # Salary filter
     min_salary = request.GET.get("min_salary")
     max_salary = request.GET.get("max_salary")
     if min_salary:
@@ -38,7 +38,7 @@ def index(request):
         except ValueError:
             pass
 
-    # visa sponsorship filter
+    # Visa sponsorship filter
     visa = request.GET.get("visa")  # could be "on" if checkbox is checked
     if visa == "on":
         jobs = jobs.filter(visa_sponsorship=True)
@@ -53,32 +53,90 @@ def index(request):
     # Get all skills for the dropdown
     all_skills = Skill.objects.all().order_by('name')
 
-    # radius and location filter
+    # Radius and location filter (use road distance/time instead of pure haversine)
     radius = request.GET.get("radius")
     lat = request.GET.get("lat")
     lng = request.GET.get("lng")
+    location_text = (request.GET.get("location") or "").strip()
 
-    lat_f = lng_f = radius_f = None
-    if radius and lat and lng:
+    # Remote location mode (typed in location box)
+    remote_tokens = {"remote", "wfh", "work from home", "anywhere", "fully remote", "remote only"}
+    is_remote_search = location_text.lower() in remote_tokens
+
+    # Convert queryset to list so we can attach display-only attributes like road_miles / drive_minutes
+    jobs = list(jobs)
+
+    if is_remote_search:
+        # If your model has a boolean is_remote, include it; otherwise, fall back to location text matches
+        remote_q = (
+            Q(location__icontains="remote") |
+            Q(location__icontains="work from home") |
+            Q(location__icontains="wfh") |
+            Q(location__icontains="anywhere")
+        )
+        if hasattr(Job, "is_remote"):
+            remote_q = Q(is_remote=True) | remote_q
+
+        # Filter the *list* based on queryset membership
+        remote_ids = set(Job.objects.filter(remote_q).values_list("id", flat=True))
+        jobs = [j for j in jobs if j.id in remote_ids]
+
+        # Skip geo/radius logic entirely when remote mode is on
+
+    elif radius and lat and lng:
         try:
+            # Parse numeric inputs
             radius_f = float(radius)
             lat_f = float(lat)
             lng_f = float(lng)
-            jobs = jobs.filter_within_radius(lat_f, lng_f, radius_f)
 
-            # calculate distance for each job
+            # Prefiltering with previous haversine formula (basic radius) to save API calls
+            buffer_radius = radius_f * 1.5
+            candidates = []
             for job in jobs:
-                if job.latitude and job.longitude:
-                    try:
-                        job.distance = round(
-                            haversine(lng_f, lat_f, float(job.longitude), float(job.latitude)), 1
-                        )
-                    except Exception:
-                        job.distance = None
+                if job.latitude is None or job.longitude is None:
+                    continue
+                try:
+                    approx = haversine(lng_f, lat_f, float(job.longitude), float(job.latitude))
+                except Exception:
+                    continue
+                if approx <= buffer_radius:
+                    candidates.append(job)
+
+            # Batch road distance/time for remaining (Google Distance Matrix)
+            dests = [(j.latitude, j.longitude, j.pk) for j in candidates]
+            dm_map = batch_road_distance_and_time(
+                lat_f, lng_f, dests, use_traffic=True, traffic_model="best_guess"
+            )
+
+            # Keep only jobs within the requested road radius; attach values for UI
+            filtered = []
+            for job in candidates:
+                dm = dm_map.get(job.pk)
+                if not dm:
+                    continue
+                road_miles = dm.get("distance_miles")
+                if road_miles is None or road_miles > radius_f:
+                    continue
+
+                minutes = dm.get("duration_in_traffic_minutes") or dm.get("duration_minutes")
+                job.road_miles = round(road_miles, 1)
+                job.drive_minutes = round(minutes) if minutes is not None else None
+                filtered.append(job)
+
+            # Sort by road distance, then by drive minutes
+            filtered.sort(key=lambda x: (
+                getattr(x, "road_miles", 1e9),
+                getattr(x, "drive_minutes", 1e9) if getattr(x, "drive_minutes", None) is not None else 1e9,
+            ))
+
+            jobs = filtered
+
         except ValueError:
+            # if bad inputs, skip commute filtering entirely
             pass
 
-    # markers for map
+    # Markers for map
     job_markers = []
     for job in jobs:
         if job.latitude and job.longitude:
@@ -90,8 +148,11 @@ def index(request):
                 "company": job.company,
                 "location": job.location,
             }
-            if hasattr(job, "distance"):
-                marker["distance"] = job.distance
+            # optionally include road distance/time for future info windows
+            if hasattr(job, "road_miles"):
+                marker["road_miles"] = job.road_miles
+            if hasattr(job, "drive_minutes") and job.drive_minutes is not None:
+                marker["drive_minutes"] = job.drive_minutes
             job_markers.append(marker)
 
     job_markers_json = json.dumps(job_markers, cls=DjangoJSONEncoder)
@@ -117,3 +178,44 @@ def show(request, id):
         "job": job,
         "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
     })
+
+# Now just added ability to view distance/time to job based on actual roadtime not basic radius
+def jobs_by_commute_radius(request):
+    user_lat = float(request.GET.get("lat"))
+    user_lng = float(request.GET.get("lng"))
+    radius_miles = float(request.GET.get("radius_miles", 25))
+
+    # prefiltering with previous haversine formula (basic radius)
+    buffer_radius = radius_miles * 1.5
+    pre = []
+    for job in Job.objects.all():
+        if job.latitude is None or job.longitude is None:
+            continue
+        approx = haversine(user_lng, user_lat, job.longitude, job.latitude)
+        if approx <= buffer_radius:
+            pre.append(job)
+
+    # batch road distance/time for remaining
+    dests = [(j.latitude, j.longitude, j.pk) for j in pre]
+    dm_map = batch_road_distance_and_time(user_lat, user_lng, dests, use_traffic=True, traffic_model="best_guess")
+
+    # filter by road distance
+    results = []
+    for job in pre:
+        dm = dm_map.get(job.pk)
+        if not dm:
+            continue
+        road_miles = dm["distance_miles"]
+        if road_miles is not None and road_miles <= radius_miles:
+            job.road_miles = round(road_miles, 1)
+            minutes = dm["duration_in_traffic_minutes"] or dm["duration_minutes"]
+            job.drive_minutes = round(minutes) if minutes is not None else None
+            results.append(job)
+
+    # Sort by road distance, then minutes
+    results.sort(key=lambda x: (
+        getattr(x, "_road_miles", 1e9),
+        getattr(x, "_drive_minutes", 1e9) if getattr(x, "_drive_minutes", None) is not None else 1e9,
+    ))
+
+    return render(request, "jobs/index.html", {"jobs": results, "user_lat": user_lat, "user_lng": user_lng, "radius_miles": radius_miles})

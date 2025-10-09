@@ -142,3 +142,11 @@ LOGIN_URL = '/accounts/login/'
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 GOOGLE_MAPS_SERVER_KEY = os.environ.get("GOOGLE_MAPS_SERVER_KEY")
 GOOGLE_MAPS_API_KEY_BACKEND = os.environ.get("GOOGLE_GEOCODING_API_KEY")
+
+# Caches for distance matrix
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "gtjobsearch-cache",
+    }
+}

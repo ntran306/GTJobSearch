@@ -115,10 +115,16 @@
                             <i class="fas fa-map-marker-alt"></i>
                             <span>{{ job.location }}</span>
                         </div>
-                        {% if job.distance %}
+                        {% if job.road_miles %}
                         <div class="job-detail-item">
                             <i class="fas fa-road"></i>
-                            <span>{{ job.distance }} miles away</span>
+                            <span>{{ job.road_miles }} miles</span>
+                        </div>
+                        {% endif %}
+                        {% if job.drive_minutes %}
+                        <div class="job-detail-item">
+                            <i class="fas fa-car"></i>
+                            <span>~{{ job.drive_minutes }} min drive</span>
                         </div>
                         {% endif %}
                         <div class="job-detail-item">
@@ -159,16 +165,123 @@
     </div>
 </div>
 
-<!-- Google Maps API + Autocomplete -->
+<!-- Map + pins with same-location dropdown; draw route on pin click; 'More details' only scrolls -->
 <script>
+  /* Data from Django */
   const jobMarkers = JSON.parse('{{ job_markers_json|escapejs }}');
-  let map;
+  const detailUrlTemplate = "{% url 'jobs:show' 0 %}"; // we'll replace 0 with the real id
 
+  /* Globals */
+  let map, infoWindow, directionsService, directionsRenderer;
+
+  /* Helper: consistent key for exact same lat/lng */
+  function locKey(lat, lng) {
+    return `${Number(lat).toFixed(6)},${Number(lng).toFixed(6)}`;
+  }
+
+  /* Group jobs by exact coordinates */
+  const jobsByLocation = (() => {
+    const dict = {};
+    jobMarkers.forEach(j => {
+      const key = locKey(j.lat, j.lng);
+      (dict[key] ||= []).push(j);
+    });
+    return dict;
+  })();
+
+  /* Draw route from origin (hidden inputs) to destination */
+  function drawRouteTo(destLat, destLng) {
+    const originLat = parseFloat(document.getElementById("lat-input").value);
+    const originLng = parseFloat(document.getElementById("lng-input").value);
+
+    if (Number.isNaN(originLat) || Number.isNaN(originLng)) {
+      // No origin yet: don't block the user with an alert; just skip drawing
+      console.warn("No origin set. Use the location box to set an origin for routing.");
+      return;
+    }
+
+    directionsService.route(
+      {
+        origin: { lat: originLat, lng: originLng },
+        destination: { lat: destLat, lng: destLng },
+        travelMode: google.maps.TravelMode.DRIVING,
+        provideRouteAlternatives: false
+      },
+      (result, status) => {
+        if (status === "OK" || status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+          const bounds = new google.maps.LatLngBounds();
+          result.routes[0].overview_path.forEach(p => bounds.extend(p));
+          map.fitBounds(bounds);
+        } else {
+          console.warn("Directions request failed:", status);
+        }
+      }
+    );
+  }
+
+  /* Highlight a job card (only when user clicks 'More details') */
+  function highlightJobCard(jobId) {
+    document.querySelectorAll(".job-card.highlighted").forEach(el => el.classList.remove("highlighted"));
+    const card = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+    if (card) {
+      card.classList.add("highlighted");
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /* Skills dropdown toggle (kept as-is) */
+  function toggleDropdown() {
+    const dropdown = document.getElementById("skillsDropdown");
+    dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
+  }
+
+  /* Simple HTML escape */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  /* Build InfoWindow content: dropdown + compact 'More details' link BELOW it */
+  function buildInfoContent(primaryJob, jobsAtLoc) {
+    const selectId = `jobsAt_${primaryJob.id}`;
+    const linkId = `moreBtn_${primaryJob.id}`;
+    const options = jobsAtLoc
+      .map(j => `<option value="${j.id}">${escapeHtml(j.title)} — ${escapeHtml(j.company)}</option>`)
+      .join("");
+
+    return `
+      <div style="font-size:14px; max-width:260px;">
+        <strong>${escapeHtml(primaryJob.title)}</strong><br/>
+        ${escapeHtml(primaryJob.company)}<br/>
+        ${escapeHtml(primaryJob.location)}<br/>
+
+        <div style="margin-top:8px;">
+          <label style="font-weight:600; display:block; margin-bottom:6px;">Other jobs here</label>
+          <select id="${selectId}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:8px;">
+            ${options}
+          </select>
+
+          <!-- Compact 'More details' link underneath for clarity -->
+          <a id="${linkId}"
+             href="#"
+             class="apply-btn"
+             style="margin-top:8px; display:block; width:100%; text-align:center; padding:0.5rem 0.75rem; font-size:0.9rem; text-decoration:none;">
+             More details
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  /* Combined init (Autocomplete + Map + Markers) */
   window.initAutocomplete = function () {
+    // Places Autocomplete
     const input = document.getElementById("location-input");
     const autocomplete = new google.maps.places.Autocomplete(input);
     autocomplete.setFields(["geometry", "formatted_address"]);
-
     autocomplete.addListener("place_changed", function () {
       const place = autocomplete.getPlace();
       if (place && place.geometry) {
@@ -181,13 +294,22 @@
       }
     });
 
+    // Map + Directions services
     map = new google.maps.Map(document.getElementById("map"), {
       zoom: 4,
       center: { lat: 39.8283, lng: -98.5795 }
     });
+    infoWindow = new google.maps.InfoWindow();
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: false,
+      preserveViewport: true
+    });
+    directionsRenderer.setMap(map);
 
     const bounds = new google.maps.LatLngBounds();
 
+    // Markers & click behavior
     jobMarkers.forEach((md) => {
       const pos = { lat: md.lat, lng: md.lng };
       const marker = new google.maps.Marker({
@@ -196,17 +318,34 @@
         title: `${md.title} - ${md.company}`
       });
 
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="font-size:14px;">
-                    <strong>${md.title}</strong><br>
-                    ${md.company}<br>
-                    ${md.location}
-                  </div>`
-      });
-
       marker.addListener("click", () => {
+        // Route immediately from origin to this pin
+        drawRouteTo(md.lat, md.lng);
+
+        // Show dropdown + 'More details' (but do NOT auto-scroll/highlight)
+        const key = locKey(md.lat, md.lng);
+        const group = jobsByLocation[key] || [md];
+        infoWindow.setContent(buildInfoContent(md, group));
         infoWindow.open(map, marker);
-        highlightJobCard(md.id);
+
+        // Wire dropdown + link
+        google.maps.event.addListenerOnce(infoWindow, "domready", () => {
+          const selectEl = document.getElementById(`jobsAt_${md.id}`);
+          const linkEl = document.getElementById(`moreBtn_${md.id}`);
+
+          // Track selected job id (starts as the clicked one)
+          let selectedId = String(md.id);
+          selectEl.addEventListener("change", (e) => { selectedId = e.target.value; });
+
+          linkEl.addEventListener("click", (e) => {
+            e.preventDefault();
+            // Update href and then highlight/scroll the card
+            linkEl.href = detailUrlTemplate.replace("/0/", `/${selectedId}/`);
+            highlightJobCard(selectedId);
+            // Optional: close info window after click
+            // infoWindow.close();
+          });
+        });
       });
 
       bounds.extend(pos);
@@ -216,24 +355,11 @@
       map.fitBounds(bounds);
     }
   };
-
-  function highlightJobCard(jobId) {
-    document.querySelectorAll(".job-card.highlighted").forEach(el => el.classList.remove("highlighted"));
-    const card = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
-    if (card) {
-      card.classList.add("highlighted");
-      card.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }
-
-  function toggleDropdown() {
-    const dropdown = document.getElementById("skillsDropdown");
-    dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
-  }
 </script>
 
+<!-- Google Maps API + Autocomplete loader -->
 <script
   src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initAutocomplete"
   async defer>
 </script>
-{% endblock %}
+{% endblock content %}
