@@ -4,9 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GT Job Search{% endblock %}</title>
+    <title>{% block title %}BuzzedIn{% endblock %}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+
 
 </head>
 <body>
@@ -16,7 +19,7 @@
                 <div class="logo">
                     <a href="{% url 'home:index' %}">
                         <i class="fas fa-briefcase"></i>
-                        GTJobSeekers
+                        BuzzedIn
                     </a>
                 </div>
                 

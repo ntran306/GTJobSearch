@@ -5,15 +5,16 @@
 /* CSS Custom Properties (Variables) */
 :root {
     /* Color Palette */
-    --primary-50: #eff6ff;
-    --primary-100: #dbeafe;
-    --primary-500: #3b82f6;
-    --primary-600: #2563eb;
-    --primary-700: #1d4ed8;
-    --primary-900: #1e3a8a;
-    
-    --secondary-500: #8b5cf6;
-    --secondary-600: #7c3aed;
+    /* Brand Colors */
+    --primary-50: #fffbe6;   /* very light yellow */
+    --primary-100: #fff3b3;
+    --primary-500: #FFD200;  /* buzz yellow */
+    --primary-600: #FFC107;
+    --primary-700: #e6b800;
+    --primary-900: #b38f00;
+
+    --secondary-500: #333333; /* charcoal black */
+    --secondary-600: #222222;
     
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
@@ -60,6 +61,10 @@
     --transition-fast: 0.15s ease-out;
     --transition-base: 0.3s ease-out;
     --transition-slow: 0.5s ease-out;
+
+    /*Hover Styling*/
+    --primary-hover: #ffc700;
+    --secondary-hover: #111111;
 }
 
 /* ========================================
@@ -272,8 +277,6 @@ main {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--gray-200);
     transition: all var(--transition-base);
-    margin-top:2rem;
-    margin-bottom:2rem;
 }
 
 .card:hover {
@@ -321,8 +324,8 @@ main {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
-    color: white !important;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
 }
 
 .btn-primary:hover {
@@ -424,7 +427,6 @@ main > section.section > .container > .homepage {
     align-items: center;
     margin: 0.5rem;
     background-color: var(--gray-100);
-    border-radius:var(--radius-xl);
     padding:1.5rem;
     border:1px solid var(--gray-200);
     box-shadow: var(--shadow-md);
@@ -544,7 +546,7 @@ footer {
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
 }
 
 .signin-card {
@@ -566,7 +568,7 @@ footer {
 .signin-header h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 0.5rem;
     letter-spacing: -1px;
     display: flex;
@@ -576,7 +578,7 @@ footer {
 }
 
 .signin-header p {
-    color: #718096;
+    color: var(--gray-600);
     font-size: 1.1rem;
     font-weight: 400;
 }
@@ -590,8 +592,8 @@ footer {
 }
 
 .user-type-card {
-    background: #f7fafc;
-    border: 2px solid #e2e8f0;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
     border-radius: 16px;
     padding: 2rem 1rem;
     cursor: pointer;
@@ -605,8 +607,8 @@ footer {
 }
 
 .user-type-card:hover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.05);
+    border-color: var(--primary-600);
+    background: var(--primary-50);
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
     text-decoration: none;
@@ -621,26 +623,26 @@ footer {
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    color: #667eea;
-    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary-600);
+    background: var(--primary-50);
     transition: all 0.3s ease;
 }
 
 .user-type-card:hover .user-type-icon {
-    background: #667eea;
-    color: white;
+    background: var(--primary-600);
+    color: var(--secondary-600);
 }
 
 .user-type-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 0.5rem;
 }
 
 .user-type-desc {
     font-size: 0.9rem;
-    color: #718096;
+    color: var(--gray-600);
     text-align: center;
     line-height: 1.4;
 }
@@ -653,7 +655,7 @@ footer {
 .form-label {
     display: block;
     font-weight: 600;
-    color: #4a5568;
+    color: var(--gray-700);
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
 }
@@ -670,16 +672,16 @@ footer {
     border-radius: 12px;
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #f7fafc;
+    background: var(--gray-50);
     font-family: inherit;
 }
 
 .professional-form input:focus,
 .professional-form textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--primary-600);
     background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
 }
 
 .professional-form textarea {
@@ -689,22 +691,22 @@ footer {
 
 .error-message {
     display: block;
-    color: #e53e3e;
+    color: var(--error-500);
     font-size: 0.875rem;
     margin-top: 0.25rem;
 }
 
 .help-text {
     display: block;
-    color: #718096;
+    color: var(--gray-600);
     font-size: 0.8rem;
     margin-top: 0.25rem;
     font-style: italic;
 }
 
 .form-errors {
-    background: rgba(229, 62, 62, 0.1);
-    border: 1px solid #e53e3e;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--error-500);
     border-radius: 12px;
     padding: 1rem;
     margin-bottom: 1.5rem;
@@ -712,8 +714,8 @@ footer {
 
 .signin-btn {
     width: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     border: none;
     padding: 1rem;
     border-radius: 12px;
@@ -734,7 +736,7 @@ footer {
 }
 
 .forgot-password a {
-    color: #667eea;
+    color: var(--primary-600);
     text-decoration: none;
     font-size: 0.9rem;
 }
@@ -756,7 +758,7 @@ footer {
 }
 
 .form-footer a {
-    color: #667eea;
+    color: var(--primary-600);
     text-decoration: none;
     font-weight: 500;
 }
@@ -778,7 +780,7 @@ footer {
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
 }
 
 .profile-header {
@@ -805,8 +807,7 @@ footer {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
@@ -839,12 +840,12 @@ footer {
 .profile-name {
     font-size: 2rem;
     font-weight: 700;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 0.5rem;
 }
 
 .profile-subtitle {
-    color: #718096;
+    color: var(--gray-600);
     font-size: 1.1rem;
     margin-bottom: 1rem;
 }
@@ -853,11 +854,11 @@ footer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #4a5568;
+    color: var(--gray-700);
 }
 
 .contact-item i {
-    color: #667eea;
+    color: var(--primary-600);
 }
 
 .profile-sections {
@@ -869,8 +870,10 @@ footer {
     background: white;
     border-radius: 16px;
     padding: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
 }
 
 .section-header h2 {
@@ -879,16 +882,16 @@ footer {
     gap: 0.5rem;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 1rem;
 }
 
 .section-header i {
-    color: #667eea;
+    color: var(--primary-600);
 }
 
 .section-content {
-    color: #4a5568;
+    color: var(--gray-700);
     line-height: 1.6;
 }
 
@@ -899,11 +902,10 @@ footer {
 }
 
 .skill-tag {
-    background-color: var(--gray-50);
-    border: #d1d5db, 0.15rem, solid;
-    color: black;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     padding: 0.5rem 1rem;
-    border-radius: 10px;
+    border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -912,21 +914,21 @@ footer {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #667eea;
+    color: var(--primary-600);
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border: 2px solid #667eea;
+    border: 2px solid var(--primary-600);
     border-radius: 12px;
     transition: all 0.3s ease;
 }
 
 .profile-link:hover {
-    background: #667eea;
-    color: white;
+    background: var(--primary-600);
+    color: var(--secondary-600);
 }
 
 .no-content {
-    color: #a0aec0;
+    color: var(--gray-400);
     font-style: italic;
 }
 
@@ -981,9 +983,9 @@ footer {
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    background: #f7fafc;
+    background: var(--gray-50);
     border-radius: 8px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--primary-600);
 }
 
 .contact-details .contact-item i {
@@ -1004,8 +1006,8 @@ footer {
     justify-content: center;
     gap: 0.5rem;
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     text-decoration: none;
     border-radius: 12px;
     font-weight: 600;
@@ -1024,29 +1026,6 @@ footer {
         grid-template-columns: 1fr;
     }
 }
-.link-to-site {
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    text-align: center;
-    padding: 0.5rem;
-    margin: 1rem auto 0 auto; 
-    background-color: var(--gray-200);
-    width: 60%;
-    border: 0.15rem solid var(--gray-400);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-    border-radius:10px;
-}
-.link-to-site a{
-    text-decoration: none;
-    color:#0066cc;
-}
-.link-to-site:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-    background-color: #cbd5e1;
-}
-
 
 /* ========================================
    JOBS PAGE AND JOB CARDS
@@ -1368,8 +1347,8 @@ footer {
 }
 
 .search-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     border: none;
     padding: 0.875rem 1.5rem;
     border-radius: 12px;
@@ -1381,7 +1360,6 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-left: auto; 
 }
 
 .search-btn:hover {
@@ -1502,8 +1480,8 @@ footer {
 }
 
 .apply-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     text-decoration: none;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
@@ -1525,9 +1503,8 @@ footer {
 }
 
 .save-btn {
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     padding: 0.5rem 1rem;
     border-radius: 12px;
     font-weight: 500;
@@ -1540,8 +1517,8 @@ footer {
 }
 
 .save-btn:hover {
-    background: #667eea;
-    color: white;
+    background: var(--primary-700);
+    color: var(--secondary-600);;
     text-decoration: none;
 }
 
@@ -1629,20 +1606,20 @@ footer {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #667eea;
+    color: var(--primary-600);
     text-decoration: none;
     font-weight: 500;
     padding: 0.5rem 1rem;
     border-radius: 8px;
     transition: all 0.3s ease;
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
 }
 
 .back-btn:hover {
-    background: #f7fafc;
+    background: var(--gray-50);
     text-decoration: none;
-    color: #667eea;
+    color: var(--primary-600);
 }
 
 
@@ -1653,14 +1630,14 @@ footer {
     justify-content: space-between;
     margin-top: 1rem;
     padding: 0.5rem 0;
-    border-top: 1px solid #e2e8f0;
-    border-bottom: 1px solid #e2e8f0;
+    border-top: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-200);
 }
 .status-card {
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
     overflow: hidden;
 }
 .status-step {
@@ -1669,8 +1646,8 @@ footer {
     opacity: 0.5;
 }
 .status-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     padding: 2rem;
     text-align: center;
 }
@@ -1686,11 +1663,11 @@ footer {
 .status-selector {
     width: 100%;
     padding: 1rem 1.5rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--gray-200);
     border-radius: 12px;
     font-size: 1.1rem;
     transition: all 0.3s ease;
-    background: #f7fafc;
+    background: var(--gray-50);
     font-family: inherit;
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -1702,22 +1679,22 @@ footer {
 
 .status-selector:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--primary-600);
     background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
 }
 .status-preview {
-    background: #f7fafc;
+    background: var(--gray-50);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--primary-600);
 }
 
 .status-preview h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 1rem;
 }
 
@@ -1731,16 +1708,32 @@ footer {
     font-size: 0.9rem;
 }
 
-.status-applied { background: #e6f3ff; color: #0066cc; }
-.status-interview { background: #fff4e6; color: #cc6600; }
-.status-review { background: #f0e6ff; color: #6600cc; }
-.status-offer { background: #e6ffe6; color: #00cc00; }
-.status-rejected { background: #ffe6e6; color: #cc0000; }
+.status-applied { 
+    background: var(--primary-50); 
+    color: var(--primary-700); 
+}
+.status-interview { 
+    background: #fff4e6; 
+    color: var(--warning-500); 
+}
+.status-review { 
+    background: #f0e6ff; 
+    color: var(--secondary-500); 
+}
+.status-offer { 
+    background: #e6ffe6; 
+    color: var(--success-500); 
+}
+.status-rejected { 
+    background: #ffe6e6; 
+    color: var(--error-500); 
+}
+
 
 .update-btn {
     width: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     border: none;
     padding: 1rem 1.5rem;
     border-radius: 12px;
@@ -1778,7 +1771,7 @@ footer {
 }
 
 .status-step.active {
-    color: #3182ce;
+    color: var(--primary-600);
     font-weight: bold;
     opacity: 1;
 }
@@ -1792,42 +1785,42 @@ footer {
 }
 .application-card {
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .dropdown-checklist {
-  position: relative;
-  display: inline-block;
-  width: 250px;
-  font-size: 14px;
+     position: relative;
+     display: inline-block;
+      width: 250px;
+     font-size: 14px;
 }
 
 .dropdown-header {
-  background: #f1f5f9;
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    background: var(--gray-100);
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .dropdown-list {
-  display: none; /* hidden by default */
-  position: absolute;
-  background: white;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-top: 4px;
-  width: 100%;
-  z-index: 10;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    display: none; /* hidden by default */
+    position: absolute;
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 4px;
+    width: 100%;
+    z-index: 10;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
 }
 
 .dropdown-item {
@@ -1837,7 +1830,7 @@ footer {
 }
 
 .dropdown-item:hover {
-  background: #f8fafc;
+  background: var(--gray-50);
 }
 
 .dropdown-checklist .arrow {
@@ -1869,12 +1862,12 @@ footer {
 .stat-number {
     font-size: 2rem;
     font-weight: 700;
-    color: #667eea;
+    color: var(--primary-600);
     margin-bottom: 0.5rem;
 }
 
 .stat-label {
-    color: #718096;
+    color: var(--gray-600);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -1883,13 +1876,13 @@ footer {
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
     overflow: hidden;
 }
 
 .container-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
@@ -1908,15 +1901,15 @@ footer {
 }
 
 .applications-table thead {
-    background: #f7fafc;
+    background: var(--gray-50);
 }
 
 .applications-table th {
     padding: 1rem 1.5rem;
     text-align: left;
     font-weight: 600;
-    color: #4a5568;
-    border-bottom: 1px solid #e2e8f0;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-200);
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1924,7 +1917,7 @@ footer {
 
 .applications-table td {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--gray-100);
     vertical-align: middle;
 }
 
@@ -1933,23 +1926,23 @@ footer {
 }
 
 .applications-table tbody tr:hover {
-    background: #f7fafc;
+    background: var(--gray-50);
 }
 
 .job-title-link {
-    color: #667eea;
+    color: var(--primary-600);
     text-decoration: none;
     font-weight: 600;
     transition: color 0.2s ease;
 }
 
 .job-title-link:hover {
-    color: #764ba2;
+    color: var(--primary-700);
     text-decoration: underline;
 }
 
 .company-name {
-    color: #4a5568;
+    color: var(--gray-700);
     font-weight: 500;
 }
 
@@ -1963,56 +1956,50 @@ footer {
     font-size: 0.85rem;
 }
 
-.status-applied { background: #e6f3ff; color: #0066cc; }
-.status-interview { background: #fff4e6; color: #cc6600; }
-.status-review { background: #f0e6ff; color: #6600cc; }
-.status-offer { background: #e6ffe6; color: #00cc00; }
-.status-rejected { background: #ffe6e6; color: #cc0000; }
-
 .date-applied {
-    color: #718096;
+    color: var(--gray-600);
     font-size: 0.9rem;
 }
 
 .view-btn {
-    background: #f7fafc;
-    color: #4a5568;
+    background: var(--gray-50);
+    color: var(--gray-700);
     text-decoration: none;
     padding: 0.4rem 0.8rem;
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
 }
 
 .view-btn:hover {
-    background: #edf2f7;
+    background: var(--gray-100);
     text-decoration: none;
-    color: #2d3748;
+    color: var(--gray-800);
 }
 
 .no-applications {
     text-align: center;
     padding: 4rem 2rem;
-    color: #718096;
+    color: var(--gray-600);
 }
 
 .no-applications i {
     font-size: 3rem;
-    color: #cbd5e0;
+    color: var(--gray-300);
     margin-bottom: 1rem;
 }
 
 .no-applications h3 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
-    color: #4a5568;
+    color: var(--gray-700);
 }
 
 .browse-jobs-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     text-decoration: none;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
@@ -2065,8 +2052,8 @@ footer {
 
 
 .my-applications-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     max-width:18rem;
     text-align:center;
     text-decoration: none;
@@ -2117,13 +2104,13 @@ footer {
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
     overflow: hidden;
     padding:2rem;
 }
 .recommended-jobs-section-header{
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     padding: 2rem;
     text-align: center;
 }
@@ -2135,6 +2122,7 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    color: var(--secondary-600);
 }
 .recommended-jobs-grid {
     display: grid;
@@ -2144,7 +2132,7 @@ footer {
 }
 
 .recommended-job-card {
-    background: #f7fafc;
+    background: var(--gray-50);
     border-radius: 16px;
     padding: 1.5rem;
     transition: all 0.3s ease;
@@ -2154,7 +2142,7 @@ footer {
 .recommended-job-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    border-color: #667eea;
+    border-color: var(--primary-600);
     background: white;
 }
 
@@ -2165,13 +2153,13 @@ footer {
 .job-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #2d3748;
+    color: var(--gray-800);
     margin-bottom: 0.5rem;
     line-height: 1.2;
 }
 
 .company-name {
-    color: #667eea;
+    color: var(--primary-600);
     font-weight: 600;
     font-size: 1rem;
     margin: 0;
@@ -2188,12 +2176,12 @@ footer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #4a5568;
+    color: var(--gray-700);
     font-size: 0.9rem;
 }
 
 .job-detail-item i {
-    color: #667eea;
+    color: var(--primary-600);
     width: 16px;
     text-align: center;
 }
@@ -2206,18 +2194,18 @@ footer {
 }
 
 .skill-match {
-    background: #ebf4ff;
-    color: #1e3a8a;
+    background: var(--primary-50);
+    color: var( --primary-900);
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 600;
-    border: 1px solid #0066cc;
+    border: 1px solid var(--primary-600);
 }
 
 .skill-more {
-    background: #edf2f7;
-    color: #718096;
+    background: var(--gray-100);
+    color: var(--gray-600);
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -2232,8 +2220,8 @@ footer {
 .view-job-btn {
     flex: 1;
     background: white;
-    color: #1d4ed8;
-    border: 2px solid #1d4ed8;
+    color: var( --primary-700);
+    border: 2px solid var( --primary-700);
     padding: 0.75rem 1rem;
     border-radius: 12px;
     text-decoration: none;
@@ -2248,15 +2236,15 @@ footer {
 }
 
 .view-job-btn:hover {
-    background: #1e3a8a;
-    color: white;
+    background: var(--primary-700);
+    color: var(--secondary-600);
     text-decoration: none;
 }
 
 .quick-apply-btn {
     flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     border: none;
     padding: 0.75rem 1rem;
     border-radius: 12px;
@@ -2273,21 +2261,21 @@ footer {
 
 .quick-apply-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(56, 161, 105, 0.3);
+    box-shadow: 0 8px 20px rgba(255, 210, 0, 0.3);
     text-decoration: none;
-    color: white;
+    color: var(--secondary-600);
 }
 
 .view-more-section {
-    background: #f7fafc;
+    background: var(--gray-50);
     padding: 2rem;
     text-align: center;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--gray-200);
 }
 
 .view-more-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
     text-decoration: none;
     padding: 1rem 2rem;
     border-radius: 12px;
@@ -2300,9 +2288,9 @@ footer {
 
 .view-more-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 25px rgba(255, 210, 0, 0.3);
     text-decoration: none;
-    color: white;
+    color: var(--secondary-600);
 }
 
 /* Responsive Design */
@@ -2326,7 +2314,7 @@ footer {
     MODAL STYLES QUICK APPLY
 ======================================== */
 
-   .modal {
+.modal {
     position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
     background-color: rgba(0,0,0,0.5);
@@ -2336,10 +2324,31 @@ footer {
     background: white; padding: 2rem; border-radius: 12px;
     max-width: 500px; width: 90%;
 }
-.close { float: right; font-size: 1.5rem; cursor: pointer; }
-textarea { width: 100%; margin-top: 1rem; }
+.close { float: right; font-size: 1.5rem; cursor: pointer; color: var(--gray-600); transition: color 0.3s ease; }
+.close:hover { color: var(--gray-900); }
+.modal-content textarea {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    min-height: 150px;
+    resize: vertical;
+    background: var(--gray-50);
+    transition: all 0.3s ease;
+}
+.modal-content textarea:focus {
+    outline: none;
+    border-color: var(--primary-600);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
+}
 
-
+/* ========================================
+   JOB FILTER SECTION
+   ======================================== */
 .job-filter {
     background: white;
     border-radius: 12px;
@@ -2349,17 +2358,17 @@ textarea { width: 100%; margin-top: 1rem; }
     gap: 0.75rem;
     align-items: center;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-200);
 }
 
 .job-filter input,
 .job-filter select {
     flex: 1 1 180px;
     padding: 0.875rem 1rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--gray-200);
     border-radius: 12px;
     font-size: 1rem;
-    background: #f7fafc;
+    background: var(--gray-50);
     font-family: inherit;
     transition: all 0.3s ease;
 }
@@ -2367,9 +2376,9 @@ textarea { width: 100%; margin-top: 1rem; }
 .job-filter input:focus,
 .job-filter select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--primary-600);
     background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
 }
 
 .job-filter select {
@@ -2383,8 +2392,8 @@ textarea { width: 100%; margin-top: 1rem; }
 }
 
 .job-filter .filter-btn {
-    background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
-    color: white;
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: var(--secondary-600);
     border: none;
     padding: 0.875rem 1.5rem;
     border-radius: 12px;
@@ -2398,5 +2407,17 @@ textarea { width: 100%; margin-top: 1rem; }
 
 .job-filter .filter-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 25px rgba(255, 210, 0, 0.3);
+}
+
+/* Responsive adjustments for job filter */
+@media (max-width: 968px) {
+    .job-filter {
+        flex-direction: column;
+    }
+    
+    .job-filter input,
+    .job-filter select {
+        width: 100%;
+    }
 }
