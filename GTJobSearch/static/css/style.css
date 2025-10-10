@@ -272,6 +272,8 @@ main {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--gray-200);
     transition: all var(--transition-base);
+    margin-top:2rem;
+    margin-bottom:2rem;
 }
 
 .card:hover {
@@ -320,7 +322,7 @@ main {
 
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
-    color: white;
+    color: white !important;
 }
 
 .btn-primary:hover {
@@ -422,6 +424,7 @@ main > section.section > .container > .homepage {
     align-items: center;
     margin: 0.5rem;
     background-color: var(--gray-100);
+    border-radius:var(--radius-xl);
     padding:1.5rem;
     border:1px solid var(--gray-200);
     box-shadow: var(--shadow-md);
@@ -896,10 +899,11 @@ footer {
 }
 
 .skill-tag {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-color: var(--gray-50);
+    border: #d1d5db, 0.15rem, solid;
+    color: black;
     padding: 0.5rem 1rem;
-    border-radius: 20px;
+    border-radius: 10px;
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -1020,6 +1024,29 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+.link-to-site {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    text-align: center;
+    padding: 0.5rem;
+    margin: 1rem auto 0 auto; 
+    background-color: var(--gray-200);
+    width: 60%;
+    border: 0.15rem solid var(--gray-400);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    border-radius:10px;
+}
+.link-to-site a{
+    text-decoration: none;
+    color:#0066cc;
+}
+.link-to-site:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    background-color: #cbd5e1;
+}
+
 
 /* ========================================
    JOBS PAGE AND JOB CARDS
@@ -1354,6 +1381,7 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    margin-left: auto; 
 }
 
 .search-btn:hover {

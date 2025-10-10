@@ -44,7 +44,7 @@
 
                         <!-- Logout -->
                         <li>
-                            <a href="{% url 'accounts:logout' %}" class="{% block nav_logout %}{% endblock %}">Logout</a>
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-primary {% block nav_logout %}{% endblock %}">Logout</a>
                         </li>
                     {% else %}
                         <!-- Create Profile -->
@@ -54,7 +54,7 @@
 
                         <!-- Login -->
                         <li>
-                            <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm {% block nav_login %}{% endblock %}">Login</a>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary {% block nav_login %}{% endblock %}">Login</a>
                         </li>
                     {% endif %}
                 </ul>
