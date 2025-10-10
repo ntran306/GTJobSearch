@@ -18,10 +18,11 @@
             <div class="navbar-inner">
                 <div class="logo">
                     <a href="{% url 'home:index' %}">
-                        <i class="fas fa-briefcase"></i>
-                        BuzzedIn
+                        <img src="{% static 'img/Buzz.png' %}" alt="BuzzedIn Logo" class="logo-icon">
+                        <img src="{% static 'img/BuzzedIn.png' %}" alt="BuzzedIn" class="logo-text">
                     </a>
                 </div>
+
                 
                 <ul class="nav-links">
                     {% if user.is_authenticated %}

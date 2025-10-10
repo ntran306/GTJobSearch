@@ -174,12 +174,22 @@ ul, ol {
 .navbar .logo a {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--gray-900);
+    gap: 0.5rem; /* space between the two images */
     text-decoration: none;
-    letter-spacing: -0.5px;
+}
+
+.logo-icon {
+    height: 60px; 
+    width: auto;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.logo-text {
+    height: 40px;
+    width: auto;
+    display: block;
+    transition: opacity 0.2s ease;
 }
 
 .navbar .logo a:hover {
@@ -329,8 +339,7 @@ main {
 
 .btn-primary:hover {
     color: white !important;
-    background-color: var(--primary-50);
-    text-decoration: none;
+    background: var(--primary-700);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
     text-decoration: none;
