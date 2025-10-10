@@ -391,6 +391,7 @@ main {
   text-align: center;  
   padding-top: 0 !important;  
   margin-top: 0 !important;   /* center text inside .hero-text */
+  margin-bottom: 0 !important;
   min-height: 100vh;        /* make it full screen height */
   color: #fff;              /* text color for contrast */
 }
@@ -417,6 +418,217 @@ main {
   margin: 0 auto; /* center image inside its div */
 }
 
+/* Hero Badge */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary-50);
+    color: var(--primary-700);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Hero Stats */
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin: 2rem 0;
+    justify-content: center; /* centers horizontally */
+    align-items: center;     /* centers vertically if container has height */
+    gap: 3rem;               /* space between each stat */
+    margin-top: 2rem;        /* optional spacing from content above */
+    flex-wrap: wrap;          /* wraps on smaller screens */
+    text-align: center;       /* ensures text inside each stat is centered */
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* centers number and label vertically */
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary-600);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.hero-trust {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+/* Featured Companies */
+.featured-companies {
+    background: var(--gray-50);
+    padding: 0;
+    text-align: center;
+}
+
+.company-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+    padding-top: 2rem;
+    flex-wrap: wrap;
+    opacity: 0.6;
+}
+
+.company-logos img {
+    height: 60px;
+    width: auto;
+    transition: all 0.3s ease;
+}
+
+.company-logos img:hover {
+    transform: scale(1.1);
+}
+
+/* Steps Grid */
+.how-it-works {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5rem;
+    background-color: var(--gray-100);
+    padding:1.5rem;
+    border:1px solid var(--gray-200);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    width: 80%;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(2, max-content); /* shrink to content width */
+    gap: 2rem;
+    margin: 3rem 0;
+    justify-content: center; /* now this will actually center the first row */
+}
+
+.step-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--gray-200);
+    transition: all 0.3s ease;
+    position: relative;
+    text-align: center;
+    max-width: 300px;
+}
+
+.step-card:nth-child(3) {
+    grid-column: 1 / -1; /* makes the third card span both columns */
+    justify-self: center; /* centers it horizontally */
+}
+
+.step-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-600);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.step-icon {
+    font-size: 3rem;
+    color: var(--primary-600);
+    margin-bottom: 1rem;
+}
+
+.step-number {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--gray-100);
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary-600);
+    margin-bottom: 1rem;
+}
+
+/* Testimonials */
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.testimonial-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.stars {
+    color: var(--primary-600);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.testimonial-author {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.testimonial-author span {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+/* Final CTA */
+.final-cta {
+    background-color: var(--gray-100);
+    color: var(--secondary-600);
+    padding: 4rem 2rem;
+    width: 80%;
+    text-align: center;
+    border:1px solid var(--gray-200);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+}
+
+.final-cta h2 {
+    color: var(--secondary-600);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.final-cta p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
 /* =========== Remove accidental large top spacing =========== */
 /* Target the exact structure from base.html: main > section.section > .container > .homepage */
 main > section.section,
@@ -429,18 +641,6 @@ main > section.section > .container > .homepage {
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;}
-
-.how-it-works {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0.5rem;
-    background-color: var(--gray-100);
-    padding:1.5rem;
-    border:1px solid var(--gray-200);
-    box-shadow: var(--shadow-md);
-
-}
 
 
 /* ========================================

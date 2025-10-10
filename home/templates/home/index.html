@@ -1,58 +1,244 @@
 {% extends "base.html" %}
-
 {% load static %}
 
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <title>{{ job.name }} | {{ job.company }}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
 
-<body>
+<div class="homepage">
 
-  <div class="homepage">
-
-    <!-- Hero Section -->
+    <!-- Hero Section - Improved -->
     <section class="hero">
-      <div class="hero-text">
-        <h1>Welcome to BuzzedIn</h1>
-        <p>Your one-stop platform for connecting students with career opportunities.</p>
-        <a href="{% url 'jobs:index' %}" class="btn btn-primary">Browse Jobs Now -></a> <br><br>
-        <a href="{% url 'accounts:signup_choice' %}" class="btn btn-secondary">Create Your Profile -></a>
-      </div>
-
-      <div class="hero-image">
-        <img src="{% static 'img/job_search_banner.png' %}" alt="Job Search Illustration" />
-      </div>
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <i class="fas fa-graduation-cap"></i>
+                    Built for Georgia Tech Students
+                </div>
+                <h1>Land Your Dream Career at Top Tech Companies</h1>
+                <p class="hero-subtitle">
+                    BuzzedIn connects Georgia Tech students with exclusive internships, 
+                    co-ops, and full-time opportunities at leading companies.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Active Jobs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100+</span>
+                        <span class="stat-label">Top Companies</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">1000+</span>
+                        <span class="stat-label">Students Hired</span>
+                    </div>
+                </div>
+                
+                <div class="hero-cta">
+                    <a href="{% url 'jobs:index' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search"></i>
+                        Browse Jobs
+                    </a>
+                    <a href="{% url 'accounts:signup_choice' %}" class="btn btn-outline btn-lg">
+                        <i class="fas fa-user-plus"></i>
+                        Create Profile
+                    </a>
+                </div>
+                
+                <p class="hero-trust">
+                    <i class="fas fa-shield-alt"></i>
+                    Free for all Georgia Tech students
+                </p>
+              </div>
+        </div>
     </section>
 
-    <!-- How It Works -->
+    <!-- Featured Companies Section - NEW -->
+    <section class="featured-companies">
+        <div class="container">
+            <h3 class="section-subtitle">Trusted by Top Companies</h3>
+            <div class="company-logos">
+                <img src="{% static 'img/google_logo.png' %}" alt="Google">
+                <img src="{% static 'img/microsoft_logo.png' %}" alt="Microsoft">
+                <img src="{% static 'img/amazon_logo.png' %}" alt="Amazon">
+                <img src="{% static 'img/meta_logo.png' %}" alt="Meta">
+                <img src="{% static 'img/apple_logo.png' %}" alt="Apple">
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works - Improved -->
     <section class="how-it-works">
-      <h2>How It Works</h2>
-      <div class="steps">
-        <div class="step">
-          <h3>1. Create Your Profile</h3>
-          <p>Tell us about your skills, education, and work expirence so we can match you with relevant opportunities that align with your interests and career goals.</p>
+        <div class="container">
+            <div class="section-header">
+                <h2>How BuzzedIn Works</h2>
+                <p>Three simple steps to launch your career</p>
+            </div>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="step-number">01</div>
+                    <h3>Create Your Profile</h3>
+                    <p>
+                        Build a profile showcasing your skills, education, and experience. 
+                        Our algorithm matches you with relevant opportunities.
+                    </p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="step-number">02</div>
+                    <h3>Discover Opportunities</h3>
+                    <p>
+                        Browse personalized job recommendations from top companies. 
+                        Filter by salary, location, industry, and more.
+                    </p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="step-number">03</div>
+                    <h3>Apply & Get Hired</h3>
+                    <p>
+                        Submit applications directly through our platform. 
+                        Track your progress and land your dream job.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="how-it-works-cta">
+                <a href="{% url 'accounts:signup_choice' %}" class="btn btn-primary btn-lg">
+                    Get Started Now
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
         </div>
-        <div class="step">
-          <h3>2. Browse Opportunities</h3>
-          <p>Explore jobs, internships, and co-ops that are tailored to you. Find jobs at companies like Google, Microsoft, Amazon, Facebook, Apple, and more!</p>
-          <p>Sort through job listings based on salary range, industry, and location Use our filters to find jobs tailor to what you are looking for!</p>
-        </div>
-        <div class="step">
-          <h3>3. Apply & Grow</h3>
-          <p>Apply directly on the site with your resume and cover letter. We'll help you stand out from other applicants by highlighting your unique qualifications and experiences.</p>
-        </div>
-          <h2>That's All!</h2>
-          <p>Wait for a response from the company! It's as easy as that. Job searching has never been easier than this! We're here to make sure you get hired!</p>
-        <div class="cta-buttons">
-              <a href="{% url 'home:about' %}" class="btn btn-primary">Learn More About the Company -></a> <br>
-        </div>
-      </div>
     </section>
 
-  </div>
-</body>
+    <!-- Features Section - NEW -->
+    <section class="features-section">
+        <div class="container">
+              <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Smart Matching</h3>
+                    <p>AI-powered recommendations based on your profile and preferences</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Application Tracking</h3>
+                    <p>Monitor your applications and interview progress in one place</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Real-Time Alerts</h3>
+                    <p>Get notified when new jobs match your criteria</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Exclusive Listings</h3>
+                    <p>Access jobs only available to Georgia Tech students</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section - NEW -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Students Say</h2>
+                <p>Success stories from your fellow Yellow Jackets</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "BuzzedIn helped me land my dream internship at Google! 
+                        The application tracking feature made everything so organized."
+                    </p>
+                    <div class="testimonial-author">
+                        <strong>Sarah M.</strong>
+                        <span>Computer Science, Class of 2024</span>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Found my co-op at Microsoft within two weeks. 
+                        The personalized recommendations were spot-on!"
+                    </p>
+                    <div class="testimonial-author">
+                        <strong>John D.</strong>
+                        <span>Industrial Engineering, Class of 2025</span>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Best job search platform for GT students. 
+                        Clean interface and actually useful filters!"
+                    </p>
+                    <div class="testimonial-author">
+                        <strong>Emily K.</strong>
+                        <span>Business Analytics, Class of 2024</span>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "BuzzedIn helped me find my dream job in just 2 weeks!
+                        It's easy to use and actually works!"
+                    </p>
+                    <div class="testimonial-author">
+                        <strong>David M.</strong>
+                        <span>Computer Engineering, Class of 2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section - NEW -->
+    <section class="final-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Launch Your Career?</h2>
+                <p>Join thousands of Georgia Tech students finding their dream jobs</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'accounts:signup_choice' %}" class="btn btn-primary btn-lg">
+                        Create Free Account
+                    </a>
+                    <a href="{% url 'home:about' %}" class="btn btn-secondary btn-lg">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
 {% endblock %}
