@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block nav_applications %}active{% endblock %}
+
 {% load static %}
 
 {% block content %}
@@ -86,7 +88,7 @@
                                 <a href="{% url 'jobs:show' job.id %}" class="view-job-btn">
                                     <i class="fas fa-eye"></i> View Job
                                 </a>
-                                <button class="quick-apply-btn" onclick="showApplicationNote({{ job.id }})">
+                                <button class="quick-apply-btn" onclick="showApplicationNote('{{ job.id }}')">
                                     <i class="fas fa-paper-plane"></i> Quick Apply
                                 </button>
                             </div>
