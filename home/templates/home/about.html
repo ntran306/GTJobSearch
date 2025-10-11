@@ -2,19 +2,292 @@
 {% load static %}
 
 {% block content %}
-<div class="aboutpage">
-  <!-- About Us Section -->
-    <section class="about-section">
-        <h2>About BuzzedIn</h2><br>
-        <p>BuzzedIn is a platform designed to connect students with job opportunities, internships, and co-op positions. Our mission is to simplify the job search process and help students find roles that align with their skills and career goals.</p>
-        <p>Founded in 2025, BuzzedIn was created by a group of passionate developers and career advisors, BuzzedIn aims to bridge the gap between students and employers by providing a user-friendly interface and personalized job recommendations.</p>
-        <p>We believe that every student deserves access to quality job opportunities, and we are committed to making the job search experience as seamless and efficient as possible.</p>
-        <br>
-        <p>Our team consists of experienced professionals who have worked in various industries and understand the challenges faced by students during their job searches. We bring together diverse perspectives and expertise to create innovative solutions for your career needs.</p>
-        <p>At BuzzedIn, we prioritize transparency and trustworthiness. Your privacy and security are our top priorities, ensuring that you can rely on us for accurate information and reliable connections.</p>
-        <p>We are constantly evolving to meet the changing demands of today's job market. Stay updated with the latest trends, industry insights, and exclusive resources through our blog section.</p>
-        <p>Thank you for choosing BuzzedIn as your trusted partner in your career journey. We look forward to helping you achieve your professional goals!</p>
-        <p class="link-to-site"><a href="https://kai228carlson.wixsite.com/pietruszkagroup2" target="_blank" class="link-btn">Visit our Team Site</a></p>
+
+<div class="about-page">
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <div class="about-hero-content">
+                <h1>Empowering Georgia Tech Students to Find Their Dream Careers</h1>
+                <p class="hero-lead">
+                    BuzzedIn connects ambitious Yellow Jackets with opportunities at the world's 
+                    leading companies. We're not just a job board—we're your career partner.
+                </p>
+            </div>
+        </div>
     </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+        <div class="container">
+            <div class="mission-grid">
+                <div class="mission-image">
+                    <img src="{% static 'img/our_mission.png' %}" alt="Our Mission">
+                </div>
+                <div class="mission-content">
+                    <div class="section-label">Our Mission</div>
+                    <h2>Making Career Success Accessible to Every Student</h2>
+                    <p>
+                        At BuzzedIn, we believe that every Georgia Tech student deserves access to 
+                        exceptional career opportunities. We're breaking down barriers between talented 
+                        students and top employers by creating a platform that's intuitive, 
+                        personalized, and built specifically for your needs.
+                    </p>
+                    <p>
+                        Founded in 2025 by Georgia Tech alumni who experienced the job search struggle 
+                        firsthand, we understand the challenges you face. That's why we've built a 
+                        platform that does more than just list jobs—it actively helps you succeed.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Active Job Listings</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Partner Companies</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="stat-number">1,000+</div>
+                    <div class="stat-label">Students Placed</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Satisfaction Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Our Values</div>
+                <h2>What Drives Us</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+            
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Student-First</h3>
+                    <p>
+                        Every feature we build, every decision we make, starts with one question: 
+                        How does this help students succeed?
+                    </p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Trust & Transparency</h3>
+                    <p>
+                        Your privacy and security are non-negotiable. We're transparent about 
+                        how your data is used and protected.
+                    </p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Innovation</h3>
+                    <p>
+                        We're constantly improving our platform with AI-powered matching, 
+                        smart recommendations, and cutting-edge features.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How We're Different -->
+    <section class="different-section">
+        <div class="container">
+            <div class="different-grid">
+                <div class="different-content">
+                    <div class="section-label">Why BuzzedIn?</div>
+                    <h2>Not Just Another Job Board</h2>
+                    <p class="lead-text">
+                        We're solving the problems other platforms ignore.
+                    </p>
+                    
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Personalized Matching</h4>
+                                <p>AI-powered recommendations based on your skills, experience, and preferences</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Application Tracking</h4>
+                                <p>Never lose track of where you applied or what stage you're at</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Exclusive Opportunities</h4>
+                                <p>Access jobs that are only available to Georgia Tech students</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Real-Time Notifications</h4>
+                                <p>Get instant alerts when jobs matching your criteria are posted</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="different-image">
+                    <img src="{% static 'img/BuzzedIn_Platform.png' %}" alt="BuzzedIn Platform">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Meet the Team</div>
+                <h2>Built by Students, For Students</h2>
+                <p>
+                    Our team consists of Georgia Tech alumni, experienced developers, and career 
+                    advisors who understand the challenges of modern job searching.
+                </p>
+            </div>
+            
+            <div class="team-info">
+                <div class="team-card">
+                    <div class="team-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Engineering Team</h3>
+                    <p>
+                        Our developers bring expertise from top tech companies including Google, 
+                        Microsoft, and Amazon. They've built a platform that's fast, reliable, 
+                        and user-friendly.
+                    </p>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Industry Partners</h3>
+                    <p>
+                        We work directly with recruiters at leading companies to bring you 
+                        opportunities that match your ambitions and qualifications.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="team-cta">
+                <p>Want to learn more about our team and vision?</p>
+                <a href="https://kai228carlson.wixsite.com/pietruszkagroup2" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt"></i>
+                    Visit Our Team Site
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Commitment Section -->
+    <section class="commitment-section">
+        <div class="container">
+            <div class="commitment-content">
+                <div class="commitment-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h2>Our Commitment to You</h2>
+                <p>
+                    We're constantly evolving to meet the changing demands of today's job market. 
+                    Your feedback shapes our roadmap, and your success drives our mission. We're 
+                    not satisfied until you land the opportunity you deserve.
+                </p>
+                <div class="commitment-features">
+                    <div class="commitment-feature">
+                        <i class="fas fa-lock"></i>
+                        <span>Your data is secure and private</span>
+                    </div>
+                    <div class="commitment-feature">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Always free for students</span>
+                    </div>
+                    <div class="commitment-feature">
+                        <i class="fas fa-headset"></i>
+                        <span>24/7 support when you need it</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="about-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Start Your Journey?</h2>
+                <p>Join thousands of Georgia Tech students finding their dream careers</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'accounts:signup_choice' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i>
+                        Create Your Profile
+                    </a>
+                    <a href="{% url 'jobs:index' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-search"></i>
+                        Browse Jobs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </div>
+
 {% endblock %}
