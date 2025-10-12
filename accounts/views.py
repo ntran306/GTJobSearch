@@ -64,7 +64,7 @@ def recruiter_signup(request):
             return redirect("accounts:login")  # or wherever you want
     else:
         form = RecruiterSignUpForm()
-    return render(request, "accounts/signup_recruiter.html", {"form": form})
+    return render(request, "accounts/recruiter_signup.html", {"form": form})
 
 
 @login_required
@@ -144,3 +144,20 @@ def edit_profile(request):
         form = form_class(instance=profile)
 
     return render(request, "accounts/edit_profile.html", {"form": form})
+
+@login_required
+def edit_recruiter_profile(request):
+    profile = getattr(request.user, 'recruiterprofile', None)
+    if not profile:
+        # Optional: redirect or show error if user is not a recruiter
+        return redirect('accounts:profile')
+
+    if request.method == 'POST':
+        form = RecruiterProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('accounts:profile')
+    else:
+        form = RecruiterProfileForm(instance=profile)
+
+    return render(request, 'accounts/edit_recruiter_profile.html', {'form': form})

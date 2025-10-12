@@ -62,17 +62,33 @@
                 {% endif %}
             </div>
 
-            <!-- Company/Recruiter Name -->
+            <!-- Name -->
             <div class="form-group">
-                <label class="form-label" for="id_name">Company/Recruiter Name *</label>
+                <label class="form-label" for="id_name">Your Name *</label>
                 {{ form.name }}
-                {% if form.name.errors %}
-                    {% for error in form.name.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <small class="help-text">Your company name or your name as a recruiter</small>
             </div>
+
+            <!-- Company -->
+            <div class="form-group">
+                <label class="form-label" for="id_company">Company Name *</label>
+                {{ form.company }}
+            </div>
+
+            <!-- Website -->
+            <div class="form-group">
+                <label class="form-label" for="id_website">Website</label>
+                {{ form.website }}
+                <small class="help-text">Optional: your company website</small>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label" for="id_description">Description</label>
+                {{ form.description }}
+                <small class="help-text">Optional: brief description of your company or services</small>
+            </div>
+
+
 
             <!-- Non-field errors -->
             {% if form.non_field_errors %}
