@@ -1,9 +1,10 @@
+# home/urls.py
 from django.urls import path
 from . import views
 
-app_name = "home"  # so {% url 'home:index' %} works
+app_name = 'home'  # This namespaces your URLs
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("about/", views.about, name="about"), 
+    path("", views.index, name="index"),      # homepage
+    path("about/", views.about, name="about"), # about page
 ]

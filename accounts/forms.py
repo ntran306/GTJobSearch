@@ -1,19 +1,16 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import JobSeekerProfile, RecruiterProfile
-from jobs.models import Skill
-from .models import JobSeekerProfile
-
 
 class JobSeekerSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
     headline = forms.CharField(max_length=255)
     skills = forms.ModelMultipleChoiceField(
-        queryset=Skill.objects.all(),
+        queryset=None,  # temporarily None
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        help_text="Select the skills you have (you can select multiple)"
+        help_text="Select the skills you have"
     )
     education = forms.CharField(widget=forms.Textarea)
     work_experience = forms.CharField(widget=forms.Textarea)
@@ -21,27 +18,17 @@ class JobSeekerSignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = (
-            "username", "email", "password1", "password2",
-            "headline", "skills", "education", "work_experience", "links"
-        )
+        fields = ("username", "email", "password1", "password2",
+                  "headline", "skills", "education", "work_experience", "links")
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data["email"]
-        if commit:
-            user.save()
-            profile = JobSeekerProfile.objects.create(
-                user=user,
-                headline=self.cleaned_data["headline"],
-                education=self.cleaned_data["education"],
-                work_experience=self.cleaned_data["work_experience"],
-                links=self.cleaned_data["links"],
-            )
-            # Then set the many-to-many skills relationship
-            if self.cleaned_data.get('skills'):
-                profile.skills.set(self.cleaned_data['skills'])
-        return user
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from jobs.models import Skill
+        self.fields['skills'].queryset = Skill.objects.all()
+
+
+
+
 
 class RecruiterSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -56,38 +43,44 @@ class RecruiterSignUpForm(UserCreationForm):
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
+            # Create RecruiterProfile
             RecruiterProfile.objects.create(
                 user=user,
                 name=self.cleaned_data["name"],
             )
+            # Set is_recruiter on Profile
+            profile = getattr(user, "profile", None)
+            if profile:
+                profile.is_recruiter = True
+                profile.save()
         return user
-    
+
 class JobSeekerProfileForm(forms.ModelForm):
     skills = forms.ModelMultipleChoiceField(
-        queryset=Skill.objects.all(),
+        queryset=None,  # temporarily None
         widget=forms.CheckboxSelectMultiple,
         required=False,
         help_text="Select the skills you have"
     )
+
     class Meta:
         model = JobSeekerProfile
         fields = ['headline', 'skills', 'education', 'work_experience', 'links']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from jobs.models import Skill
+        self.fields['skills'].queryset = Skill.objects.all()
 
+        # Add form-input classes and textarea attributes
         for name, field in self.fields.items():
             if name == 'skills':
                 continue
-            
             existing = field.widget.attrs.get('class', "")
-            classes = (existing + " form-input").strip()
-            field.widget.attrs['class'] = classes
-
+            field.widget.attrs['class'] = (existing + " form-input").strip()
             if isinstance(field.widget, forms.widgets.Textarea):
                 field.widget.attrs.setdefault('rows', 5)
                 field.widget.attrs.setdefault('style', 'min-height:100px;')
-
             if not field.widget.attrs.get('placeholder'):
                 field.widget.attrs['placeholder'] = field.label if field.label else ""
 
@@ -100,14 +93,15 @@ class RecruiterProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Add form-input classes and textarea attributes
         for name, field in self.fields.items():
             existing = field.widget.attrs.get('class', "")
-            classes = (existing + " form-input").strip()
-            field.widget.attrs['class'] = classes
-
+            field.widget.attrs['class'] = (existing + " form-input").strip()
             if isinstance(field.widget, forms.widgets.Textarea):
                 field.widget.attrs.setdefault('rows', 5)
                 field.widget.attrs.setdefault('style', 'min-height:100px;')
-
             if not field.widget.attrs.get('placeholder'):
                 field.widget.attrs['placeholder'] = field.label if field.label else ""
+
+
+                

@@ -1,10 +1,15 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django.conf import settings
 from .models import Job, Skill
 from .utils import haversine, batch_road_distance_and_time
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+from django.contrib.auth.decorators import login_required
+from .forms import JobForm
+from django.contrib import messages
+
+
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -17,7 +22,8 @@ def index(request):
     # Name and company filter
     search = request.GET.get("search")
     if search:
-        jobs = jobs.filter(Q(name__icontains=search) | Q(company__icontains=search))
+        jobs = jobs.filter(Q(title__icontains=search) | Q(company__icontains=search))
+
 
     # Pay type filter
     pay_type = request.GET.get("pay_type")
@@ -144,7 +150,7 @@ def index(request):
                 "id": job.id,
                 "lat": float(job.latitude),
                 "lng": float(job.longitude),
-                "title": job.name,
+                "title": job.title,
                 "company": job.company,
                 "location": job.location,
             }
@@ -170,13 +176,6 @@ def index(request):
         "job_markers_json": job_markers_json,
         "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
         "user_application_count": user_application_count,
-    })
-
-def show(request, id):
-    job = get_object_or_404(Job, id=id)
-    return render(request, "jobs/job.html", {
-        "job": job,
-        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
     })
 
 # Now just added ability to view distance/time to job based on actual roadtime not basic radius
@@ -219,3 +218,76 @@ def jobs_by_commute_radius(request):
     ))
 
     return render(request, "jobs/index.html", {"jobs": results, "user_lat": user_lat, "user_lng": user_lng, "radius_miles": radius_miles})
+
+# Recruiter: see their own jobs
+@login_required
+def my_job_posts(request):
+    try:
+        profile = request.user.profile
+    except AttributeError:
+        messages.error(request, "Profile not found.")
+        return redirect("jobs:index")
+
+    # Make sure profile has is_recruiter attribute
+    if not getattr(profile, "is_recruiter", False):
+        messages.error(request, "Only recruiters can access this page.")
+        return redirect("jobs:index")
+
+    jobs = Job.objects.filter(recruiter=profile).order_by("-created_at")
+    return render(request, "jobs/my_jobs.html", {"jobs": jobs})
+
+# Create new job
+@login_required
+def create_job(request):
+    profile = request.user.profile
+    if not profile.is_recruiter:
+        messages.error(request, "Only recruiters can create jobs.")
+        return redirect("jobs:index")
+
+    if request.method == "POST":
+        form = JobForm(request.POST, request.FILES)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.recruiter = profile
+            job.save()
+            form.save_m2m()  # for ManyToMany fields
+            messages.success(request, "Job created successfully.")
+            return redirect("jobs:my_jobs")
+    else:
+        form = JobForm()
+    return render(request, "jobs/job_form.html", {"form": form})
+
+# Edit job
+@login_required
+def edit_job(request, job_id):
+    profile = request.user.profile
+    job = get_object_or_404(Job, id=job_id, recruiter=profile)  # only allow editing own jobs
+
+    if request.method == "POST":
+        form = JobForm(request.POST, request.FILES, instance=job)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Job updated successfully.")
+            return redirect("jobs:my_jobs")
+    else:
+        form = JobForm(instance=job)
+    return render(request, "jobs/job_form.html", {"form": form, "job": job})
+
+# Delete job
+@login_required
+def delete_job(request, job_id):
+    profile = request.user.profile
+    job = get_object_or_404(Job, id=job_id, recruiter=profile)  # only allow deleting own jobs
+
+    if request.method == "POST":
+        job.delete()
+        messages.success(request, "Job deleted successfully.")
+        return redirect("jobs:my_jobs")
+    return render(request, "jobs/job_confirm_delete.html", {"job": job})
+
+def show(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, "jobs/show.html", {
+        "job": job,
+        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
+    })

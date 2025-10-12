@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Find Candidates</h2>
+
+  <!-- Search Form -->
+  <form method="GET" action="{% url 'profiles:candidate_search' %}" class="search-form mb-4 d-flex justify-content-center">
+    <input type="text" name="skill" placeholder="Skill" value="{{ skill_query }}" class="form-control w-25 mx-2">
+    <input type="text" name="location" placeholder="Location" value="{{ location_query }}" class="form-control w-25 mx-2">
+    <input type="text" name="project" placeholder="Project" value="{{ project_query }}" class="form-control w-25 mx-2">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+  <hr>
+
+  <!-- Results -->
+  {% if candidates %}
+    <div class="row">
+      {% for candidate in candidates %}
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">{{ candidate.user.username }}</h5>
+              <p class="card-text"><strong>Location:</strong> {{ candidate.location }}</p>
+              <p class="card-text"><strong>Skills:</strong>
+                {% for skill in candidate.skills.all %}
+                  <span class="badge bg-secondary">{{ skill.name }}</span>
+                {% empty %}
+                  <span>No skills listed</span>
+                {% endfor %}
+              </p>
+              <p class="card-text"><strong>Projects:</strong>
+                {% for project in candidate.projects.all %}
+                  <span class="badge bg-info text-dark">{{ project.title }}</span>
+                {% empty %}
+                  <span>No projects yet</span>
+                {% endfor %}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted">No candidates found matching your search.</p>
+  {% endif %}
+</div>
+{% endblock %}

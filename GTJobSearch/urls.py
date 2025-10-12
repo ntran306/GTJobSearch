@@ -18,11 +18,13 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("home.urls")),         # homepage
     path("accounts/", include("accounts.urls")),  # accounts app
-    path("jobs/", include("jobs.urls")),
-    path("jobseeker/home", jobseeker_home, name="jobseeker_home"),
-    path("recruiter/home", recruiter_home, name="recruiter_home"),
-    path("applications/", include("applications.urls", namespace="applications")),
+    path("jobs/", include("jobs.urls")), # jobs app
+    path("jobseeker/home", jobseeker_home, name="jobseeker_home"), #jobseeker home page
+    path("recruiter/home", recruiter_home, name="recruiter_home"), #recruiter home page
+    path("applications/", include("applications.urls", namespace="applications")), # applications app
+    path('candidates/', include('candidates.urls')), # candidates app
+    path('profiles/', include('profiles.urls')), # profiles app
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
 from django.contrib.auth import logout
-from django.shortcuts import get_object_or_404
 from .models import JobSeekerProfile, RecruiterProfile
 from .forms import JobSeekerProfileForm, RecruiterProfileForm, JobSeekerSignUpForm, RecruiterSignUpForm
-
+from profiles.models import Profile
+from django.contrib import messages
 
 
 def signup(request):
@@ -19,11 +19,23 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # Create a Profile if it doesn't exist
+            profile, created = Profile.objects.get_or_create(user=user)
+            if created:
+                # Optional logic to mark recruiters automatically
+                # Replace `some_logic_to_detect_recruiter` with your condition
+                if user.email.endswith("@company.com"):  # Example condition
+                    profile.is_recruiter = True
+                    profile.company = "Default Company Name"  # optional
+                    profile.save()
+
             login(request, user)
             return redirect("accounts:profile") 
     else:
         form = AuthenticationForm()
     return render(request, "accounts/login.html", {"form": form})
+
 
 # Signup choice landing page
 def signup_choice(request):
@@ -47,12 +59,13 @@ def recruiter_signup(request):
     if request.method == "POST":
         form = RecruiterSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("accounts:profile")
+            form.save()
+            messages.success(request, "Account created successfully as a recruiter.")
+            return redirect("accounts:login")  # or wherever you want
     else:
         form = RecruiterSignUpForm()
-    return render(request, "accounts/recruiter_signup.html", {"form": form})
+    return render(request, "accounts/signup_recruiter.html", {"form": form})
+
 
 @login_required
 def profile_view(request):
