@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ job.name }} | {{ job.company }}</title>
+    <title>{{ job.title }} | {{ job.company }}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -24,7 +24,7 @@
             <!-- Job Header -->
             <div class="job-header">
                 <div class="job-header-info">
-                    <h1 class="job-title">{{ job.name }}</h1>
+                    <h1 class="job-title">{{ job.title }}</h1>
                     <h2 class="company-name">{{ job.company }}</h2>
                     
                     <div class="job-meta">
@@ -152,7 +152,7 @@
                                     <i class="fas fa-heart"></i>
                                     Save Job
                                 </button>
-                                <button class="share-btn" onclick="shareJob('{{ job.name|escapejs }}', '{{ job.company|escapejs }}')">
+                                <button class="share-btn" onclick="shareJob('{{ job.title|escapejs }}', '{{ job.company|escapejs }}')">
                                     <i class="fas fa-share"></i>
                                     Share Job
                                 </button>

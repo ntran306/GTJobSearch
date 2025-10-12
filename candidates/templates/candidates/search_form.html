@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Search Candidates</h2>
+
+<form method="GET" action="{% url 'candidates:search_candidates' %}">
+  <input type="text" name="skill" placeholder="Skill" value="{{ skill_query }}">
+  <input type="text" name="location" placeholder="Location" value="{{ location_query }}">
+  <input type="text" name="project" placeholder="Project" value="{{ project_query }}">
+  <button type="submit">Search</button>
+</form>
+{% endblock %}

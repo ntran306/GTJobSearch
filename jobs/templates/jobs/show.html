@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ job.title }}</h2>
+<p><strong>Company:</strong> {{ job.company }}</p>
+<p><strong>Location:</strong> {{ job.location }}</p>
+<p><strong>Description:</strong></p>
+<p>{{ job.description }}</p>
+<p><strong>Pay:</strong> ${{ job.pay_min }} – ${{ job.pay_max }} ({{ job.get_pay_type_display }})</p>
+{% endblock %}

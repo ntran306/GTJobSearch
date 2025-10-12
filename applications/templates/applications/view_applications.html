@@ -33,7 +33,7 @@
                 <tbody>
                     {% for app in applications %}
                         <tr>
-                            <td><a href="{% url 'jobs:show' app.job.id %}">{{ app.job.name }}</a></td>
+                            <td><a href="{% url 'jobs:show' app.job.id %}">{{ app.job.title }}</a></td>
                             <td>{{ app.job.company }}</td>
                             <td><span class="status-badge status-{{ app.status }}"><i class="fas fa-circle"></i> {{ app.get_status_display }}</span></td>
                             <td>{{ app.created_at|date:"M d, Y" }}</td>
@@ -69,7 +69,7 @@
                     {% for job in recommended_jobs %}
                         <div class="recommended-job-card">
                             <div class="job-card-header">
-                                <h3>{{ job.name }}</h3>
+                                <h3>{{ job.title }}</h3>
                                 <p>{{ job.company }}</p>
                             </div>
                             <div class="job-details">

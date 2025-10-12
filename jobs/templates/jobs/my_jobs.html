@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>My Job Postings</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'jobs:create_job' %}" class="btn btn-primary">Create New Job</a>
+
+    <hr>
+
+    {% if jobs %}
+        <ul class="list-group mt-3">
+            {% for job in jobs %}
+                <li class="list-group-item">
+                    <strong>{{ job.title }}</strong> – {{ job.location }}<br>
+                    <small>Posted on {{ job.created_at|date:"M d, Y" }}</small><br>
+                    
+                    <div class="mt-2">
+                        <a href="{% url 'jobs:show' job.id %}" class="btn btn-sm btn-info">View</a>
+                        <a href="{% url 'jobs:edit_job' job.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        <form action="{% url 'jobs:delete_job' job.id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this job?')">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have not created any job postings yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

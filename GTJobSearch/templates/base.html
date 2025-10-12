@@ -28,44 +28,50 @@
                     {% if user.is_authenticated %}
                         <!-- Home -->
                         <li>
-                            <a href="{% url 'home:index' %}" class="{% block nav_home %}{% endblock %}">Home</a>
+                            <a href="{% url 'home:index' %}">Home</a>
                         </li>
 
                         <!-- Profile -->
                         <li>
-                            <a href="{% url 'accounts:profile' %}" class="{% block nav_profile %}{% endblock %}">Profile</a>
+                            <a href="{% url 'accounts:profile' %}">Profile</a>
                         </li>
 
-                        <!-- Jobs -->
-                        <li>
-                            <a href="{% url 'jobs:index' %}" class="{% block nav_jobs %}{% endblock %}">Jobs</a>
-                        </li>
+                        {% if user.recruiterprofile %}
+                            <!-- Recruiter-specific links -->
+                            <li>
+                                <a href="{% url 'profiles:candidate_search' %}">Find Candidates</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'jobs:my_jobs' %}">My Job Postings</a>
+                            </li>
 
-                        <!-- Applications -->
-                        <li>
-                            <a href="{% url 'applications:view_applications' %}" class="{% block nav_applications %}{% endblock %}">Applications</a>
-                        </li>
+                        {% elif user.jobseekerprofile %}
+                            <!-- Job Seeker-specific links -->
+                            <li>
+                                <a href="{% url 'jobs:index' %}">Find Jobs</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'applications:view_applications' %}">My Applications</a>
+                            </li>
+                        {% endif %}
 
                         <!-- Logout -->
                         <li>
-                            <a href="{% url 'accounts:logout' %}" class="btn btn-primary {% block nav_logout %}{% endblock %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <!-- Create Profile -->
-                        <li>
-                            <a href="{% url 'accounts:signup_choice' %}" class="{% block nav_signup %}{% endblock %}">Create Profile</a>
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a>
                         </li>
 
-                        <!-- Login -->
+                    {% else %}
+                        <!-- Not logged in -->
                         <li>
-                            <a href="{% url 'accounts:login' %}" class="btn btn-primary {% block nav_login %}{% endblock %}">Login</a>
+                            <a href="{% url 'accounts:signup_choice' %}">Create Profile</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
                         </li>
                     {% endif %}
                 </ul>
 
 
-
-                
                 <button class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>
                 </button>
