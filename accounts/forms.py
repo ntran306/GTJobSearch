@@ -26,34 +26,31 @@ class JobSeekerSignUpForm(UserCreationForm):
         from jobs.models import Skill
         self.fields['skills'].queryset = Skill.objects.all()
 
-
-
-
-
 class RecruiterSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
     name = forms.CharField(max_length=255)
+    company = forms.CharField(max_length=255)
+    website = forms.URLField(required=False)
+    description = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:
         model = User
-        fields = ("username", "email", "password1", "password2", "name")
+        fields = ("username", "email", "password1", "password2", "name", "company", "website", "description")
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
-            # Create RecruiterProfile
             RecruiterProfile.objects.create(
                 user=user,
                 name=self.cleaned_data["name"],
+                company=self.cleaned_data["company"],
+                website=self.cleaned_data.get("website", ""),
+                description=self.cleaned_data.get("description", "")
             )
-            # Set is_recruiter on Profile
-            profile = getattr(user, "profile", None)
-            if profile:
-                profile.is_recruiter = True
-                profile.save()
         return user
+
 
 class JobSeekerProfileForm(forms.ModelForm):
     skills = forms.ModelMultipleChoiceField(
@@ -92,8 +89,6 @@ class RecruiterProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Add form-input classes and textarea attributes
         for name, field in self.fields.items():
             existing = field.widget.attrs.get('class', "")
             field.widget.attrs['class'] = (existing + " form-input").strip()
@@ -102,6 +97,3 @@ class RecruiterProfileForm(forms.ModelForm):
                 field.widget.attrs.setdefault('style', 'min-height:100px;')
             if not field.widget.attrs.get('placeholder'):
                 field.widget.attrs['placeholder'] = field.label if field.label else ""
-
-
-                

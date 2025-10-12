@@ -18,5 +18,6 @@ urlpatterns = [
     # Universal profile
     path("profile/", views.profile_view, name="profile"),
     path("edit/", views.edit_profile, name="edit_profile"),
+    path('edit-recruiter/', views.edit_recruiter_profile, name='edit_recruiter_profile'),
 ]
 

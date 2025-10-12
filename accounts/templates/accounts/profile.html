@@ -33,7 +33,16 @@
       <p class="text-sm text-gray-600">
         <i class="fas fa-calendar-alt"></i> Member since {{ user.date_joined|date:"F Y" }}
       </p>
-      <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary btn-sm">Edit Profile</a>
+      <a href="{% if profile_type == 'recruiter' %}
+                {% url 'accounts:edit_recruiter_profile' %}
+              {% else %}
+                {% url 'accounts:edit_profile' %}
+              {% endif %}" 
+        class="btn btn-primary btn-sm">
+        Edit Profile
+      </a>
+
+
     </div>
   </section>
 
