@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,52 +25,25 @@
                     </a>
                 </div>
 
-                
                 <ul class="nav-links">
                     {% if user.is_authenticated %}
-                        <!-- Home -->
-                        <li>
-                            <a href="{% url 'home:index' %}">Home</a>
-                        </li>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
 
-                        <!-- Profile -->
-                        <li>
-                            <a href="{% url 'accounts:profile' %}">Profile</a>
-                        </li>
-
-                        {% if user.recruiterprofile %}
-                            <!-- Recruiter-specific links -->
-                            <li>
-                                <a href="{% url 'profiles:candidate_search' %}">Find Candidates</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'jobs:my_jobs' %}">My Job Postings</a>
-                            </li>
-
-                        {% elif user.jobseekerprofile %}
-                            <!-- Job Seeker-specific links -->
-                            <li>
-                                <a href="{% url 'jobs:index' %}">Find Jobs</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'applications:view_applications' %}">My Applications</a>
-                            </li>
+                        {% if user|has_recruiterprofile %}
+                            <li><a href="{% url 'profiles:candidate_search' %}">Find Candidates</a></li>
+                            <li><a href="{% url 'jobs:my_jobs' %}">My Job Postings</a></li>
+                        {% elif user|has_jobseekerprofile %}
+                            <li><a href="{% url 'jobs:index' %}">Find Jobs</a></li>
+                            <li><a href="{% url 'applications:view_applications' %}">My Applications</a></li>
                         {% endif %}
 
-                        <!-- Logout -->
-                        <li>
-                            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a>
-                        </li>
-
+                        <li><a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a></li>
                     {% else %}
-                        <!-- Not logged in -->
-                        <li>
-                            <a href="{% url 'accounts:signup_choice' %}">Create Profile</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
-                        </li>
+                        <li><a href="{% url 'accounts:signup_choice' %}">Create Profile</a></li>
+                        <li><a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a></li>
                     {% endif %}
+
                 </ul>
 
 

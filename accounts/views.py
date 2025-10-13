@@ -1,96 +1,100 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
-from django.contrib.auth import logout
-from .models import JobSeekerProfile, RecruiterProfile
-from .forms import JobSeekerProfileForm, RecruiterProfileForm, JobSeekerSignUpForm, RecruiterSignUpForm
-from profiles.models import Profile
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
+from django.contrib.auth.models import User
+
+from .forms import (
+    JobSeekerProfileForm,
+    RecruiterProfileForm,
+    JobSeekerSignUpForm,
+    RecruiterSignUpForm,
+)
+from .models import JobSeekerProfile, RecruiterProfile
 
 
-def signup(request):
-    return render(request, "accounts/signup.html")
-
-
-def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-
-            # Create a Profile if it doesn't exist
-            profile, created = Profile.objects.get_or_create(user=user)
-            if created:
-                # Optional logic to mark recruiters automatically
-                # Replace `some_logic_to_detect_recruiter` with your condition
-                if user.email.endswith("@company.com"):  # Example condition
-                    profile.is_recruiter = True
-                    profile.company = "Default Company Name"  # optional
-                    profile.save()
-
-            login(request, user)
-            return redirect("accounts:profile") 
-    else:
-        form = AuthenticationForm()
-    return render(request, "accounts/login.html", {"form": form})
-
-
-# Signup choice landing page
+# ---------- SIGNUP CHOICE PAGE ----------
 def signup_choice(request):
+    """Landing page where user chooses job seeker or recruiter"""
     return render(request, "accounts/signup_choice.html")
 
-# Job Seeker signup
+
+# ---------- JOB SEEKER SIGNUP ----------
+from .forms import JobSeekerSignUpForm, RecruiterSignUpForm
+
 def jobseeker_signup(request):
     if request.method == "POST":
         form = JobSeekerSignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("accounts:profile")
+            messages.success(request, "Account created successfully as a job seeker.")
+            return redirect("home:index")
     else:
         form = JobSeekerSignUpForm()
     return render(request, "accounts/jobseeker_signup.html", {"form": form})
 
-
-# Recruiter signup
+# ---------- RECRUITER SIGNUP ----------
 def recruiter_signup(request):
     if request.method == "POST":
         form = RecruiterSignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            login(request, user)
             messages.success(request, "Account created successfully as a recruiter.")
-            return redirect("accounts:login")  # or wherever you want
+            return redirect("home:index")
     else:
         form = RecruiterSignUpForm()
     return render(request, "accounts/recruiter_signup.html", {"form": form})
 
 
+
+# ---------- LOGIN ----------
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+
+            # Log the user in and redirect to their profile page
+            login(request, user)
+            return redirect("accounts:profile")
+    else:
+        form = AuthenticationForm()
+    return render(request, "accounts/login.html", {"form": form})
+
+
+# ---------- LOGOUT ----------
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect("accounts:login")
+
+
+# ---------- PROFILE VIEW ----------
 @login_required
 def profile_view(request):
     user = request.user
-    
-    # Handle privacy settings update (POST request)
-    if request.method == 'POST' and 'privacy' in request.POST:
-        privacy_setting = request.POST.get('privacy')
-        
-        if hasattr(user, "jobseekerprofile"):
-            profile = user.jobseekerprofile
-            if privacy_setting in ['public','employers', 'private']:
-                profile.privacy = privacy_setting
-                profile.save()
-        
-        return redirect('accounts:profile')
-    context = {}
-    
-    # Displays profile & account type
+
+    # Handle privacy updates (for job seekers)
+    if request.method == "POST" and "privacy" in request.POST:
+        privacy_setting = request.POST.get("privacy")
+        if hasattr(user, "jobseekerprofile") and privacy_setting in [
+            "public",
+            "employers_only",
+            "private",
+        ]:
+            user.jobseekerprofile.privacy = privacy_setting
+            user.jobseekerprofile.save()
+        return redirect("accounts:profile")
+
+    # Determine which type of profile to show
     context = {}
     if hasattr(user, "jobseekerprofile"):
         context["profile_type"] = "jobseeker"
         context["profile"] = user.jobseekerprofile
         context["saved_jobs"] = []
-
     elif hasattr(user, "recruiterprofile"):
         context["profile_type"] = "recruiter"
         context["profile"] = user.recruiterprofile
@@ -100,30 +104,11 @@ def profile_view(request):
 
     return render(request, "accounts/profile.html", context)
 
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect('accounts:login')  # send them back to login page
 
-# Update privacy settings specifically for JobSeekers
-@login_required
-def update_privacy_settings(request):
-    if request.method == 'POST':
-        privacy_setting = request.POST.get('privacy')
-
-        if hasattr(request.user, 'jobseekerprofile'):
-            profile = request.user.jobseekerprofile
-            if privacy_setting in ['public','employers', 'private']:
-                profile.privacy = privacy_setting
-                profile.save()
-        
-        return redirect('accounts:profile')
-    
-    return redirect('accounts:profile')
-
-# Ability to edit profile (currently still separate from update privacy settings so can be fixed later)
+# ---------- EDIT PROFILE ----------
 @login_required
 def edit_profile(request):
+    """Universal edit profile view — decides form based on user type"""
     user = request.user
 
     if hasattr(user, "jobseekerprofile"):
@@ -139,25 +124,28 @@ def edit_profile(request):
         form = form_class(request.POST, instance=profile)
         if form.is_valid():
             form.save()
+            messages.success(request, "Profile updated successfully.")
             return redirect("accounts:profile")
     else:
         form = form_class(instance=profile)
 
     return render(request, "accounts/edit_profile.html", {"form": form})
 
+
+# ---------- OPTIONAL SEPARATE RECRUITER EDIT ----------
 @login_required
 def edit_recruiter_profile(request):
-    profile = getattr(request.user, 'recruiterprofile', None)
+    profile = getattr(request.user, "recruiterprofile", None)
     if not profile:
-        # Optional: redirect or show error if user is not a recruiter
-        return redirect('accounts:profile')
+        return redirect("accounts:profile")
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = RecruiterProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('accounts:profile')
+            messages.success(request, "Recruiter profile updated successfully.")
+            return redirect("accounts:profile")
     else:
         form = RecruiterProfileForm(instance=profile)
 
-    return render(request, 'accounts/edit_recruiter_profile.html', {'form': form})
+    return render(request, "accounts/edit_recruiter_profile.html", {"form": form})

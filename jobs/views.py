@@ -8,8 +8,8 @@ import json
 from django.contrib.auth.decorators import login_required
 from .forms import JobForm
 from django.contrib import messages
-
-
+from django.http import HttpResponse
+from accounts.models import RecruiterProfile
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -221,41 +221,41 @@ def jobs_by_commute_radius(request):
 
 # Recruiter: see their own jobs
 @login_required
-def my_job_posts(request):
-    try:
-        profile = request.user.profile
-    except AttributeError:
-        messages.error(request, "Profile not found.")
-        return redirect("jobs:index")
-
-    # Make sure profile has is_recruiter attribute
-    if not getattr(profile, "is_recruiter", False):
-        messages.error(request, "Only recruiters can access this page.")
-        return redirect("jobs:index")
-
-    jobs = Job.objects.filter(recruiter=profile).order_by("-created_at")
+def my_jobs(request):
+    if hasattr(request.user, "recruiterprofile"):
+        recruiter = request.user.recruiterprofile  # ✅ get the RecruiterProfile
+        jobs = Job.objects.filter(recruiter=recruiter)
+    else:
+        jobs = Job.objects.none()  # or redirect if not a recruiter
     return render(request, "jobs/my_jobs.html", {"jobs": jobs})
 
-# Create new job
 @login_required
 def create_job(request):
-    profile = request.user.profile
-    if not profile.is_recruiter:
-        messages.error(request, "Only recruiters can create jobs.")
-        return redirect("jobs:index")
+    # Only allow users with a recruiter profile to create jobs
+    recruiter_profile = getattr(request.user, "recruiterprofile", None)
+    if not recruiter_profile:
+        messages.error(request, "Only recruiters can post jobs.")
+        return redirect('jobs:my_jobs')
 
-    if request.method == "POST":
+    if request.method == 'POST':
         form = JobForm(request.POST, request.FILES)
         if form.is_valid():
+            # Save the form but don't commit to database yet
             job = form.save(commit=False)
-            job.recruiter = profile
+            # Assign the recruiter (foreign key)
+            job.recruiter = recruiter_profile
+            # Save to database
             job.save()
-            form.save_m2m()  # for ManyToMany fields
-            messages.success(request, "Job created successfully.")
-            return redirect("jobs:my_jobs")
+            # If your Job model has many-to-many fields (skills), save them too
+            form.save_m2m()
+            messages.success(request, "Job posted successfully!")
+            return redirect('jobs:my_jobs')
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = JobForm()
-    return render(request, "jobs/job_form.html", {"form": form})
+
+    return render(request, 'jobs/create_job.html', {'form': form})
 
 # Edit job
 @login_required

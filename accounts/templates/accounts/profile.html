@@ -22,7 +22,7 @@
         {% if profile_type == "jobseeker" and profile.headline %}
           {{ profile.headline }}
         {% elif profile_type == "recruiter" %}
-          Recruiter at {{ profile.name }}
+          Recruiter at {{ profile.company }}
         {% else %}
           Add a short description about yourself!
         {% endif %}

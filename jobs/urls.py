@@ -5,7 +5,7 @@ app_name = 'jobs'  # important for namespacing in templates
 
 urlpatterns = [
     # Recruiter: see their own jobs
-    path("my-jobs/", views.my_job_posts, name="my_jobs"),
+    path("my-jobs/", views.my_jobs, name="my_jobs"),
 
     # Job creation/edit/deletion (recruiters only)
     path("create/", views.create_job, name="create_job"),
@@ -18,3 +18,4 @@ urlpatterns = [
     # Job seeker: list and search jobs
     path("", views.index, name="index"),
 ]
+

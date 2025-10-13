@@ -12,10 +12,11 @@ PAY_TYPE_CHOICES = [
 ]
 
 class Skill(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
+
 
 class JobQuerySet(models.QuerySet):
     def filter_within_radius(self, lat, lng, radius):
@@ -31,13 +32,13 @@ class Job(models.Model):
     id = models.AutoField(primary_key=True)
     
     recruiter = models.ForeignKey(
-        Profile,  # link to Profile instead of RecruiterProfile
-        on_delete=models.CASCADE,
-        related_name='jobs_posted',
-        null=True,
-        blank=True
+        "accounts.RecruiterProfile",
+        on_delete=models.SET_NULL,   # ✅ allows safe null on delete
+        related_name="jobs",
+        null=True,                   # ✅ explicitly allows NULL in DB
+        blank=True                   # ✅ allows blank in forms
     )
-    
+   
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
     visa_sponsorship = models.BooleanField(default=False)

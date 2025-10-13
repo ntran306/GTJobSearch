@@ -17,3 +17,12 @@ def split(value, delimiter=','):
     
     # Otherwise return as-is
     return value
+
+
+@register.filter
+def has_recruiterprofile(user):
+    return hasattr(user, 'recruiterprofile')
+
+@register.filter
+def has_jobseekerprofile(user):
+    return hasattr(user, 'jobseekerprofile')
