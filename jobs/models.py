@@ -33,10 +33,10 @@ class Job(models.Model):
     
     recruiter = models.ForeignKey(
         "accounts.RecruiterProfile",
-        on_delete=models.SET_NULL,   # ✅ allows safe null on delete
+        on_delete=models.SET_NULL,
         related_name="jobs",
-        null=True,                   # ✅ explicitly allows NULL in DB
-        blank=True                   # ✅ allows blank in forms
+        null=True,
+        blank=True
     )
    
     title = models.CharField(max_length=255)
@@ -77,3 +77,4 @@ class Job(models.Model):
             except Exception as e:
                 print(f"Geocoding failed for {self.location}: {e}")
         super().save(*args, **kwargs)
+
