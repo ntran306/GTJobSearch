@@ -1,10 +1,387 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details Styling</title>
+    <style>
+        :root {
+            --primary-50: #f0f4ff;
+            --primary-100: #e0e7ff;
+            --primary-600: #667eea;
+            --primary-700: #5568d3;
+            --secondary-600: #764ba2;
+            --secondary-700: #633d8a;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition-fast: 0.2s ease;
+        }
 
-{% block content %}
-<h2>{{ job.title }}</h2>
-<p><strong>Company:</strong> {{ job.company }}</p>
-<p><strong>Location:</strong> {{ job.location }}</p>
-<p><strong>Description:</strong></p>
-<p>{{ job.description }}</p>
-<p><strong>Pay:</strong> ${{ job.pay_min }} – ${{ job.pay_max }} ({{ job.get_pay_type_display }})</p>
-{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            margin: 0;
+            color: var(--gray-800);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Back button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            color: var(--primary-600);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-fast);
+        }
+
+        .back-button:hover {
+            background: var(--primary-50);
+            transform: translateX(-4px);
+        }
+
+        .back-button::before {
+            content: "←";
+            font-size: 1.25rem;
+        }
+
+        /* Content card */
+        .job-detail-card {
+            background: white;
+            border-radius: 16px;
+            padding: var(--space-2xl);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--gray-200);
+            padding-bottom: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            gap: 2rem;
+        }
+
+        .job-header-info {
+            flex: 1;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            color: var(--gray-800);
+        }
+
+        /* Company info */
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin: 0 0 var(--space-md) 0;
+        }
+
+        p:first-of-type strong {
+            display: none;
+        }
+
+        /* Location */
+        p:nth-of-type(2) {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            margin: 0 0 var(--space-md) 0;
+        }
+
+        p:nth-of-type(2)::before {
+            content: "📍";
+        }
+
+        p:nth-of-type(2) strong {
+            display: none;
+        }
+
+        /* Pay highlight */
+        p:last-of-type {
+            background: var(--primary-50);
+            border: 1px solid var(--primary-100);
+            color: var(--primary-700);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-lg);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+        }
+
+        p:last-of-type::before {
+            content: "💰";
+        }
+
+        p:last-of-type strong {
+            display: none;
+        }
+
+        /* Job logo placeholder */
+        .job-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius-lg);
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .job-logo::before {
+            content: "🏢";
+            font-size: 3rem;
+        }
+
+        /* Content grid */
+        .job-content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: var(--space-xl);
+        }
+
+        /* Description section */
+        .job-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .job-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--gray-800);
+        }
+
+        .job-section h3::before {
+            content: "📋";
+        }
+
+        p:nth-of-type(3) {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p:nth-of-type(3)::before {
+            content: "📋";
+        }
+
+        p:nth-of-type(4) {
+            line-height: 1.7;
+            color: var(--gray-700);
+            background: var(--gray-50);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-xl);
+        }
+
+        /* Sidebar */
+        .job-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        .sidebar-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-card h4 {
+            font-size: 1.125rem;
+            margin-bottom: var(--space-md);
+            color: var(--gray-800);
+            font-weight: 700;
+        }
+
+        /* Action Buttons */
+        .job-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .job-actions a,
+        .job-actions button {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .apply-btn {
+            background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+            color: white;
+        }
+
+        .apply-btn:hover {
+            background: linear-gradient(135deg, var(--primary-700), var(--secondary-700));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-btn {
+            background: white;
+            color: var(--primary-600);
+            border: 2px solid var(--primary-200);
+        }
+
+        .save-btn:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-300);
+        }
+
+        /* Bottom back button */
+        .bottom-actions {
+            margin-top: var(--space-xl);
+            padding-top: var(--space-xl);
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .job-content-grid {
+                grid-template-columns: 1fr;
+            }
+            .job-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .job-logo {
+                margin-top: var(--space-md);
+            }
+            .job-detail-card {
+                padding: var(--space-lg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .back-button {
+                font-size: 0.9rem;
+                padding: 0.625rem 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back button -->
+        <a href="jobs/index.html" class="back-button">Back to Job Listings</a>
+        
+        <!-- Main content card -->
+        <div class="job-detail-card">
+            <!-- Job Header -->
+            <div class="job-header">
+                <div class="job-header-info">
+                    <h2>Senior Software Engineer</h2>
+                    <p><strong>Company:</strong> TechCorp Industries</p>
+                    <p><strong>Location:</strong> San Francisco, CA</p>
+                    <p><strong>Pay:</strong> $120,000 – $180,000 (Per Year)</p>
+                </div>
+                <div class="job-logo"></div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="job-content-grid">
+                <!-- Main Content -->
+                <div class="job-main">
+                    <p><strong>Description:</strong></p>
+                    <p>We are seeking a talented Senior Software Engineer to join our innovative team. You will be responsible for designing and implementing scalable solutions, mentoring junior developers, and contributing to architectural decisions. The ideal candidate has 5+ years of experience with modern web technologies and a passion for building great products.</p>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="job-sidebar">
+                    <div class="sidebar-card">
+                        <h4>Quick Actions</h4>
+                        <div class="job-actions">
+                            <a href="#" class="apply-btn">Apply Now</a>
+                            <button class="save-btn">Save Job</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom actions -->
+            <div class="bottom-actions">
+                <a href="jobs/index.html" class="back-button">Back to Job Listings</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

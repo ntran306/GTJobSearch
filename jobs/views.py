@@ -10,6 +10,7 @@ from .forms import JobForm
 from django.contrib import messages
 from django.http import HttpResponse
 from accounts.models import RecruiterProfile
+from functools import wraps
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -219,7 +220,26 @@ def jobs_by_commute_radius(request):
 
     return render(request, "jobs/index.html", {"jobs": results, "user_lat": user_lat, "user_lng": user_lng, "radius_miles": radius_miles})
 
+def show(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, "jobs/job.html", {
+        "job": job,
+        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
+    })
+
+def recruiter_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not hasattr(request.user, "recruiterprofile"):
+            messages.error(request, "You must be a recruiter to access this page.")
+            return redirect("home")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+
 # Recruiter: see their own jobs
+@recruiter_required
 @login_required
 def my_jobs(request):
     if hasattr(request.user, "recruiterprofile"):
@@ -229,9 +249,9 @@ def my_jobs(request):
         jobs = Job.objects.none()  # or redirect if not a recruiter
     return render(request, "jobs/my_jobs.html", {"jobs": jobs})
 
+@recruiter_required
 @login_required
 def create_job(request):
-    # Only allow users with a recruiter profile to create jobs
     recruiter_profile = getattr(request.user, "recruiterprofile", None)
     if not recruiter_profile:
         messages.error(request, "Only recruiters can post jobs.")
@@ -240,54 +260,62 @@ def create_job(request):
     if request.method == 'POST':
         form = JobForm(request.POST, request.FILES)
         if form.is_valid():
-            # Save the form but don't commit to database yet
             job = form.save(commit=False)
-            # Assign the recruiter (foreign key)
             job.recruiter = recruiter_profile
-            # Save to database
+
+            print("RecruiterProfile assigned:", recruiter_profile)
+            print("RecruiterProfile ID:", recruiter_profile.id)
+            print("RecruiterProfile exists in DB:", recruiter_profile.__class__.objects.filter(id=recruiter_profile.id).exists())
+
             job.save()
-            # If your Job model has many-to-many fields (skills), save them too
             form.save_m2m()
             messages.success(request, "Job posted successfully!")
             return redirect('jobs:my_jobs')
         else:
-            messages.error(request, "Please fix the errors below.")
+            messages.error(request, f"Please fix the errors below: {form.errors}")
     else:
         form = JobForm()
 
     return render(request, 'jobs/create_job.html', {'form': form})
 
-# Edit job
+@recruiter_required
 @login_required
 def edit_job(request, job_id):
-    profile = request.user.profile
-    job = get_object_or_404(Job, id=job_id, recruiter=profile)  # only allow editing own jobs
+    # Get the logged-in user's recruiter profile
+    recruiter_profile = getattr(request.user, "recruiterprofile", None)
+    if not recruiter_profile:
+        messages.error(request, "Only recruiters can edit jobs.")
+        return redirect("jobs:my_jobs")
+
+    # Ensure this recruiter owns the job being edited
+    job = get_object_or_404(Job, id=job_id, recruiter=recruiter_profile)
 
     if request.method == "POST":
         form = JobForm(request.POST, request.FILES, instance=job)
         if form.is_valid():
             form.save()
-            messages.success(request, "Job updated successfully.")
+            messages.success(request, "Job updated successfully!")
             return redirect("jobs:my_jobs")
     else:
         form = JobForm(instance=job)
+
     return render(request, "jobs/job_form.html", {"form": form, "job": job})
 
+
 # Delete job
+@recruiter_required
 @login_required
 def delete_job(request, job_id):
-    profile = request.user.profile
-    job = get_object_or_404(Job, id=job_id, recruiter=profile)  # only allow deleting own jobs
+    recruiter_profile = getattr(request.user, "recruiterprofile", None)
+    if not recruiter_profile:
+        messages.error(request, "Only recruiters can delete jobs.")
+        return redirect("jobs:my_jobs")
+
+    job = get_object_or_404(Job, id=job_id, recruiter=recruiter_profile)
 
     if request.method == "POST":
         job.delete()
-        messages.success(request, "Job deleted successfully.")
+        messages.success(request, "Job deleted successfully!")
         return redirect("jobs:my_jobs")
-    return render(request, "jobs/job_confirm_delete.html", {"job": job})
 
-def show(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
-    return render(request, "jobs/show.html", {
-        "job": job,
-        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
-    })
+    return render(request, "jobs/job_confirm_delete.html", {"job": job})
