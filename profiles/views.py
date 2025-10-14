@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from .models import Profile
+from django.shortcuts import render, get_object_or_404
+from accounts.models import JobSeekerProfile
 
 def candidate_search(request):
     query = request.GET.get('q')
@@ -21,3 +23,9 @@ def candidate_search(request):
         'location': location,
         'skill': skill,
     })
+
+def view_profile(request, user_id):
+    """Display a candidate’s public profile."""
+    profile = get_object_or_404(JobSeekerProfile, user__id=user_id)
+    return render(request, 'profiles/view_profile.html', {'profile': profile})
+

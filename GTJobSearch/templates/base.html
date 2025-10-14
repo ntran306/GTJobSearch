@@ -31,7 +31,7 @@
                         <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
 
                         {% if user|has_recruiterprofile %}
-                            <li><a href="{% url 'profiles:candidate_search' %}">Find Candidates</a></li>
+                            <a href="{% url 'candidates:search_candidates' %}">Find Candidates</a>
                             <li><a href="{% url 'jobs:my_jobs' %}">My Job Postings</a></li>
                         {% elif user|has_jobseekerprofile %}
                             <li><a href="{% url 'jobs:index' %}">Find Jobs</a></li>
