@@ -22,8 +22,8 @@ urlpatterns = [
     path("jobseeker/home", jobseeker_home, name="jobseeker_home"), #jobseeker home page
     path("recruiter/home", recruiter_home, name="recruiter_home"), #recruiter home page
     path("applications/", include("applications.urls", namespace="applications")), # applications app
-    path('candidates/', include('candidates.urls')), # candidates app
-    path('profiles/', include('profiles.urls')), # profiles app
+    path('candidates/', include('candidates.urls', namespace="candidates")), # candidates app
+    path('profiles/', include('profiles.urls', namespace="profiles")), # profiles app
 ]
 
 if settings.DEBUG:

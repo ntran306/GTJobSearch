@@ -181,9 +181,8 @@
         <h2><i class="fas fa-rocket"></i> Quick Actions</h2>
       </div>
       <div class="section-content action-buttons">
-        <a href="#" class="action-btn"><i class="fas fa-plus"></i> Post Job</a>
-        <a href="#" class="action-btn"><i class="fas fa-search"></i> Browse Candidates</a>
-        <a href="#" class="action-btn"><i class="fas fa-chart-bar"></i> View Analytics</a>
+        <a href="{% url 'jobs:create_job' %}" class="action-btn"><i class="fas fa-plus"></i> Post Job</a>
+        <a href="{% url 'candidates:search_candidates' %}">Browse Candidates</a>
       </div>
     </section>
   {% endif %}
