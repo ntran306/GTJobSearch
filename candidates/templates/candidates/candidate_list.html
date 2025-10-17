@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- Page Header -->
+  <div class="page-header text-center">
+    <h1 class="page-title"><i class="fas fa-users"></i> Browse Candidates</h1>
+    <p class="page-subtitle">Discover skilled professionals ready for new opportunities</p>
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <form method="GET" action="{% url 'candidates:search_candidates' %}" class="filter-form">
+    <input type="text" name="skill" placeholder="Search by skill..." value="{{ request.GET.skill }}">
+    <input type="text" name="location" placeholder="Location (e.g. Remote, Atlanta)" value="{{ request.GET.location }}">
+    <input type="text" name="project" placeholder="Project keywords" value="{{ request.GET.project }}">
+    
+    <button type="submit" class="search-btn">
+      <i class="fas fa-search"></i> Search
+    </button>
+  </form>
+
+  <!-- Candidates Grid -->
+  {% if candidates %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      {% for candidate in candidates %}
+        <div class="card candidate-card">
+          <div class="card-header">
+            <div class="avatar-placeholder">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <h3 class="card-title">{{ candidate.user.username }}</h3>
+              <p class="text-sm text-gray-500">{{ candidate.headline|default:"Aspiring professional" }}</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <p><i class="fas fa-map-marker-alt"></i> {{ candidate.location|default:"—" }}</p>
+
+            <div class="skills-section mt-2">
+              <strong>Skills:</strong><br>
+              {% if candidate.skills.all %}
+                {% for skill in candidate.skills.all %}
+                  <span class="skill-tag">{{ skill.name }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="text-gray-500 text-sm">No skills listed</span>
+              {% endif %}
+            </div>
+
+            <div class="projects-section mt-2">
+              <strong>Projects:</strong><br>
+              {% if candidate.projects %}
+                <p class="text-gray-600 text-sm">{{ candidate.projects|truncatechars:100 }}</p>
+              {% else %}
+                <p class="text-gray-500 text-sm">No projects listed</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card-footer text-center">
+            <a href="{% url 'candidates:candidate_detail' candidate.id %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-eye"></i> View Profile
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-results text-center mt-8">
+      <i class="fas fa-search text-3xl text-gray-400"></i>
+      <h3>No candidates found</h3>
+      <p class="text-gray-500">Try adjusting your search filters or keywords.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

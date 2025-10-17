@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container profile-page">
+
+  <section class="profile-card profile-header">
+    <div class="profile-avatar">
+      <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+    </div>
+    <div class="profile-info">
+      <h1 class="profile-name">{{ candidate.user.username }}</h1>
+      <p class="bio">{{ candidate.headline|default:"Aspiring professional" }}</p>
+      <p class="text-gray-600"><i class="fas fa-map-marker-alt"></i> {{ candidate.location|default:"—" }}</p>
+      <p class="text-gray-600"><i class="fas fa-envelope"></i> {{ candidate.user.email }}</p>
+    </div>
+  </section>
+
+  <section class="card profile-section">
+    <h2><i class="fas fa-tools"></i> Skills</h2>
+    {% if candidate.skills.all %}
+      {% for skill in candidate.skills.all %}
+        <span class="skill-tag">{{ skill.name }}</span>
+      {% endfor %}
+    {% else %}
+      <p>No skills listed</p>
+    {% endif %}
+  </section>
+
+  <section class="card profile-section">
+    <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+    <p>{{ candidate.work_experience|linebreaks|default:"No work experience listed." }}</p>
+  </section>
+
+  <section class="card profile-section">
+    <h2><i class="fas fa-link"></i> Links</h2>
+    {% if candidate.links %}
+      <a href="{{ candidate.links }}" target="_blank">{{ candidate.links }}</a>
+    {% else %}
+      <p>No links provided</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

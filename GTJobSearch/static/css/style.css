@@ -3029,3 +3029,30 @@ footer {
         width: 100%;
     }
 }
+/* Candidate styling */
+.candidate-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 1rem 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.candidate-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.skill-tag {
+  display: inline-block;
+  background-color: #eef2ff;
+  color: #3730a3;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  margin: 0.2rem;
+  font-weight: 500;
+}
+
+.card-footer {
+  margin-top: 1rem;
+}
