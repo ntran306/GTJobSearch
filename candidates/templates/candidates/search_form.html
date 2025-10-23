@@ -1,11 +1,73 @@
 {% extends 'base.html' %}
+{% block title %}Find Candidates | BuzzedIn{% endblock %}
 {% block content %}
-<h2>Search Candidates</h2>
 
-<form method="GET" action="{% url 'candidates:search_candidates' %}">
-  <input type="text" name="skill" placeholder="Skill" value="{{ skill_query }}">
-  <input type="text" name="location" placeholder="Location" value="{{ location_query }}">
-  <input type="text" name="project" placeholder="Project" value="{{ project_query }}">
-  <button type="submit">Search</button>
-</form>
+<div class="search-page-container">
+    <h1 class="page-title">Find Candidates</h1>
+
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'candidates:search_candidates' %}" class="search-form card">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="skill">Skill</label>
+                <input type="text" name="skill" id="skill" placeholder="e.g. Python, HTML, Leadership"
+                       value="{{ skill_query|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" name="location" id="location" placeholder="e.g. Atlanta, Remote"
+                       value="{{ location_query|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="project">Project</label>
+                <input type="text" name="project" id="project" placeholder="e.g. Portfolio Website, App"
+                       value="{{ project_query|default:'' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary search-btn">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Results Section -->
+    {% if candidates %}
+        <div class="candidate-grid">
+            {% for candidate in candidates %}
+                <div class="candidate-card card">
+                    <h3>{{ candidate.user.username }}</h3>
+                    <p class="text-muted"><strong>Location:</strong> {{ candidate.location|default:"—" }}</p>
+                    <p class="description">{{ candidate.headline|default:candidate.work_experience|default:"No description available." }}</p>
+
+                    <div class="skills">
+                        <p class="label"><strong>Skills:</strong></p>
+                        {% for skill in candidate.skills.all %}
+                            <span class="tag">{{ skill.name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No skills listed.</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="projects">
+                        <p class="label"><strong>Projects:</strong></p>
+                        {% if candidate.projects %}
+                            <p class="project-text">{{ candidate.projects|truncatechars:150 }}</p>
+                        {% else %}
+                            <p class="text-muted">No projects listed.</p>
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'profiles:view_profile' candidate.user.id %}" class="btn btn-secondary view-profile-btn">
+                        View Profile
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-results">No candidates found matching your criteria.</p>
+    {% endif %}
+</div>
+
 {% endblock %}
