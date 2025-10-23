@@ -299,7 +299,7 @@ def edit_job(request, job_id):
     else:
         form = JobForm(instance=job)
 
-    return render(request, "jobs/job_form.html", {"form": form, "job": job})
+    return render(request, "jobs/edit_job.html", {"form": form, "job": job})
 
 
 # Delete job

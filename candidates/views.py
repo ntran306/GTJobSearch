@@ -39,7 +39,7 @@ def search_candidates(request):
     for c in candidates:
         print(" -", c.user.username, "| privacy:", c.privacy, "| location:", c.location)
 
-    return render(request, 'candidates/search_results.html', {
+    return render(request, 'candidates/search.html', {
         'candidates': candidates,
         'skill_query': skill_query,
         'location_query': location_query,
