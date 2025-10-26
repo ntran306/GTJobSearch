@@ -15,4 +15,5 @@ urlpatterns = [
     path("view/<int:user_id>/", views.view_profile, name="view_profile"),
     path("view/<int:user_id>/contact/", views.contact_user, name="contact_user"),
     path("connect/", views.connect, name="connect"),
+    path('api/skills/create/', views.create_skill, name='create_skill'),
 ]

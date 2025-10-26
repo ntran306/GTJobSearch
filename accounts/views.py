@@ -12,6 +12,9 @@ from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from jobs.models import Skill
 
 from .forms import (
     JobSeekerProfileForm,
@@ -53,6 +56,28 @@ def jobseeker_signup(request):
         form = JobSeekerSignUpForm()
     return render(request, "accounts/jobseeker_signup.html", {"form": form})
 
+# ----------- Skills Creating ---------------
+@require_http_methods(["POST"])
+def create_skill(request):
+    """API endpoint to create a new skill"""
+    try:
+        data = json.loads(request.body)
+        skill_name = data.get('name', '').strip()
+        
+        if not skill_name:
+            return JsonResponse({'error': 'Skill name is required'}, status=400)
+        
+        # Create or get existing skill
+        skill, created = Skill.objects.get_or_create(name=skill_name)
+        
+        return JsonResponse({
+            'id': skill.id,
+            'name': skill.name,
+            'created': created
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
 # ---------- RECRUITER SIGNUP ----------
 def recruiter_signup(request):
     if request.method == "POST":
