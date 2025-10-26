@@ -161,3 +161,17 @@ class RecruiterProfileForm(forms.ModelForm):
                 field.widget.attrs.setdefault("style", "min-height:100px;")
             if not field.widget.attrs.get("placeholder"):
                 field.widget.attrs["placeholder"] = field.label or ""
+
+# ----------------------------
+#  Email Contact Form
+# ----------------------------
+class EmailContactForm(forms.Form):
+    subject = forms.CharField(max_length=120, widget=forms.TextInput(attrs={"placeholder": "Subject"}))
+    message = forms.CharField(widget=forms.Textarea(attrs={"rows": 6, "placeholder": "Write your message..."}))
+
+    website = forms.CharField(required=False, widget=forms.HiddenInput)
+    def clean(self):
+        data = super().clean()
+        if data.get("website"):
+            raise forms.ValidationError("Spam detected.")
+        return data

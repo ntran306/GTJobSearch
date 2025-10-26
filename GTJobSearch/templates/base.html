@@ -29,6 +29,10 @@
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'home:index' %}">Home</a></li>
                         <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
+                        <li><a href="{% url 'accounts:connect' %}"
+                                class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
+                                Connect
+                                </a></li>
 
                         {% if user|has_recruiterprofile %}
                             <a href="{% url 'candidates:search_candidates' %}">Find Candidates</a>
