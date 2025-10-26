@@ -58,6 +58,16 @@
         </nav>
     </header>
 
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <main>
         <section class="section">
             <div class="container">
@@ -67,3 +77,14 @@
     </main>
 </body>
 </html>
+
+<script>
+  setTimeout(() => {
+    document.querySelectorAll('.messages .message').forEach(el => {
+      el.style.transition = 'opacity .3s ease, transform .3s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-6px)';
+      setTimeout(() => el.remove(), 300);
+    });
+  }, 3000);
+</script>

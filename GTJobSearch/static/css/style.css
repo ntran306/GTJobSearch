@@ -1554,6 +1554,54 @@ footer {
     font-style: italic;
 }
 
+/* Privacy Options Styling */
+.profile-section form[action*="profile"] {
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.privacy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.privacy-option:last-of-type {
+  border-bottom: none;
+}
+
+.privacy-option input[type="radio"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  transform: scale(1.1);
+  accent-color: #000000;
+}
+
+.privacy-option strong {
+  font-weight: 600;
+  color: #111827;
+  margin-right: 6px;
+}
+
+.privacy-option span {
+  color: #555;
+  line-height: 1.5;
+}
+
+.privacy-option:hover strong {
+  color: #2563eb;
+}
+
+form[action*="profile"] .btn {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .signin-card {
@@ -3028,4 +3076,105 @@ footer {
     .job-filter select {
         width: 100%;
     }
+}
+
+/* ========================================
+    COMMUNICATION STYLE SECTION
+======================================== */
+/* --- Email Box --- */
+.contact-form {
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.contact-form .form-control {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.contact-form .form-control:focus {
+  border-color: #2563eb; /* same as your primary color */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.contact-form textarea.form-control {
+  min-height: 180px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.contact-form label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.contact-form .btn {
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.contact-form .text-sm {
+  color: #555;
+}
+
+/* --- Pop ups for email --- */
+.messages {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-800);
+  font-weight: 600;
+  animation: fade-in-up var(--transition-base);
+}
+
+.message.success {
+  background: #e6f9ee;
+  border-color: #b8f0c8;
+  color: #137333;
+}
+
+.message.error {
+  background: #ffe6e6;
+  border-color: #ffc9c9;
+  color: #c62828;
+}
+
+.message.info {
+  background: #eef5ff;
+  border-color: #d6e7ff;
+  color: #1a56db;
+}
+
+.message.warning {
+  background: #fff7e6;
+  border-color: #ffe8b3;
+  color: #b26a00;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

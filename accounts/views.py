@@ -25,12 +25,18 @@ from communication.services import send_contact_email, render_safe_html
 
 from .models import JobSeekerProfile, RecruiterProfile
 
-# ---------- USER TYPE CHECKS ----------
+# ---------- USER TYPE CHECKS & GET USERID ----------
 def is_recruiter(user) -> bool:
     return hasattr(user, "recruiterprofile")
 
 def is_jobseeker(user) -> bool:
     return hasattr(user, "jobseekerprofile")
+
+def _get_profile_for_user_id(user_id: int):
+    js = JobSeekerProfile.objects.select_related("user").filter(user_id=user_id).first()
+    if js:
+        return js
+    return get_object_or_404(RecruiterProfile.objects.select_related("user"), user_id=user_id)
 
 # ---------- SIGNUP CHOICE PAGE ----------
 def signup_choice(request):
@@ -91,42 +97,45 @@ def logout_view(request):
 
 
 # ---------- PROFILE VIEW ----------
+# OWN PROFILE
 @login_required
 def profile_view(request):
-    user = request.user
+    owner = request.user
 
-    # Handle privacy updates (for job seekers)
+    # Handle privacy updates (job seekers)
     if request.method == "POST" and "privacy" in request.POST:
-        privacy_setting = request.POST.get("privacy")
-        if hasattr(user, "jobseekerprofile") and privacy_setting in [
-            "public",
-            "employers_only",
-            "private",
-        ]:
-            user.jobseekerprofile.privacy = privacy_setting
-            user.jobseekerprofile.save()
+        privacy_setting = (request.POST.get("privacy") or "").lower()
+        if hasattr(owner, "jobseekerprofile") and privacy_setting in {"public", "employers_only", "employers", "private"}:
+            if privacy_setting == "employers":
+                privacy_setting = "employers_only"
+            owner.jobseekerprofile.privacy = privacy_setting
+            owner.jobseekerprofile.save()
+            messages.success(request, "Privacy settings updated.")
         return redirect("accounts:profile")
 
-    # Determine which type of profile to show
-    context = {}
-    if hasattr(user, "jobseekerprofile"):
-        context["profile_type"] = "jobseeker"
-        context["profile"] = user.jobseekerprofile
-        context["saved_jobs"] = []
-    elif hasattr(user, "recruiterprofile"):
-        context["profile_type"] = "recruiter"
-        context["profile"] = user.recruiterprofile
+    if hasattr(owner, "jobseekerprofile"):
+        profile = owner.jobseekerprofile
+        profile_type = "jobseeker"
+    elif hasattr(owner, "recruiterprofile"):
+        profile = owner.recruiterprofile
+        profile_type = "recruiter"
     else:
-        context["profile_type"] = None
-        context["profile"] = None
+        profile = None
+        profile_type = None
 
-    return render(request, "accounts/profile.html", context)
+    return render(request, "accounts/profile.html", {
+        "owner": owner,
+        "is_owner": True,
+        "profile": profile,
+        "profile_type": profile_type,
+        "can_email": False, # never email yourself
+        "saved_jobs": [] if profile_type == "jobseeker" else None,
+    })
 
 
 # ---------- EDIT PROFILE ----------
 @login_required
 def edit_profile(request):
-    """Universal edit profile view — decides form based on user type"""
     user = request.user
 
     if hasattr(user, "jobseekerprofile"):
@@ -171,98 +180,79 @@ def edit_recruiter_profile(request):
 # ---------- CONTACT EMAIL ----------
 RATE_LIMIT_SECONDS = 60  # 1 email/minute per (sender, recipient) to prevent spam
 
+# VIEW OTHER USER'S PROFILE
 @login_required
 def view_profile(request, user_id: int):
-    profile = (JobSeekerProfile.objects.select_related("user")
-                  .filter(user_id=user_id).first()) \
-              or get_object_or_404(RecruiterProfile.objects.select_related("user"), user_id=user_id)
+    profile = _get_profile_for_user_id(user_id)
+    owner = profile.user
 
-    target_user = profile.user
-
-    can_email = (request.user.id != user_id) and bool(target_user.email)
+    can_email = (request.user.id != owner.id) and bool(owner.email)
     if isinstance(profile, JobSeekerProfile):
-        if profile.privacy == "private":
+        privacy = (profile.privacy or "").lower()
+        if privacy == "private":
             can_email = False
-        elif profile.privacy == "employers_only" and not is_recruiter(request.user):
+        elif privacy in {"employers_only", "employers"} and not is_recruiter(request.user):
             can_email = False
-
-    # NEW: derive profile_type so profile.html renders the right blocks
-    profile_type = "jobseeker" if isinstance(profile, JobSeekerProfile) else "recruiter"
 
     return render(request, "accounts/profile.html", {
+        "owner": owner,
+        "is_owner": owner.id == request.user.id,
         "profile": profile,
-        "profile_type": profile_type,   # <—
+        "profile_type": "jobseeker" if isinstance(profile, JobSeekerProfile) else "recruiter",
         "can_email": can_email,
     })
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def contact_user(request, user_id: int):
-    # Resolve target via your profiles (jobseeker or recruiter)
-    profile = (JobSeekerProfile.objects.select_related("user")
-                    .filter(user_id=user_id).first()) \
-              or get_object_or_404(
-                    RecruiterProfile.objects.select_related("user"),
-                    user_id=user_id
-                 )
+    profile = _get_profile_for_user_id(user_id)
     target_user = profile.user
 
-    # don't allow emailing yourself or users without an email
-    if target_user.id == request.user.id or not target_user.email:
+    # Guards
+    if (target_user.id == request.user.id) or (not target_user.email):
         messages.error(request, "This user cannot be contacted.")
-        return redirect("accounts:profile")
+        return redirect("accounts:view_profile", user_id=user_id)
 
-    # Enforce jobseeker privacy
     if isinstance(profile, JobSeekerProfile):
-        if profile.privacy == "private":
+        privacy = (profile.privacy or "").lower()
+        if privacy == "private":
             messages.error(request, "This user is not accepting messages.")
-            return redirect("accounts:profile")
-        if profile.privacy == "employers_only" and not is_recruiter(request.user):
+            return redirect("accounts:view_profile", user_id=user_id)
+        if privacy in {"employers_only", "employers"} and not is_recruiter(request.user):
             messages.error(request, "Only employers can contact this job seeker.")
-            return redirect("accounts:profile")
+            return redirect("accounts:view_profile", user_id=user_id)
 
-    # rate-limit per (sender, recipient)
+    # Rate-limit
     rl_key = f"contact:{request.user.id}:{target_user.id}"
+    if cache.get(rl_key):
+        messages.error(request, "Please wait a minute before sending another email.")
+        return redirect("accounts:view_profile", user_id=user_id)
 
-    if request.method == "POST":
-        if cache.get(rl_key):
-            messages.error(request, "Slow down—please wait a minute before sending another email.")
-            return redirect(reverse("accounts:contact_user", args=[user_id]))
+    # Pull fields from the inline form on the profile page
+    subject = (request.POST.get("subject") or "").strip()
+    message = (request.POST.get("message") or "").strip()
+    if not subject or not message:
+        messages.error(request, "Subject and message are required.")
+        return redirect("accounts:view_profile", user_id=user_id)
 
-        form = EmailContactForm(request.POST)
-        if form.is_valid():
-            subject = form.cleaned_data["subject"].strip()
-            message = form.cleaned_data["message"].strip()
+    # Send
+    try:
+        send_contact_email(
+            to_email=target_user.email,
+            subject=subject,
+            message=message,
+            reply_to=(request.user.email or None),
+        )
+        cache.set(rl_key, True, timeout=RATE_LIMIT_SECONDS)
+        messages.success(request, f"Email sent to {target_user.username}.")
+    except Exception as e:
+        messages.error(request, f"Failed to send email: {e}")
 
-            # Send via your Resend-backed service (matches your services.py!!)
-            send_contact_email(
-                to_email=target_user.email,
-                subject=subject,
-                message=message,
-                reply_to=(request.user.email or None),
-            )
-
-            cache.set(rl_key, True, timeout=RATE_LIMIT_SECONDS)
-            messages.success(request, "Your email was sent.")
-            return redirect(reverse("accounts:view_profile", args=[user_id]))
-    else:
-        form = EmailContactForm()
-
-    return render(request, "accounts/contact_user.html", {
-        "form": form,
-        "target_user": target_user,
-        "profile": profile,
-    })
+    return redirect("accounts:view_profile", user_id=user_id)
 
 # ---------- CONNECT PAGE (view other users) ----------
 @login_required
 def connect(request):
-    """
-    Browse Job Seekers & Recruiters with search/filter/pagination.
-    Map pins are created from (lat/lng) if present; otherwise we geocode the location string on the client.
-    Privacy rules:
-      - JobSeeker: public visible to everyone; employers_only visible only to recruiters; private hidden.
-    """
     user = request.user
     viewer_is_recruiter = hasattr(user, "recruiterprofile")
 
