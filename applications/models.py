@@ -15,6 +15,7 @@ class Application(models.Model):
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="applied")
     applied_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(blank=True, null=True)  # new field for recruiter view
 
     class Meta:
         unique_together = ("user", "job")  # prevents applying to same job twice

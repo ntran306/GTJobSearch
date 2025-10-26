@@ -232,13 +232,48 @@
     function submitApplication() {
         const note = document.getElementById('applicationNote').value;
         console.log("Note for job", currentJobId, ":", note); // just logs for now
-
+        fetch(`/applications/apply/${currentJobId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": getCookie("csrftoken")  // you need a CSRF token
+            },
+            body: `note=${encodeURIComponent(note)}`
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Application submitted!");
+                closeModal();
+            } else {
+                alert("Error submitting application.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error submitting application.");
+        });
         // Redirect to your apply URL
         window.location.href = `/applications/apply/${currentJobId}/`;
 
         closeModal();
     }
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
     </script>
+    
 
 </body>
 {% endblock content %}
