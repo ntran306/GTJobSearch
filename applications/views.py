@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden
 @login_required
 def apply_to_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
-
+    note = request.POST.get("note", "")  # grab the note from the form
     application, created = Application.objects.get_or_create(
         user=request.user,
         job=job,
@@ -18,6 +18,8 @@ def apply_to_job(request, job_id):
     # Always ensure it has a valid status
     if created or not application.status:
         application.status = "applied"
+        if note:
+            application.note = note
         application.save()
 
     return redirect("applications:view_applications")

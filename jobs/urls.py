@@ -17,5 +17,8 @@ urlpatterns = [
 
     # Job seeker: list and search jobs
     path("", views.index, name="index"),
+
+    path('my-jobs/<int:job_id>/applicants/', views.view_applicants, name='view_applicants')
+
 ]
 

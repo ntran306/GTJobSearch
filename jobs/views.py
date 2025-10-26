@@ -319,3 +319,12 @@ def delete_job(request, job_id):
         return redirect("jobs:my_jobs")
 
     return render(request, "jobs/job_confirm_delete.html", {"job": job})
+@recruiter_required
+@login_required
+def view_applicants(request, job_id):
+    job = get_object_or_404(Job, id=job_id, recruiter=request.user.recruiterprofile)
+    applicants = job.applications.select_related('user')
+    return render(request, 'jobs/applicants_list.html', {
+        'job': job,
+        'applicants': applicants
+    })

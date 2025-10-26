@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Back Button -->
+    <div class="back-nav">
+        <a href="{% url 'jobs:my_jobs' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to My Jobs
+        </a>
+    </div>
+
+    <h1 class="page-title">Applicants for "{{ job.title }}"</h1>
+    <p class="page-subtitle">Review candidates who applied to this job</p>
+
+    {% if applicants %}
+        <div class="applicants-list">
+            {% for application in applicants %}
+                <div class="applicant-card">
+                    <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name"> {{ application.user.username }}
+                    </a>
+                    <p class="application-note">
+                        {% if application.note %}
+                            Note: "{{ application.note }}"
+                        {% else %}
+                            No note provided
+                        {% endif %}
+                    </p>
+                    <p class="application-date">
+                        Applied on {{ application.applied_at|date:"M d, Y H:i" }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No applicants have applied to this job yet.</p>
+    {% endif %}
+</div>
+
+<style>
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.back-nav a {
+    text-decoration: none;
+    color: #444;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.applicants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.applicant-card {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.applicant-card a.applicant-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.applicant-card a.applicant-name:hover {
+    text-decoration: underline;
+}
+
+.application-note {
+    margin: 0.5rem 0;
+    font-style: italic;
+    color: #555;
+}
+
+.application-date {
+    color: #888;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
