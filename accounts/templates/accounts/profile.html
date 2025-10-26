@@ -13,11 +13,15 @@
       <div class="avatar-placeholder">
         <i class="fas fa-user"></i>
       </div>
-      <button class="btn btn-outline btn-sm">Upload Photo</button>
+      {% if is_owner %}
+        <button class="btn btn-outline btn-sm">Upload Photo</button>
+      {% endif %}
     </div>
 
     <div class="profile-info">
-      <h1 class="profile-name">{{ user.username }}</h1>
+      <!-- Use the profile owner, not the logged-in user -->
+      <h1 class="profile-name">{{ owner.username }}</h1>
+
       <p class="bio">
         {% if profile_type == "jobseeker" and profile.headline %}
           {{ profile.headline }}
@@ -27,22 +31,24 @@
           Add a short description about yourself!
         {% endif %}
       </p>
+
       <p class="text-sm text-gray-600">
-        <i class="fas fa-envelope"></i> {{ user.email }}
+        <i class="fas fa-envelope"></i> {{ owner.email }}
       </p>
       <p class="text-sm text-gray-600">
-        <i class="fas fa-calendar-alt"></i> Member since {{ user.date_joined|date:"F Y" }}
+        <i class="fas fa-calendar-alt"></i> Member since {{ owner.date_joined|date:"F Y" }}
       </p>
-      <a href="{% if profile_type == 'recruiter' %}
-                {% url 'accounts:edit_recruiter_profile' %}
-              {% else %}
-                {% url 'accounts:edit_profile' %}
-              {% endif %}" 
-        class="btn btn-primary btn-sm">
-        Edit Profile
-      </a>
 
-
+      {% if is_owner %}
+        <a href="{% if profile_type == 'recruiter' %}
+                    {% url 'accounts:edit_recruiter_profile' %}
+                  {% else %}
+                    {% url 'accounts:edit_profile' %}
+                  {% endif %}"
+           class="btn btn-primary btn-sm">
+          Edit Profile
+        </a>
+      {% endif %}
     </div>
   </section>
 
@@ -55,7 +61,7 @@
       <div class="section-content skills-display">
         {% if profile.skills %}
           {% for skill in profile.skills|split:"," %}
-           <span class="skill-tag">{{ skill }}</span>
+            <span class="skill-tag">{{ skill }}</span>
           {% endfor %}
         {% else %}
           <p>No skills added yet.</p>
@@ -96,100 +102,109 @@
       </div>
     </section>
 
-    <!-- Privacy Settings -->
-  <section class="card profile-section">
-    <div class="section-header">
-      <h2><i class="fas fa-user-shield"></i> Privacy Settings</h2>
-    </div>
-    <div class="section-content">
-      <form method="post" action="{% url 'accounts:profile' %}">
-        {% csrf_token %}
+    <!-- Privacy Settings: only when you're viewing your own profile -->
+    {% if is_owner %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-user-shield"></i> Privacy Settings</h2>
+      </div>
+      <div class="section-content">
+        <form method="post" action="{% url 'accounts:profile' %}" class="space-y-3">
+          {% csrf_token %}
 
-        <div class="privacy-option">
-          <label>
+          <label class="privacy-option block">
             <input type="radio" name="privacy" value="public"
                    {% if profile.privacy == "public" %}checked{% endif %}>
             <strong>Public</strong><br>
             <span class="text-sm text-gray-600">
-              You'll be visible to all employers and other job seekers being able to receive messages from everyone.
+              You'll be visible to all employers and job seekers and can receive messages from everyone.
             </span>
           </label>
-        </div>
 
-        <div class="privacy-option" style="margin-top: 1rem;">
-          <label>
+          <label class="privacy-option block mt-3">
             <input type="radio" name="privacy" value="employers"
-                   {% if profile.privacy == "employers" %}checked{% endif %}>
+                   {% if profile.privacy == 'employers' or profile.privacy == 'employers_only' %}checked{% endif %}
             <strong>Employers</strong><br>
             <span class="text-sm text-gray-600">
-              Your profile will be visible to employers.  
-              You may receive messages about potential job opportunities.
+              Your profile will be visible to employers. You may receive messages about opportunities.
             </span>
           </label>
-        </div>
 
-        <div class="privacy-option" style="margin-top: 1rem;">
-          <label>
+          <label class="privacy-option block mt-3">
             <input type="radio" name="privacy" value="private"
                    {% if profile.privacy == "private" %}checked{% endif %}>
             <strong>Private</strong><br>
             <span class="text-sm text-gray-600">
-              You'll be able to apply for jobs but won't get contacted by employers.  
-              When you check in with an employer during a career fair, they'll see your basic info and can message you.
+              You can apply for jobs, but employers cannot message you directly.
             </span>
           </label>
+
+          <button type="submit" class="btn btn-primary btn-sm mt-3">
+            Save Privacy Settings
+          </button>
+        </form>
+      </div>
+    </section>
+    {% endif %}
+  {% endif %}
+
+  <!-- Email Contact Form Section -->
+  {% if can_email %}
+  <section class="card profile-section">
+    <div class="section-header">
+      <h2><i class="fas fa-envelope"></i> Contact {{ owner.username }}</h2>
+    </div>
+    <div class="section-content">
+      <form method="post"
+            action="{% url 'accounts:contact_user' owner.id %}"
+            class="contact-form"
+            novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="contact-subject" class="form-label">Subject</label>
+          <input id="contact-subject"
+                 name="subject"
+                 type="text"
+                 class="form-control"
+                 placeholder="Subject"
+                 required>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
-          Save Privacy Settings
-        </button>
+        <div class="mb-3">
+          <label for="contact-message" class="form-label">Message</label>
+          <textarea id="contact-message"
+                    name="message"
+                    rows="6"
+                    class="form-control"
+                    placeholder="Write your message..."
+                    required></textarea>
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <button type="submit" class="btn btn-primary btn-sm">
+            Send Email
+          </button>
+          <span class="text-sm text-gray-600">
+            We’ll deliver this to {{ owner.email }}.
+          </span>
+        </div>
       </form>
     </div>
   </section>
+  {% elif profile and owner.id != request.user.id %}
+  <section class="card profile-section">
+    <div class="section-header">
+      <h2><i class="fas fa-envelope"></i> Contact</h2>
+    </div>
+    <div class="section-content">
+      <p class="text-sm text-gray-600">This user can’t be contacted right now.</p>
+    </div>
+  </section>
+  {% endif %}
 
-  <!-- Email Contact Form Section -->
-{% if can_email %}
-<section class="card profile-section">
-  <div class="section-header">
-    <h2><i class="fas fa-envelope"></i> Contact {{ profile.user.username|default:user.username }}</h2>
-  </div>
-  <div class="section-content">
-    <form method="post" action="{% url 'accounts:contact_user' profile.user.id %}" class="contact-form" novalidate>
-      {% csrf_token %}
-
-      <div class="mb-3">
-        <label for="contact-subject" class="form-label">Subject</label>
-        <input id="contact-subject" name="subject" type="text" class="form-control" placeholder="Subject" required>
-      </div>
-
-      <div class="mb-3">
-        <label for="contact-message" class="form-label">Message</label>
-        <textarea id="contact-message" name="message" rows="6" class="form-control" placeholder="Write your message..." required></textarea>
-      </div>
-
-      <div class="flex gap-2">
-        <button type="submit" class="btn btn-primary btn-sm">
-          Send Email
-        </button>
-        <span class="text-sm text-gray-600">
-          We’ll deliver this to {{ profile.user.email }}.
-        </span>
-      </div>
-    </form>
-  </div>
-</section>
-{% elif profile and profile.user and profile.user.id != request.user.id %}
-<section class="card profile-section">
-  <div class="section-header">
-    <h2><i class="fas fa-envelope"></i> Contact</h2>
-  </div>
-  <div class="section-content">
-    <p class="text-sm text-gray-600">This user can’t be contacted right now.</p>
-  </div>
-</section>
-{% endif %}
-
-    <!-- Saved Jobs Section -->
+  <!-- Saved Jobs Section (your own page only) -->
+  {% if profile_type == "jobseeker" and is_owner %}
     <section class="card profile-section">
       <div class="section-header">
         <h2><i class="fas fa-bookmark"></i> Saved Jobs</h2>
@@ -219,15 +234,17 @@
       </div>
     </section>
 
+    {% if is_owner %}
     <section class="card profile-section">
       <div class="section-header">
         <h2><i class="fas fa-rocket"></i> Quick Actions</h2>
       </div>
       <div class="section-content action-buttons">
         <a href="{% url 'jobs:create_job' %}" class="action-btn"><i class="fas fa-plus"></i> Post Job</a>
-        <a href="{% url 'candidates:search_candidates' %}">Browse Candidates</a>
+        <a href="{% url 'candidates:search_candidates' %}" class="action-btn">Browse Candidates</a>
       </div>
     </section>
+    {% endif %}
   {% endif %}
 
 </div>

@@ -149,7 +149,8 @@ GOOGLE_MAPS_API_KEY_BACKEND = os.environ.get("GOOGLE_GEOCODING_API_KEY")
 
 # Resend API Key
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@buzzedin.com") # will change later to other domain
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "BuzzedIn<no-reply@buzzedinjobs.org>")
+RESEND_REPLY_TO = os.environ.get("RESEND_REPLY_TO", None)
 
 # Caches for distance matrix
 CACHES = {
