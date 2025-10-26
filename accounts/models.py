@@ -5,10 +5,10 @@ from django.contrib.auth.models import User
 class AddressFields(models.Model):
     address_line1 = models.CharField(max_length=255, blank=True, null=True)
     address_line2 = models.CharField(max_length=255, blank=True, null=True)
-    city          = models.CharField(max_length=128, blank=True, null=True, db_index=True)
-    state_region  = models.CharField(max_length=128, blank=True, null=True, db_index=True)
-    postal_code   = models.CharField(max_length=32,  blank=True, null=True)
-    country       = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    city = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    state_region = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    postal_code = models.CharField(max_length=32,  blank=True, null=True)
+    country = models.CharField(max_length=128, blank=True, null=True, db_index=True)
 
     # Optional lat/lng for geo search (Decimal; nullable so existing rows are fine)
     latitude      = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, db_index=True)
