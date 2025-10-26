@@ -10,11 +10,10 @@ from .models import JobSeekerProfile, RecruiterProfile
 class JobSeekerSignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
     headline = forms.CharField(max_length=255, required=True)
-    skills = forms.ModelMultipleChoiceField(
-        queryset=None,  # will be set in __init__
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        help_text="Select the skills you have"
+    skills = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput(attrs={'id': 'skillsInput'}),
+        help_text="Select your skills"
     )
     education = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False)
     work_experience = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False)
@@ -38,7 +37,51 @@ class JobSeekerSignUpForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         # dynamically load skills from jobs.models.Skill
         from jobs.models import Skill
-        self.fields["skills"].queryset = Skill.objects.all()
+        # Store queryset as an attribute so template can access it
+        self.skill_queryset = Skill.objects.all()
+
+    def clean_skills(self):
+        """Convert comma-separated skill IDs to a list of Skill objects"""
+        from jobs.models import Skill
+        
+        skills_data = self.cleaned_data.get('skills', '').strip()
+        
+        # Debug: print what we received
+        print(f"DEBUG: Received skills_data: '{skills_data}'")
+        
+        if not skills_data:
+            raise forms.ValidationError("Please select at least one skill.")
+        
+        # Remove any leading/trailing commas and split
+        skills_data = skills_data.strip(',')
+        
+        if not skills_data:
+            raise forms.ValidationError("Please select at least one skill.")
+        
+        # Split the comma-separated string into individual IDs
+        try:
+            skill_ids = [int(sid.strip()) for sid in skills_data.split(',') if sid.strip()]
+        except (ValueError, AttributeError) as e:
+            print(f"DEBUG: Error parsing skills: {e}")
+            print(f"DEBUG: skills_data = '{skills_data}'")
+            raise forms.ValidationError("Invalid skill data format. Please try selecting your skills again.")
+        
+        if not skill_ids:
+            raise forms.ValidationError("Please select at least one skill.")
+        
+        print(f"DEBUG: Parsed skill_ids: {skill_ids}")
+        
+        # Validate that all skill IDs exist in the database
+        skills = Skill.objects.filter(id__in=skill_ids)
+        
+        if skills.count() != len(skill_ids):
+            missing_ids = set(skill_ids) - set(skills.values_list('id', flat=True))
+            print(f"DEBUG: Missing skill IDs: {missing_ids}")
+            raise forms.ValidationError(f"Some selected skills are invalid (IDs: {missing_ids}).")
+        
+        print(f"DEBUG: Validated skills: {list(skills)}")
+        
+        return list(skills)  # Return list of Skill objects
 
     def save(self, commit=True):
         """

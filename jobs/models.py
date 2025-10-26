@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
 from decimal import Decimal
 import requests
 from .utils import haversine
@@ -11,9 +13,46 @@ PAY_TYPE_CHOICES = [
     ('monthly', 'Monthly'),
 ]
 
+PREDEFINED_SKILLS = [
+    # Programming Languages
+    'Python', 'JavaScript', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'Swift',
+    'TypeScript', 'Kotlin', 'Scala', 'R', 'MATLAB', 'SQL', 'HTML/CSS',
+    
+    # Frameworks & Libraries
+    'React', 'Angular', 'Vue.js', 'Django', 'Flask', 'Spring Boot', 'Node.js', 
+    'Express.js', 'Laravel', 'Rails', 'ASP.NET', 'jQuery', 'Bootstrap',
+    
+    # Databases
+    'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle', 'MS SQL Server',
+    'Firebase', 'DynamoDB', 'Elasticsearch',
+    
+    # Cloud & DevOps
+    'AWS', 'Azure', 'Google Cloud', 'Docker', 'Kubernetes', 'Jenkins', 'Git', 
+    'Linux', 'CI/CD', 'Terraform', 'Ansible',
+    
+    # Data Science & Analytics
+    'Machine Learning', 'Data Analysis', 'Pandas', 'NumPy', 'TensorFlow', 'PyTorch',
+    'Scikit-learn', 'Tableau', 'Power BI', 'Excel', 'Statistics',
+    
+    # Design & Marketing
+    'UI/UX Design', 'Figma', 'Adobe Creative Suite', 'Photoshop', 'Illustrator',
+    'Digital Marketing', 'SEO', 'Content Marketing', 'Social Media Marketing',
+    
+    # Business & Soft Skills
+    'Project Management', 'Agile/Scrum', 'Leadership', 'Communication', 
+    'Problem Solving', 'Team Collaboration', 'Customer Service', 'Sales',
+    'Public Speaking', 'Time Management',
+    
+    # Other Technical
+    'REST APIs', 'GraphQL', 'Microservices', 'Mobile Development', 'iOS Development',
+    'Android Development', 'Game Development', 'Blockchain', 'Cybersecurity',
+    'Network Administration', 'Quality Assurance', 'Testing'
+]
+
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
-
+    class Meta:
+        ordering = ['name']
     def __str__(self):
         return self.name
 
@@ -78,3 +117,14 @@ class Job(models.Model):
                 print(f"Geocoding failed for {self.location}: {e}")
         super().save(*args, **kwargs)
 
+@receiver(post_migrate)
+def create_default_skills(sender, **kwargs):
+    """Automatically populate skills after running migrations"""
+    if sender.name == 'jobs':
+        print("Creating default skills...")
+        created_count = 0
+        for skill_name in PREDEFINED_SKILLS:
+            skill, created = Skill.objects.get_or_create(name=skill_name)
+            if created:
+                created_count += 1
+        print(f"Skills setup complete! Created {created_count} new skills.")
