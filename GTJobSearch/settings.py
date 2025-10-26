@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'applications',
     'candidates',
     'profiles',
+    'communication',
 ]
 
 MIDDLEWARE = [
@@ -141,9 +142,14 @@ LOGIN_REDIRECT_URL = 'accounts:profile'   # login redirect to jobs page
 LOGOUT_REDIRECT_URL = '/accounts/login/'  # logout redirect to login page
 LOGIN_URL = '/accounts/login/'
 
+# Google Maps API Keys
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 GOOGLE_MAPS_SERVER_KEY = os.environ.get("GOOGLE_MAPS_SERVER_KEY")
 GOOGLE_MAPS_API_KEY_BACKEND = os.environ.get("GOOGLE_GEOCODING_API_KEY")
+
+# Resend API Key
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@buzzedin.com") # will change later to other domain
 
 # Caches for distance matrix
 CACHES = {

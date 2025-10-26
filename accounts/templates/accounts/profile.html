@@ -147,6 +147,49 @@
     </div>
   </section>
 
+  <!-- Email Contact Form Section -->
+{% if can_email %}
+<section class="card profile-section">
+  <div class="section-header">
+    <h2><i class="fas fa-envelope"></i> Contact {{ profile.user.username|default:user.username }}</h2>
+  </div>
+  <div class="section-content">
+    <form method="post" action="{% url 'accounts:contact_user' profile.user.id %}" class="contact-form" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="contact-subject" class="form-label">Subject</label>
+        <input id="contact-subject" name="subject" type="text" class="form-control" placeholder="Subject" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="contact-message" class="form-label">Message</label>
+        <textarea id="contact-message" name="message" rows="6" class="form-control" placeholder="Write your message..." required></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">
+          Send Email
+        </button>
+        <span class="text-sm text-gray-600">
+          We’ll deliver this to {{ profile.user.email }}.
+        </span>
+      </div>
+    </form>
+  </div>
+</section>
+{% elif profile and profile.user and profile.user.id != request.user.id %}
+<section class="card profile-section">
+  <div class="section-header">
+    <h2><i class="fas fa-envelope"></i> Contact</h2>
+  </div>
+  <div class="section-content">
+    <p class="text-sm text-gray-600">This user can’t be contacted right now.</p>
+  </div>
+</section>
+{% endif %}
+
+    <!-- Saved Jobs Section -->
     <section class="card profile-section">
       <div class="section-header">
         <h2><i class="fas fa-bookmark"></i> Saved Jobs</h2>

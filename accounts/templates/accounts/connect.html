@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-user-friends"></i> Connect with People</h1>
+    <p class="page-subtitle">Browse job seekers and recruiters — search, map, and contact</p>
+  </div>
+
+  <!-- Search & Filter Form -->
+  <form method="get" action="" class="filter-form">
+    <input type="text"
+           name="q"
+           placeholder="Search by name, skills, company, headline..."
+           value="{{ q|default:'' }}">
+
+    <!-- Google Maps Autocomplete location input -->
+    <input id="location-input"
+           type="text"
+           name="location"
+           placeholder="Search by location..."
+           value="{{ location|default:'' }}">
+
+    <!-- Hidden fields for lat/lng -->
+    <input type="hidden" id="lat-input" name="lat" value="{{ lat|default:'' }}">
+    <input type="hidden" id="lng-input" name="lng" value="{{ lng|default:'' }}">
+
+    <!-- Numeric radius input -->
+    <input type="number"
+           name="radius"
+           placeholder="Radius in miles"
+           min="1"
+           value="{{ radius|default:'' }}">
+
+    <select name="role">
+      <option value="" {% if not role %}selected{% endif %}>All Roles</option>
+      <option value="jobseeker" {% if role == "jobseeker" %}selected{% endif %}>Job Seekers</option>
+      <option value="recruiter" {% if role == "recruiter" %}selected{% endif %}>Recruiters</option>
+    </select>
+
+    <button type="submit" class="search-btn">
+      <i class="fas fa-search"></i>
+      Search People
+    </button>
+  </form>
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <div class="results-count">
+      <i class="fas fa-list"></i>
+      {{ page_obj.paginator.count }} user{{ page_obj.paginator.count|pluralize }} found
+    </div>
+  </div>
+
+  <!-- Interactive Map -->
+  <div id="map" style="width: 100%; height: 400px; margin: 20px 0; border-radius: 8px;"></div>
+
+  <!-- People Cards -->
+  <div class="jobs-list">
+    {% for p in page_obj.object_list %}
+      <div class="job-card" data-user-id="{{ p.id }}">
+        <div class="job-card-info">
+          <h2 class="job-title">
+            <i class="fas fa-user"></i> {{ p.username }}
+            <span class="badge" style="margin-left:8px; font-size:0.8rem; background:#edf2f7; color:#4a5568; padding:2px 8px; border-radius:12px;">
+              {{ p.profile_type|title }}
+            </span>
+          </h2>
+          <h3 class="company-name">
+            {% if p.profile_type == 'recruiter' %}
+              {{ p.company_or_school }}
+            {% else %}
+              {{ p.headline|default:"" }}
+            {% endif %}
+          </h3>
+
+          <div class="job-details">
+            {% if p.location_text %}
+              <div class="job-detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ p.location_text }}</span>
+              </div>
+            {% endif %}
+            {% if p.skills %}
+              <div class="job-detail-item">
+                <i class="fas fa-tools"></i>
+                <span>{{ p.skills }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="job-card-actions">
+          <a href="{% url 'accounts:view_profile' p.id %}" class="apply-btn">
+            <i class="fas fa-eye"></i>
+            View Profile
+          </a>
+          {% if request.user.id != p.id and p.email %}
+            <a href="{% url 'accounts:contact_user' p.id %}" class="save-btn">
+              <i class="fas fa-envelope"></i>
+              Contact
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>No People Found</h3>
+        <p>Try adjusting your filters.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  /* Data from Django */
+  const userMarkers = JSON.parse('{{ user_markers_json|escapejs }}');
+
+  /* Globals */
+  let map, infoWindow, directionsService, directionsRenderer, geocoder;
+  const originLat = parseFloat(document.getElementById("lat-input").value);
+  const originLng = parseFloat(document.getElementById("lng-input").value);
+  const radiusMiles = parseFloat("{{ radius|default:'0' }}") || 0;
+
+  function milesToMeters(mi){return mi*1609.34;}
+  function locKey(lat, lng){return `${Number(lat).toFixed(6)},${Number(lng).toFixed(6)}`;}
+
+  /* Haversine (meters) for client-side radius filter if origin is set */
+  function distanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (d)=>d*Math.PI/180;
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(a));
+  }
+
+  /* Draw route from origin to destination (if origin set) */
+  function drawRouteTo(destLat, destLng) {
+    if (Number.isNaN(originLat) || Number.isNaN(originLng)) return;
+    directionsService.route(
+      {
+        origin: { lat: originLat, lng: originLng },
+        destination: { lat: destLat, lng: destLng },
+        travelMode: google.maps.TravelMode.DRIVING
+      },
+      (result, status) => {
+        if (status === "OK" || status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+        }
+      }
+    );
+  }
+
+  /* Highlight a user card */
+  function highlightUserCard(userId) {
+    document.querySelectorAll(".job-card.highlighted").forEach(el => el.classList.remove("highlighted"));
+    const card = document.querySelector(`.job-card[data-user-id="${userId}"]`);
+    if (card) {
+      card.classList.add("highlighted");
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /* Build info window content */
+  function buildInfoContent(u) {
+    const safe = s => String(s || "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    const name = safe(u.name);
+    const role = safe(u.role);
+    const headline = safe(u.headline);
+    const locText = safe(u.location_text);
+    const viewHref = u.profileUrl;
+    const contactHref = u.contactUrl;
+
+    return `
+      <div style="font-size:14px; max-width:260px;">
+        <strong>${name}</strong> <span style="opacity:.7">(${role})</span><br/>
+        ${headline ? headline+"<br/>" : ""}
+        ${locText}
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <a href="${viewHref}" class="apply-btn" style="flex:1; text-align:center;">View</a>
+          <a href="${contactHref}" class="save-btn" style="flex:1; text-align:center;">Contact</a>
+        </div>
+      </div>
+    `;
+  }
+
+  /* Geocode a single address -> Promise<{lat,lng}> */
+  function geocodeAddress(address){
+    return new Promise((resolve,reject)=>{
+      geocoder.geocode({ address }, (results,status)=>{
+        if(status === "OK" && results[0]){
+          const ll = results[0].geometry.location;
+          resolve({ lat: ll.lat(), lng: ll.lng() });
+        } else {
+          resolve(null); // don't block the map
+        }
+      });
+    });
+  }
+
+  /* Init Autocomplete + Map + Markers */
+  window.initConnectMap = async function () {
+    // Places Autocomplete
+    const input = document.getElementById("location-input");
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.setFields(["geometry", "formatted_address"]);
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      if (place && place.geometry) {
+        document.getElementById("lat-input").value = place.geometry.location.lat();
+        document.getElementById("lng-input").value = place.geometry.location.lng();
+        if (map) {
+          map.setCenter(place.geometry.location);
+          map.setZoom(12);
+        }
+      }
+    });
+
+    // Map & helpers
+    geocoder = new google.maps.Geocoder();
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 4,
+      center: { lat: 39.8283, lng: -98.5795 }
+    });
+    infoWindow = new google.maps.InfoWindow();
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({ suppressMarkers: false, preserveViewport: true });
+    directionsRenderer.setMap(map);
+
+    const bounds = new google.maps.LatLngBounds();
+
+    // 1) Ensure all markers have lat/lng (geocode on the fly if missing and we have a location string)
+    const withCoords = [];
+    for (const u of userMarkers) {
+      if (u.lat != null && u.lng != null) {
+        withCoords.push(u);
+      } else if (u.location_text) {
+        const res = await geocodeAddress(u.location_text);
+        if (res) withCoords.push({ ...u, lat: res.lat, lng: res.lng });
+      }
+      // if neither, we skip marker for this user
+    }
+
+    // 2) Optional client-side radius filter if origin + radius provided
+    const filtered = (!Number.isNaN(originLat) && !Number.isNaN(originLng) && radiusMiles > 0)
+      ? withCoords.filter(u => distanceMeters(originLat, originLng, u.lat, u.lng) <= milesToMeters(radiusMiles))
+      : withCoords;
+
+    // 3) Create markers
+    filtered.forEach(u => {
+      const pos = { lat: u.lat, lng: u.lng };
+      const marker = new google.maps.Marker({
+        position: pos,
+        map,
+        title: `${u.name} (${u.role})`
+      });
+      marker.addListener("click", () => {
+        drawRouteTo(u.lat, u.lng);
+        infoWindow.setContent(buildInfoContent(u));
+        infoWindow.open(map, marker);
+        highlightUserCard(u.id);
+      });
+      bounds.extend(pos);
+    });
+
+    if (filtered.length > 0) {
+      map.fitBounds(bounds);
+    } else if (!Number.isNaN(originLat) && !Number.isNaN(originLng)) {
+      map.setCenter({ lat: originLat, lng: originLng });
+      map.setZoom(12);
+    }
+  };
+</script>
+
+<!-- Google Maps API -->
+{% if MAPS_KEY %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ MAPS_KEY }}&libraries=places&callback=initConnectMap" async defer></script>
+{% else %}
+<!-- No MAPS_KEY configured; map disabled -->
+{% endif %}
+{% endblock %}
