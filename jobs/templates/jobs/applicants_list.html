@@ -5,100 +5,513 @@
 <div class="page-container">
     <!-- Back Button -->
     <div class="back-nav">
-        <a href="{% url 'jobs:my_jobs' %}" class="btn btn-secondary">
+        <a href="{% url 'jobs:my_jobs' %}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to My Jobs
         </a>
     </div>
 
-    <h1 class="page-title">Applicants for "{{ job.title }}"</h1>
-    <p class="page-subtitle">Review candidates who applied to this job</p>
+    <div class="page-header">
+        <h1 class="page-title">Applicants for "{{ job.title }}"</h1>
+        <p class="page-subtitle">Review and manage candidates who applied to this position</p>
+    </div>
 
     {% if applicants %}
-        <div class="applicants-list">
-            {% for application in applicants %}
-                <div class="applicant-card">
-                    <div class="applicant-info">
-                        <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
-                            {{ application.user.username }}
-                        </a>
-                        <p class="application-note">
-                            {% if application.note %}
-                                Note: "{{ application.note }}"
-                            {% else %}
-                                No note provided
-                            {% endif %}
-                        </p>
-                        <p class="application-date">
-                            Applied on {{ application.applied_at|date:"M d, Y H:i" }}
-                        </p>
-                        <p class="application-status">
-                            <strong>Status:</strong> 
-                            <span class="status-badge status-{{ application.status }}">
-                                <i class="fas fa-circle"></i> {{ application.get_status_display }}
-                            </span>
-                        </p>
-                    </div>
-                    <div class="applicant-actions">
-                        <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
-                            <i class="fas fa-edit"></i> Update Status
-                        </a>
-                    </div>
+        <div class="kanban-board">
+            <!-- Applied Column -->
+            <div class="kanban-column">
+                <div class="column-header applied-header">
+                    <h3><i class="fas fa-file-alt"></i> Applied</h3>
+                    <span class="count">0</span>
                 </div>
-            {% endfor %}
+                <div class="column-content">
+                    {% for application in applicants %}
+                        {% if application.status == 'applied' %}
+                            <div class="applicant-card">
+                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                    <i class="fas fa-user"></i> {{ application.user.username }}
+                                </a>
+                                {% if application.note %}
+                                    <p class="application-note">
+                                        <i class="fas fa-comment-dots"></i>
+                                        "{{ application.note|truncatewords:15 }}"
+                                    </p>
+                                {% else %}
+                                    <p class="application-note no-note">
+                                        <i class="fas fa-comment-slash"></i>
+                                        No note provided
+                                    </p>
+                                {% endif %}
+                                <p class="application-date">
+                                    <i class="fas fa-clock"></i> {{ application.applied_at|date:"M d, Y" }}
+                                </p>
+                                <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <i class="fas fa-edit"></i> Update Status
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- In Review Column -->
+            <div class="kanban-column">
+                <div class="column-header review-header">
+                    <h3><i class="fas fa-search"></i> In Review</h3>
+                    <span class="count">0</span>
+                </div>
+                <div class="column-content">
+                    {% for application in applicants %}
+                        {% if application.status == 'review' %}
+                            <div class="applicant-card">
+                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                    <i class="fas fa-user"></i> {{ application.user.username }}
+                                </a>
+                                {% if application.note %}
+                                    <p class="application-note">
+                                        <i class="fas fa-comment-dots"></i>
+                                        "{{ application.note|truncatewords:15 }}"
+                                    </p>
+                                {% else %}
+                                    <p class="application-note no-note">
+                                        <i class="fas fa-comment-slash"></i>
+                                        No note provided
+                                    </p>
+                                {% endif %}
+                                <p class="application-date">
+                                    <i class="fas fa-clock"></i> {{ application.applied_at|date:"M d, Y" }}
+                                </p>
+                                <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <i class="fas fa-edit"></i> Update Status
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Interview Column -->
+            <div class="kanban-column">
+                <div class="column-header interview-header">
+                    <h3><i class="fas fa-calendar-check"></i> Interview</h3>
+                    <span class="count">0</span>
+                </div>
+                <div class="column-content">
+                    {% for application in applicants %}
+                        {% if application.status == 'interview' %}
+                            <div class="applicant-card">
+                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                    <i class="fas fa-user"></i> {{ application.user.username }}
+                                </a>
+                                {% if application.note %}
+                                    <p class="application-note">
+                                        <i class="fas fa-comment-dots"></i>
+                                        "{{ application.note|truncatewords:15 }}"
+                                    </p>
+                                {% else %}
+                                    <p class="application-note no-note">
+                                        <i class="fas fa-comment-slash"></i>
+                                        No note provided
+                                    </p>
+                                {% endif %}
+                                <p class="application-date">
+                                    <i class="fas fa-clock"></i> {{ application.applied_at|date:"M d, Y" }}
+                                </p>
+                                <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <i class="fas fa-edit"></i> Update Status
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Offered Column -->
+            <div class="kanban-column">
+                <div class="column-header offered-header">
+                    <h3><i class="fas fa-gift"></i> Offered</h3>
+                    <span class="count">0</span>
+                </div>
+                <div class="column-content">
+                    {% for application in applicants %}
+                        {% if application.status == 'offer' %}
+                            <div class="applicant-card">
+                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                    <i class="fas fa-user"></i> {{ application.user.username }}
+                                </a>
+                                {% if application.note %}
+                                    <p class="application-note">
+                                        <i class="fas fa-comment-dots"></i>
+                                        "{{ application.note|truncatewords:15 }}"
+                                    </p>
+                                {% else %}
+                                    <p class="application-note no-note">
+                                        <i class="fas fa-comment-slash"></i>
+                                        No note provided
+                                    </p>
+                                {% endif %}
+                                <p class="application-date">
+                                    <i class="fas fa-clock"></i> {{ application.applied_at|date:"M d, Y" }}
+                                </p>
+                                <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <i class="fas fa-edit"></i> Update Status
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Closed Column -->
+            <div class="kanban-column">
+                <div class="column-header closed-header">
+                    <h3><i class="fas fa-times-circle"></i> Closed</h3>
+                    <span class="count">0</span>
+                </div>
+                <div class="column-content">
+                    {% for application in applicants %}
+                        {% if application.status == 'closed' %}
+                            <div class="applicant-card">
+                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                    <i class="fas fa-user"></i> {{ application.user.username }}
+                                </a>
+                                {% if application.note %}
+                                    <p class="application-note">
+                                        <i class="fas fa-comment-dots"></i>
+                                        "{{ application.note|truncatewords:15 }}"
+                                    </p>
+                                {% else %}
+                                    <p class="application-note no-note">
+                                        <i class="fas fa-comment-slash"></i>
+                                        No note provided
+                                    </p>
+                                {% endif %}
+                                <p class="application-date">
+                                    <i class="fas fa-clock"></i> {{ application.applied_at|date:"M d, Y" }}
+                                </p>
+                                <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <i class="fas fa-edit"></i> Update Status
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     {% else %}
-        <p>No applicants have applied to this job yet.</p>
+        <div class="no-applicants">
+            <div class="no-jobs-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3>No Applicants Yet</h3>
+            <p>No candidates have applied to this position yet. Check back later!</p>
+        </div>
     {% endif %}
 </div>
 
 <style>
-.page-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
+/* Kanban Board Container */
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+    min-height: 500px;
 }
 
-.back-nav a {
-    text-decoration: none;
-    color: #444;
-    margin-bottom: 1rem;
-    display: inline-block;
+/* Kanban Columns */
+.kanban-column {
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-50);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--gray-200);
+    min-height: 500px;
+    box-shadow: var(--shadow-sm);
 }
 
-.applicants-list {
+/* Column Headers */
+.column-header {
+    padding: 1.25rem;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+}
+
+.column-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.column-header .count {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    min-width: 28px;
+    text-align: center;
+}
+
+/* Column Header Colors - Using your existing color variables */
+.applied-header {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+}
+
+.review-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.interview-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.offered-header {
+    background: linear-gradient(135deg, var(--success-500) 0%, #059669 100%);
+}
+
+.closed-header {
+    background: linear-gradient(135deg, var(--gray-500) 0%, var(--gray-600) 100%);
+}
+
+/* Column Content */
+.column-content {
+    padding: 1rem;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-top: 1rem;
+    overflow-y: auto;
 }
 
+/* Applicant Cards */
 .applicant-card {
-    border: 1px solid #ddd;
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: #fafafa;
+    background: white;
+    border: 1px solid var(--gray-200);
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
 }
 
-.applicant-card a.applicant-name {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #007bff;
+.applicant-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-600);
+}
+
+/* Applicant Name */
+.applicant-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--primary-600);
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition-fast);
 }
 
-.applicant-card a.applicant-name:hover {
+.applicant-name:hover {
+    color: var(--primary-700);
     text-decoration: underline;
 }
 
-.application-note {
-    margin: 0.5rem 0;
-    font-style: italic;
-    color: #555;
+.applicant-name i {
+    font-size: 0.9rem;
 }
 
-.application-date {
-    color: #888;
+/* Application Note */
+.application-note {
+    margin: 0.75rem 0;
+    font-style: italic;
+    color: var(--gray-700);
     font-size: 0.9rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.application-note i {
+    margin-top: 0.2rem;
+    color: var(--primary-600);
+    flex-shrink: 0;
+}
+
+.application-note.no-note {
+    color: var(--gray-500);
+}
+
+/* Application Date */
+.application-date {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    margin: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.application-date i {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+/* Update Button */
+.update-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--secondary-600);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 8px rgba(255, 210, 0, 0.2);
+}
+
+.update-btn:hover {
+    background: var(--primary-700);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 210, 0, 0.3);
+}
+
+.update-btn i {
+    font-size: 0.85rem;
+}
+
+/* No Applicants State */
+.no-applicants {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-xl);
+    border: 2px dashed var(--gray-300);
+    margin-top: 2rem;
+}
+
+.no-applicants .no-jobs-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    background: var(--primary-50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: var(--primary-600);
+}
+
+.no-applicants h3 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    color: var(--gray-900);
+}
+
+.no-applicants p {
+    color: var(--gray-600);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Back Navigation */
+.back-nav {
+    margin-bottom: 2rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-600);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+    background: white;
+    border: 2px solid var(--gray-200);
+}
+
+.back-link:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-600);
+    text-decoration: none;
+    color: var(--primary-600);
+    transform: translateX(-2px);
+}
+
+/* Page Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.page-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+    color: var(--gray-600);
+    font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .kanban-board {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 968px) {
+    .kanban-board {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .page-title {
+        font-size: 1.85rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .kanban-board {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-container {
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.65rem;
+    }
+    
+    .column-header {
+        padding: 1rem;
+    }
+    
+    .applicant-card {
+        padding: 1rem;
+    }
 }
 </style>
 {% endblock %}
