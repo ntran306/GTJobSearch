@@ -17,18 +17,32 @@
         <div class="applicants-list">
             {% for application in applicants %}
                 <div class="applicant-card">
-                    <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name"> {{ application.user.username }}
-                    </a>
-                    <p class="application-note">
-                        {% if application.note %}
-                            Note: "{{ application.note }}"
-                        {% else %}
-                            No note provided
-                        {% endif %}
-                    </p>
-                    <p class="application-date">
-                        Applied on {{ application.applied_at|date:"M d, Y H:i" }}
-                    </p>
+                    <div class="applicant-info">
+                        <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                            {{ application.user.username }}
+                        </a>
+                        <p class="application-note">
+                            {% if application.note %}
+                                Note: "{{ application.note }}"
+                            {% else %}
+                                No note provided
+                            {% endif %}
+                        </p>
+                        <p class="application-date">
+                            Applied on {{ application.applied_at|date:"M d, Y H:i" }}
+                        </p>
+                        <p class="application-status">
+                            <strong>Status:</strong> 
+                            <span class="status-badge status-{{ application.status }}">
+                                <i class="fas fa-circle"></i> {{ application.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="applicant-actions">
+                        <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                            <i class="fas fa-edit"></i> Update Status
+                        </a>
+                    </div>
                 </div>
             {% endfor %}
         </div>
