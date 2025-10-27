@@ -2443,6 +2443,12 @@ form[action*="profile"] .btn {
     gap: 0.25rem;
 }
 
+/* Make only the Create Job form one column */
+.create-job-form .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
 .required-indicator {
     color: var(--error-500);
     font-weight: 700;
