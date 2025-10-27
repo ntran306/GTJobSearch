@@ -39,7 +39,7 @@
                             <td>{{ app.created_at|date:"M d, Y" }}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="{% url 'applications:update_status' application.id %}" class="update-btn">
+                                    <a href="{% url 'applications:update_status' app.id %}" class="update-btn">
                                         <i class="fas fa-edit"></i> Update Status
                                     </a>
                                     <a href="{% url 'jobs:show' app.job.id %}" class="view-btn">
