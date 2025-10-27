@@ -58,17 +58,29 @@ def view_applications(request):
 
 @login_required
 def update_application_status(request, application_id):
-    application = get_object_or_404(Application, id=application_id, user=request.user)
+    # Get the application
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Only allow the recruiter who posted the job to update status
+    is_recruiter = (
+        hasattr(request.user, 'recruiterprofile') and 
+        application.job.recruiter == request.user.recruiterprofile
+    )
+    
+    if not is_recruiter:
+        messages.error(request, "Only the recruiter who posted this job can update application status.")
+        return redirect('jobs:index')
 
     if request.method == "POST":
         new_status = request.POST.get("status")
         if new_status in dict(Application.STATUS_CHOICES).keys():
             application.status = new_status
             application.save()
-            messages.success(request, "Application status updated successfully.")
+            messages.success(request, f"Application status updated to {application.get_status_display()}.")
+            # Redirect back to the applicants list for this job
+            return redirect('jobs:view_applicants', job_id=application.job.id)
         else:
-            return HttpResponseForbidden("Invalid status")
-        
-        return redirect("applications:view_applications")
+            messages.error(request, "Invalid status selected.")
+            return redirect('applications:update_status', application_id=application_id)
 
     return render(request, "applications/update_status.html", {"application": application})
