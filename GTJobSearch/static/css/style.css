@@ -774,6 +774,8 @@ main {
     }
 }
 
+
+
 /* ========================================
    CANDIDATE SEARCH FORM STYLING
    ======================================== */
@@ -2329,13 +2331,21 @@ form[action*="profile"] .btn {
     border-radius: 12px;
     font-weight: 600;
     transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;  
+    line-height: 1;
+    
 }
 
 .action-btn:hover {
+    
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-    color: white;
+    color: white !important;
     text-decoration: none;
+    background: var(--primary-700);
 }
 
 @media (max-width: 768px) {

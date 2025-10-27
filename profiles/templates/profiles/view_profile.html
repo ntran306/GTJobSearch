@@ -1,55 +1,148 @@
 {% extends 'base.html' %}
-
+{% block title %}{{ profile.user.username }}'s Profile | BuzzedIn{% endblock %}
 {% block content %}
-<div class="container mx-auto px-6 py-10">
-  <div class="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
+<div class="page-container">
+    <!-- Back Navigation -->
+    <div class="profile-nav">
+        <a href="{% url 'candidates:search_candidates' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Search
+        </a>
+    </div>
 
-    <h1 class="text-3xl font-bold text-indigo-700 mb-2">
-      {{ profile.user.username }}
-    </h1>
+    <!-- Profile Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-avatar-section">
+            <div class="avatar-circle">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        
+        <div class="profile-header-info">
+            <h1 class="profile-name">{{ profile.user.username }}</h1>
+            {% if profile.headline %}
+            <p class="profile-headline">{{ profile.headline }}</p>
+            {% endif %}
+            
+            <div class="profile-meta">
+                <span class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ profile.location|default:"Location not specified" }}
+                </span>
+                {% if profile.user.email %}
+                <span class="meta-item">
+                    <i class="fas fa-envelope"></i>
+                    {{ profile.user.email }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
 
-    <p class="text-gray-600 mb-4">
-      <strong>Location:</strong> {{ profile.location|default:"—" }}
-    </p>
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            {% if profile.user.email %}
+            <a href="mailto:{{ profile.user.email }}" class="action-btn">
+                <i class="fas fa-envelope"></i> Contact
+            </a>
+            {% endif %}
+            <button class="action-btn" onclick="window.print()">
+                <i class="fas fa-download"></i> Export Profile
+            </button>
+        </div>
+    </div>
 
-    {% if profile.headline %}
-      <p class="text-gray-800 font-semibold mb-3">{{ profile.headline }}</p>
+    <!-- Profile Content Grid -->
+    <div class="profile-content-grid">
+        
+        <!-- Skills Section -->
+        {% if profile.skills.all %}
+        <div class="profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-code"></i> Skills & Expertise</h2>
+            </div>
+            <div class="skills-display">
+                {% for skill in profile.skills.all %}
+                <span class="skill-tag">{{ skill.name }}</span>
+                {% empty %}
+                <p class="no-content">No skills listed.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Work Experience Section -->
+        {% if profile.work_experience %}
+        <div class="profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+            </div>
+            <div class="section-content">
+                <p class="formatted-text">{{ profile.work_experience }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Education Section -->
+        {% if profile.education %}
+        <div class="profile-section">
+            <div class="section-header">
+                <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+            </div>
+            <div class="section-content">
+                <p class="formatted-text">{{ profile.education }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects Section -->
+        {% if profile.projects %}
+        <div class="profile-section full-width">
+            <div class="section-header">
+                <h2><i class="fas fa-project-diagram"></i> Projects</h2>
+            </div>
+            <div class="section-content">
+                <p class="formatted-text">{{ profile.projects }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Portfolio/Links Section (if applicable) -->
+        {% if profile.portfolio_url or profile.linkedin_url or profile.github_url %}
+        <div class="profile-section full-width">
+            <div class="section-header">
+                <h2><i class="fas fa-link"></i> Links & Portfolio</h2>
+            </div>
+            <div class="profile-links">
+                {% if profile.portfolio_url %}
+                <a href="{{ profile.portfolio_url }}" target="_blank" class="profile-link">
+                    <i class="fas fa-globe"></i> Portfolio
+                </a>
+                {% endif %}
+                {% if profile.linkedin_url %}
+                <a href="{{ profile.linkedin_url }}" target="_blank" class="profile-link">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                {% endif %}
+                {% if profile.github_url %}
+                <a href="{{ profile.github_url }}" target="_blank" class="profile-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Empty State -->
+    {% if not profile.skills.all and not profile.work_experience and not profile.education and not profile.projects %}
+    <div class="empty-profile-state">
+        <div class="empty-icon">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <h3>Profile Incomplete</h3>
+        <p>This candidate hasn't added much information to their profile yet.</p>
+    </div>
     {% endif %}
 
-    {% if profile.skills.all %}
-      <div class="mb-4">
-        <p class="font-semibold text-gray-700 mb-1">Skills:</p>
-        {% for skill in profile.skills.all %}
-          <span class="inline-block bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-sm mr-1 mb-1">
-            {{ skill.name }}
-          </span>
-        {% empty %}
-          <span class="text-gray-500 text-sm">No skills listed.</span>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    {% if profile.projects %}
-      <div class="mb-4">
-        <p class="font-semibold text-gray-700 mb-1">Projects:</p>
-        <p class="text-gray-600 whitespace-pre-line">{{ profile.projects }}</p>
-      </div>
-    {% endif %}
-
-    {% if profile.education %}
-      <div class="mb-4">
-        <p class="font-semibold text-gray-700 mb-1">Education:</p>
-        <p class="text-gray-600 whitespace-pre-line">{{ profile.education }}</p>
-      </div>
-    {% endif %}
-
-    {% if profile.work_experience %}
-      <div class="mb-4">
-        <p class="font-semibold text-gray-700 mb-1">Work Experience:</p>
-        <p class="text-gray-600 whitespace-pre-line">{{ profile.work_experience }}</p>
-      </div>
-    {% endif %}
-
-  </div>
 </div>
 {% endblock %}
