@@ -193,10 +193,9 @@ def start_conversation(request, user_id: int):
 def list_conversations(request):
     """
     Returns conversations visible to the current user.
-    FIXED: Uses correct identity format and returns proper friendly names.
+    FIXED: Only returns conversations where the user is a participant.
     """
     client = get_twilio_client()
-    # FIXED: Use underscore format
     identity = f"user_{request.user.id}"
 
     data = []
@@ -230,23 +229,10 @@ def list_conversations(request):
         
     except Exception as e:
         print(f"[list_conversations] Error listing user conversations: {e}")
-        # Fallback: list under your service (may include convs you're not in)
-        try:
-            svc = client.conversations.v1.services(dm.CONV_SERVICE_SID)
-            for conv in svc.conversations.list(limit=50):
-                friendly_name = getattr(conv, "friendly_name", None)
-                
-                # Filter out conversations with old format names
-                if friendly_name and "userpair" not in friendly_name.lower():
-                    data.append({
-                        "sid": conv.sid,
-                        "friendly_name": friendly_name,
-                    })
-        except Exception as fallback_error:
-            print(f"[list_conversations] Fallback also failed: {fallback_error}")
-            pass
-        
-        return JsonResponse({"conversations": data})
+        # FIXED: Instead of listing all service conversations, return empty list
+        # This ensures users only see conversations they're actually part of
+        print(f"[list_conversations] Returning empty list due to error")
+        return JsonResponse({"conversations": []})
 
 # Optional: fetch a single conversation's metadata
 @login_required
@@ -254,20 +240,30 @@ def list_conversations(request):
 def conversation_view(request, conversation_sid: str):
     """
     Get metadata for a specific conversation.
+    SECURITY: Verify user is a participant before returning data.
     """
     client = get_twilio_client()
+    identity = f"user_{request.user.id}"
+    
     try:
         conv = client.conversations.v1.services(dm.CONV_SERVICE_SID)\
             .conversations(conversation_sid).fetch()
+        
+        # Verify user is a participant
+        participants = conv.participants.list()
+        is_participant = any(p.identity == identity for p in participants)
+        
+        if not is_participant:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        friendly_name = getattr(conv, "friendly_name", None) or conv.sid
+        
+        return JsonResponse({
+            "sid": conv.sid,
+            "friendly_name": friendly_name,
+        })
     except TwilioRestException as e:
         return JsonResponse({"error": str(e)}, status=404)
-
-    friendly_name = getattr(conv, "friendly_name", None) or conv.sid
-    
-    return JsonResponse({
-        "sid": conv.sid,
-        "friendly_name": friendly_name,
-    })
 
 # -------------------------------------------------------------------
 # Connections
