@@ -1,9 +1,8 @@
 {% load static %}
-
 <head>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/css/all.min.css">
-    <title>{% block title %}BuzzedIn{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>BuzzedIn | Sign Up</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
 </head>
@@ -17,152 +16,119 @@
 
         <form method="POST" class="professional-form">
             {% csrf_token %}
-            
+
             <!-- Username -->
             <div class="form-group">
                 <label class="form-label" for="id_username">Username *</label>
                 {{ form.username }}
-                {% if form.username.errors %}
-                    {% for error in form.username.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
+                {% for error in form.username.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
             <!-- Email -->
             <div class="form-group">
                 <label class="form-label" for="id_email">Email *</label>
                 {{ form.email }}
-                {% if form.email.errors %}
-                    {% for error in form.email.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
+                {% for error in form.email.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
-            <!-- Password1 -->
+            <!-- Password -->
             <div class="form-group">
                 <label class="form-label" for="id_password1">Password *</label>
                 {{ form.password1 }}
-                {% if form.password1.errors %}
-                    {% for error in form.password1.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
+                {% for error in form.password1.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
-            <!-- Password2 -->
+            <!-- Confirm Password -->
             <div class="form-group">
                 <label class="form-label" for="id_password2">Confirm Password *</label>
                 {{ form.password2 }}
-                {% if form.password2.errors %}
-                    {% for error in form.password2.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
+                {% for error in form.password2.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
             <!-- Headline -->
             <div class="form-group">
                 <label class="form-label" for="id_headline">Professional Headline *</label>
                 {{ form.headline }}
-                {% if form.headline.errors %}
-                    {% for error in form.headline.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
+                {% for error in form.headline.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
                 <small class="help-text">e.g., "Frontend Developer with 3+ years experience"</small>
             </div>
 
-            <!-- Custom Skills Selector -->
+            <!-- ✅ Skills (Searchable Dropdown) -->
             <div class="form-group">
                 <label class="form-label" for="skillSearch">Skills *</label>
-                
-                <!-- Search Input with Add Button -->
+
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <div style="flex: 1; position: relative;">
-                        <input 
-                            type="text" 
-                            id="skillSearch" 
-                            placeholder="Search for skills..." 
-                            autocomplete="off"
+                        <input type="text" id="skillSearch" placeholder="Search for skills..." autocomplete="off"
                             style="width: 100%; padding: 0.875rem 2.5rem 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; background: #f7fafc;">
-                        <i class="fas fa-search" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                        <i class="fas fa-search"
+                            style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
                     </div>
-                    <button type="button" id="addSkillBtn" style="padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                    <button type="button" id="addSkillBtn"
+                        style="padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
 
-                <!-- Dropdown for filtered skills -->
-                <div id="skillDropdown" style="display: none; max-height: 200px; overflow-y: auto; border: 2px solid #e2e8f0; border-radius: 12px; background: white; margin-bottom: 0.5rem;">
-                    <!-- Skills will be populated here -->
+                <div id="skillDropdown"
+                    style="display: none; max-height: 200px; overflow-y: auto; border: 2px solid #e2e8f0; border-radius: 12px; background: white; margin-bottom: 0.5rem;">
                 </div>
 
-                <!-- Selected Skills Display -->
-                <div id="selectedSkills" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; min-height: 40px; padding: 0.5rem; background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
-                    <!-- Selected skills will appear here as tags -->
+                <div id="selectedSkills"
+                    style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; min-height: 40px; padding: 0.5rem; background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
                 </div>
 
-                <!-- Hidden input to store selected skill IDs -->
                 <input type="hidden" name="skills" id="skillsInput" value="">
-
-                {% if form.skills.errors %}
-                    {% for error in form.skills.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <small class="help-text">Search and click to add skills. Click the + button to add custom skills.</small>
+                <small class="help-text">Search and click to add skills. Click + to add custom ones.</small>
             </div>
 
             <!-- Education -->
             <div class="form-group">
                 <label class="form-label" for="id_education">Education *</label>
                 {{ form.education }}
-                {% if form.education.errors %}
-                    {% for error in form.education.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <small class="help-text">Your educational background</small>
+                {% for error in form.education.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
             <!-- Work Experience -->
             <div class="form-group">
                 <label class="form-label" for="id_work_experience">Work Experience *</label>
                 {{ form.work_experience }}
-                {% if form.work_experience.errors %}
-                    {% for error in form.work_experience.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <small class="help-text">Your relevant work experience</small>
+                {% for error in form.work_experience.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
             <!-- Links -->
             <div class="form-group">
                 <label class="form-label" for="id_links">Portfolio/LinkedIn URL</label>
                 {{ form.links }}
-                {% if form.links.errors %}
-                    {% for error in form.links.errors %}
-                        <span class="error-message">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <small class="help-text">Optional: Your portfolio, LinkedIn, or personal website</small>
+                {% for error in form.links.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
             </div>
 
-            <!-- Non-field errors -->
             {% if form.non_field_errors %}
-                <div class="form-errors">
-                    {% for error in form.non_field_errors %}
-                        <div class="error-message">{{ error }}</div>
-                    {% endfor %}
-                </div>
+            <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <div class="error-message">{{ error }}</div>
+                {% endfor %}
+            </div>
             {% endif %}
 
             <button type="submit" class="signin-btn">
-                <i class="fas fa-user-plus"></i>
-                Create Account
+                <i class="fas fa-user-plus"></i> Create Account
             </button>
         </form>
 
@@ -172,15 +138,13 @@
     </div>
 </div>
 
-<script>
-// Available skills from Django
-const availableSkills = [
-    {% for skill in form.skill_queryset %}
-        { id: {{ skill.id }}, name: "{{ skill.name }}" },
-    {% endfor %}
-];
+<!-- ✅ Safe JSON Embed -->
+{{ skills|json_script:"available-skills" }}
+<script id="selected-skills" type="application/json">[]</script>
 
-let selectedSkills = [];
+<script>
+const availableSkills = JSON.parse(document.getElementById('available-skills').textContent);
+let selectedSkills = JSON.parse(document.getElementById('selected-skills').textContent);
 
 const skillSearch = document.getElementById('skillSearch');
 const skillDropdown = document.getElementById('skillDropdown');
@@ -188,187 +152,89 @@ const selectedSkillsDiv = document.getElementById('selectedSkills');
 const skillsInput = document.getElementById('skillsInput');
 const addSkillBtn = document.getElementById('addSkillBtn');
 
-// Filter and display skills
 function filterSkills(searchText) {
-    const filtered = availableSkills.filter(skill => 
+    const filtered = availableSkills.filter(skill =>
         skill.name.toLowerCase().includes(searchText.toLowerCase()) &&
         !selectedSkills.find(s => s.id === skill.id)
     );
-
-    if (searchText && filtered.length > 0) {
-        skillDropdown.innerHTML = filtered.map(skill => 
-            `<div class="skill-option" data-id="${skill.id}" data-name="${skill.name}">
-                ${skill.name}
-            </div>`
-        ).join('');
-        skillDropdown.style.display = 'block';
-    } else {
-        skillDropdown.style.display = 'none';
-    }
+    skillDropdown.innerHTML = filtered.map(skill =>
+        `<div class="skill-option" data-id="${skill.id}" data-name="${skill.name}">${skill.name}</div>`
+    ).join('');
+    skillDropdown.style.display = filtered.length ? 'block' : 'none';
 }
 
-// Add skill to selection
 function addSkill(id, name) {
     if (!selectedSkills.find(s => s.id === id)) {
         selectedSkills.push({ id, name });
         renderSelectedSkills();
         updateHiddenInput();
-        skillSearch.value = '';
-        skillDropdown.style.display = 'none';
     }
+    skillSearch.value = '';
+    skillDropdown.style.display = 'none';
 }
 
-// Remove skill from selection
 function removeSkill(id) {
     selectedSkills = selectedSkills.filter(s => s.id !== id);
     renderSelectedSkills();
     updateHiddenInput();
 }
 
-// Render selected skills as tags
 function renderSelectedSkills() {
-    if (selectedSkills.length === 0) {
+    if (!selectedSkills.length) {
         selectedSkillsDiv.innerHTML = '<span style="color: var(--gray-400);">No skills selected yet</span>';
-    } else {
-        selectedSkillsDiv.innerHTML = selectedSkills.map(skill => 
-            `<span class="skill-tag" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                ${skill.name}
-                <button type="button" onclick="removeSkill(${skill.id})" style="background: none; border: none; color: var(--secondary-600); font-weight: bold; cursor: pointer; font-size: 1.1rem; padding: 0; line-height: 1;">
-                    ×
-                </button>
-            </span>`
-        ).join('');
+        return;
     }
+    selectedSkillsDiv.innerHTML = selectedSkills.map(skill =>
+        `<span class="skill-tag" style="display:inline-flex;align-items:center;gap:0.5rem;">
+            ${skill.name}
+            <button type="button" onclick="removeSkill(${skill.id})" style="background:none;border:none;color:var(--secondary-600);font-weight:bold;cursor:pointer;">×</button>
+        </span>`
+    ).join('');
 }
 
-// Update hidden input with selected skill IDs
 function updateHiddenInput() {
-    const skillIds = selectedSkills.map(s => s.id).filter(id => id != null && id !== '');
-    skillsInput.value = skillIds.join(',');
-    console.log('Updated hidden input:', skillsInput.value);
+    skillsInput.value = selectedSkills.map(s => s.id).join(',');
 }
 
-// Event: Search input
-skillSearch.addEventListener('input', (e) => {
-    filterSkills(e.target.value);
-});
-
-// Event: Click on skill in dropdown
-skillDropdown.addEventListener('click', (e) => {
+// --- Events ---
+skillSearch.addEventListener('input', e => filterSkills(e.target.value));
+skillDropdown.addEventListener('click', e => {
     if (e.target.classList.contains('skill-option')) {
-        const id = parseInt(e.target.dataset.id);
-        const name = e.target.dataset.name;
-        addSkill(id, name);
+        addSkill(parseInt(e.target.dataset.id), e.target.dataset.name);
     }
 });
-
-// Event: Add custom skill button
 addSkillBtn.addEventListener('click', async () => {
     const skillName = skillSearch.value.trim();
-    if (!skillName) {
-        alert('Please enter a skill name');
-        return;
-    }
+    if (!skillName) return alert('Enter a skill name first');
 
-    // Check if skill already exists (case-insensitive)
-    const existingSkill = availableSkills.find(s => 
-        s.name.toLowerCase() === skillName.toLowerCase()
-    );
+    const existingSkill = availableSkills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
+    if (existingSkill) return addSkill(existingSkill.id, existingSkill.name);
 
-    if (existingSkill) {
-        addSkill(existingSkill.id, existingSkill.name);
-        return;
-    }
-
-    // Check if already selected
-    const alreadySelected = selectedSkills.find(s => 
-        s.name.toLowerCase() === skillName.toLowerCase()
-    );
-    
-    if (alreadySelected) {
-        alert('This skill is already selected');
-        skillSearch.value = '';
-        return;
-    }
-
-    // Add new skill via AJAX
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        const response = await fetch('/accounts/api/skills/create/', {
+        const res = await fetch('/accounts/api/skills/create/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
             body: JSON.stringify({ name: skillName })
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            
-            // Add to available skills list
+        if (res.ok) {
+            const data = await res.json();
             availableSkills.push({ id: data.id, name: data.name });
-            
-            // Add to selected skills
             addSkill(data.id, data.name);
-            
-            // Show success message
-            if (data.created) {
-                console.log(`New skill "${data.name}" created successfully!`);
-            } else {
-                console.log(`Skill "${data.name}" already existed and was added.`);
-            }
         } else {
-            const errorData = await response.json();
-            alert(`Failed to add skill: ${errorData.error || 'Unknown error'}`);
+            alert('Failed to add skill.');
         }
-    } catch (error) {
-        console.error('Error creating skill:', error);
-        alert('Failed to add skill. Please try again or contact support if the problem persists.');
+    } catch (err) {
+        console.error('Error adding skill:', err);
     }
 });
-
-// Close dropdown when clicking outside
-document.addEventListener('click', (e) => {
-    if (!skillSearch.contains(e.target) && !skillDropdown.contains(e.target) && !addSkillBtn.contains(e.target)) {
+document.addEventListener('click', e => {
+    if (!skillSearch.contains(e.target) && !skillDropdown.contains(e.target)) {
         skillDropdown.style.display = 'none';
     }
 });
-
-// Allow Enter key to trigger add button
-skillSearch.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        addSkillBtn.click();
-    }
-});
-
-// Form submission validation
-const form = document.querySelector('.professional-form');
-if (form) {
-    form.addEventListener('submit', (e) => {
-        const skillsValue = skillsInput.value.trim();
-        console.log('Form submitting with skills:', skillsValue);
-        
-        if (!skillsValue || skillsValue === ',') {
-            e.preventDefault();
-            alert('Please select at least one skill before submitting.');
-            return false;
-        }
-        
-        // Additional validation: check for valid format
-        const skillIds = skillsValue.split(',').filter(id => id.trim());
-        if (skillIds.length === 0) {
-            e.preventDefault();
-            alert('Please select at least one skill before submitting.');
-            return false;
-        }
-    });
-}
-
-// Initialize
 renderSelectedSkills();
+updateHiddenInput();
 </script>
 
 <style>
@@ -379,13 +245,9 @@ renderSelectedSkills();
     border-bottom: 1px solid var(--gray-100);
     color: var(--gray-800);
 }
-
 .skill-option:hover {
     background: var(--primary-50);
     color: var(--gray-900);
 }
-
-.skill-option:last-child {
-    border-bottom: none;
-}
+.skill-option:last-child { border-bottom: none; }
 </style>
