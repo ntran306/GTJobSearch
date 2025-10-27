@@ -14,11 +14,18 @@
     <div class="page-container">
         <!-- Back Navigation -->
         <div class="back-nav">
+        {% if user.is_authenticated and user.recruiterprofile %}
+            <a href="{% url 'jobs:my_jobs' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to My Job Postings
+            </a>
+        {% else %}
             <a href="{% url 'jobs:index' %}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
                 Back to Job Listings
             </a>
-        </div>
+        {% endif %}
+    </div>
 
         <div class="job-container">
             <!-- Job Header -->
