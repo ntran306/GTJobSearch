@@ -97,6 +97,7 @@ class Job(models.Model):
     pay_max = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     pay_type = models.CharField(max_length=20, choices=PAY_TYPE_CHOICES, default='annual')
     description = models.TextField()
+    projects = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='job_images/', blank=True, null=True)
 
     # ✅ Unified field to match templates and views

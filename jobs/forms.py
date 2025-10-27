@@ -6,20 +6,20 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = [
-            'title',
-            'company',
-            'visa_sponsorship',
-            'location',
-            'pay_min',
-            'pay_max',
-            'pay_type',
-            'description',
-            'image',
-            # Keep these to display in the template,
-            # but they’ll be converted to CharFields below.
-            'required_skills',
-            'preferred_skills',
-        ]
+        'title',
+        'company',
+        'visa_sponsorship',
+        'location',
+        'pay_min',
+        'pay_max',
+        'pay_type',
+        'description',
+        'projects', 
+        'image',
+        'required_skills',
+        'preferred_skills',
+    ]
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,4 +57,11 @@ class JobForm(forms.ModelForm):
             'rows': 4,
             'class': 'textarea-field'
         })
-
+        self.fields['projects'] = forms.CharField(
+            required=False,
+            widget=forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'List related projects or example work (optional)',
+                'class': 'textarea-field'
+            })
+        )

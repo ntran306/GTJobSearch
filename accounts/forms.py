@@ -168,14 +168,34 @@ class JobSeekerProfileForm(forms.ModelForm):
 
     class Meta:
         model = JobSeekerProfile
-        fields = ["headline", "skills", "education", "work_experience", "links"]
+        fields = [
+            "headline",
+            "skills",
+            "education",
+            "work_experience",
+            "links",
+            "location",   # ✅ new
+            "projects",   # ✅ new
+        ]
+        widgets = {
+            "projects": forms.Textarea(attrs={
+                "rows": 3,
+                "placeholder": "List projects or examples of your work...",
+                "class": "form-input",
+                "style": "min-height:100px;",
+            }),
+            "location": forms.TextInput(attrs={
+                "placeholder": "e.g., Atlanta, GA or Remote",
+                "class": "form-input",
+            }),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from jobs.models import Skill
         self.fields["skills"].queryset = Skill.objects.all()
 
-        # Add nicer styles
+        # Add consistent style for all fields
         for name, field in self.fields.items():
             existing = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = (existing + " form-input").strip()
