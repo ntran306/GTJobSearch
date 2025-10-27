@@ -6,7 +6,15 @@
 
 {% block content %}
 <div class="container profile-page">
+  <style>
+    /* Tabs visibility */
+    .tab-content { display: none !important; }
+    .tab-content.active { display: block !important; }
 
+    /* Tabs look */
+    .tabs .tab-btn { padding: 8px 12px; border: 0; background: transparent; cursor: pointer; }
+    .tabs .tab-btn.active { border-bottom: 2px solid currentColor; font-weight: 600; }
+  </style>
   <!-- Profile Header -->
   <section class="profile-card profile-header">
     <div class="profile-avatar">
@@ -123,7 +131,7 @@
 
           <label class="privacy-option block mt-3">
             <input type="radio" name="privacy" value="employers"
-                   {% if profile.privacy == 'employers' or profile.privacy == 'employers_only' %}checked{% endif %}
+                  {% if profile.privacy == 'employers' or profile.privacy == 'employers_only' %}checked{% endif %}>
             <strong>Employers</strong><br>
             <span class="text-sm text-gray-600">
               Your profile will be visible to employers. You may receive messages about opportunities.
@@ -186,10 +194,73 @@
             Send Email
           </button>
           <span class="text-sm text-gray-600">
-            We’ll deliver this to {{ owner.email }}.
+            (We’ll deliver this to {{ owner.email }}.)
           </span>
         </div>
       </form>
+    </div>
+    <hr class="email-divider">
+    <!-- Connect + Message actions -->
+    <div class="mt-3 flex gap-2 items-center">
+      {% if relation %}
+        {% if relation.status == "accepted" %}
+          <!-- Connected: Show Remove and Message buttons -->
+          <form method="post" action="{% url 'communication:connections_remove' user_id=relation.other_id %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-outline btn-sm">Remove Connection</button>
+          </form>
+          
+          <!-- NOW show Message button since they're connected -->
+          <a href="{% url 'communication:start_conversation' user_id=owner.id %}"
+            class="btn btn-secondary btn-sm js-open-chat"
+            data-user-id="{{ owner.id }}"
+            data-name="{{ owner.username }}">
+            <i class="fas fa-comments"></i> Message
+          </a>
+
+        {% elif relation.status == "pending" and relation.incoming %}
+          <!-- They sent you a request → Accept/Decline (no message yet) -->
+          <form method="post" action="{% url 'communication:connections_accept' user_id=relation.other_id %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-success btn-sm">Accept</button>          
+          </form>
+          <form method="post" action="{% url 'communication:connections_decline' user_id=relation.other_id %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-outline btn-sm">Decline</button>          
+          </form>
+
+        {% elif relation.status == "pending" and relation.outgoing %}
+          <!-- You already sent → waiting (no message yet) -->
+          <button type="button" class="btn btn-outline btn-sm" disabled>
+            <i class="fas fa-hourglass-half"></i> Request Sent
+          </button>
+
+        {% else %}
+          <!-- Declined or unknown → show Connect again (no message) -->
+          <form method="post"
+                action="{% url 'communication:connections_request' user_id=owner.id %}"
+                style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm">
+              <i class="fas fa-user-plus"></i> Connect
+            </button>
+          </form>
+        {% endif %}
+      {% else %}
+        <!-- No relation exists yet → show Connect (no message) -->
+        <form method="post"
+              action="{% url 'communication:connections_request' user_id=owner.id %}"
+              style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-sm">
+            <i class="fas fa-user-plus"></i> Connect
+          </button>
+        </form>
+      {% endif %}
+    </div>
     </div>
   </section>
   {% elif profile and owner.id != request.user.id %}
@@ -222,6 +293,139 @@
       </div>
     </section>
   {% endif %}
+  
+  <!-- Connections Section -->
+  {% if is_owner %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-users"></i> Connections</h2>
+      </div>
+      <div class="section-content">
+
+        <!-- Tabs -->
+        <div class="tabs mb-3 flex gap-3 border-b border-gray-300">
+          <button id="tab-current" class="tab-btn active" type="button">
+            <i class="fas fa-handshake"></i> Current
+          </button>
+          <button id="tab-pending" class="tab-btn" type="button">
+            <i class="fas fa-clock"></i> Pending
+          </button>
+        </div>
+
+        <!-- --- CURRENT CONNECTIONS --- -->
+        <div id="tab-current-content" class="tab-content active">
+          <div class="current-pending-box">
+            {% if connections %}
+              <ul class="connection-list">
+                {% for conn in connections %}
+                  {% if conn.requester.id == request.user.id %}
+                    {% with other=conn.addressee %}
+                      {% url 'accounts:view_profile' other.id as other_profile_url %}
+                      {% url 'communication:start_conversation' user_id=other.id as msg_url %}
+                      {% url 'communication:connections_remove' user_id=other.id as remove_url %}
+
+                      <li class="flex justify-between items-center mb-2">
+                        <a href="{{ other_profile_url }}" class="text-primary">{{ other.username }}</a>
+                        <div class="flex gap-2">
+                          <a href="{{ msg_url }}"
+                            class="btn btn-secondary btn-sm js-open-chat"
+                            data-user-id="{{ other.id }}"
+                            data-name="{{ other.username }}">
+                            <i class="fas fa-comments"></i> Message
+                          </a>
+                          <form method="post" action="{{ remove_url }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="btn btn-outline btn-sm">Remove</button>
+                          </form>
+                        </div>
+                      </li>
+                    {% endwith %}
+                  {% else %}
+                    {% with other=conn.requester %}
+                      {% url 'accounts:view_profile' other.id as other_profile_url %}
+                      {% url 'communication:start_conversation' user_id=other.id as msg_url %}
+                      {% url 'communication:connections_remove' user_id=other.id as remove_url %}
+
+                      <li class="flex justify-between items-center mb-2">
+                        <a href="{{ other_profile_url }}" class="text-primary">{{ other.username }}</a>
+                        <div class="flex gap-2">
+                          <a href="{{ msg_url }}"
+                            class="btn btn-secondary btn-sm js-open-chat"
+                            data-user-id="{{ other.id }}"
+                            data-name="{{ other.username }}">
+                            <i class="fas fa-comments"></i> Message
+                          </a>
+                          <form method="post" action="{{ remove_url }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="btn btn-outline btn-sm">Remove</button>
+                          </form>
+                        </div>
+                      </li>
+                    {% endwith %}
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-sm text-gray-600">No current connections yet.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- --- PENDING CONNECTIONS --- -->
+        <div id="tab-pending-content" class="tab-content">
+          <div class="current-pending-box">
+            {% if pending_in or pending_out %}
+              {% if pending_in %}
+                <h4 class="font-semibold mb-2">Incoming Requests</h4>
+                <ul class="connection-list mb-4">
+                  {% for conn in pending_in %}
+                    <li class="flex justify-between items-center mb-2">
+                      <a href="{% url 'accounts:view_profile' conn.requester.id %}" class="text-primary">
+                        {{ conn.requester.username }}
+                      </a>
+                      <div class="flex gap-2">
+                        <form method="post" action="{% url 'communication:connections_accept' user_id=conn.requester.id %}" style="display:inline;">
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                          <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                        </form>
+                        <form method="post" action="{% url 'communication:connections_decline' user_id=conn.requester.id %}" style="display:inline;">
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                          <button type="submit" class="btn btn-outline btn-sm">Decline</button>
+                        </form>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              {% if pending_out %}
+                <h4 class="font-semibold mb-2 {% if pending_in %}mt-4{% endif %}">Sent Requests</h4>
+                <ul class="connection-list">
+                  {% for conn in pending_out %}
+                    <li class="flex justify-between items-center mb-2">
+                      <a href="{% url 'accounts:view_profile' conn.addressee.id %}" class="text-primary">
+                        {{ conn.addressee.username }}
+                      </a>
+                      <span class="text-gray-500 text-sm">
+                        <i class="fas fa-hourglass-half"></i> Pending...
+                      </span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% else %}
+              <p class="text-sm text-gray-600">No pending requests.</p>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </section>
+  {% endif %}
 
   <!-- Recruiter-specific sections -->
   {% if profile_type == "recruiter" %}
@@ -248,4 +452,37 @@
   {% endif %}
 
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const currentBtn = document.getElementById("tab-current");
+  const pendingBtn = document.getElementById("tab-pending");
+  const currentContent = document.getElementById("tab-current-content");
+  const pendingContent = document.getElementById("tab-pending-content");
+
+  if (!currentBtn || !pendingBtn || !currentContent || !pendingContent) return;
+
+  function showCurrent() {
+    currentBtn.classList.add("active");
+    currentBtn.setAttribute("aria-selected", "true");
+    pendingBtn.classList.remove("active");
+    pendingBtn.setAttribute("aria-selected", "false");
+    currentContent.classList.add("active");
+    pendingContent.classList.remove("active");
+  }
+
+  function showPending() {
+    pendingBtn.classList.add("active");
+    pendingBtn.setAttribute("aria-selected", "true");
+    currentBtn.classList.remove("active");
+    currentBtn.setAttribute("aria-selected", "false");
+    pendingContent.classList.add("active");
+    currentContent.classList.remove("active");
+  }
+
+  currentBtn.addEventListener("click", showCurrent);
+  pendingBtn.addEventListener("click", showPending);
+
+  showCurrent();
+});
+</script>
 {% endblock %}

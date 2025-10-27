@@ -147,10 +147,17 @@ GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 GOOGLE_MAPS_SERVER_KEY = os.environ.get("GOOGLE_MAPS_SERVER_KEY")
 GOOGLE_MAPS_API_KEY_BACKEND = os.environ.get("GOOGLE_GEOCODING_API_KEY")
 
-# Resend API Key
+# Resend (Emailing) API Keys
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "BuzzedIn<no-reply@buzzedinjobs.org>")
 RESEND_REPLY_TO = os.environ.get("RESEND_REPLY_TO", None)
+
+# Twilio (Chatting) API Keys
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
+TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
+TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
+TWILIO_CONVERSATIONS_SERVICE_SID = os.environ.get("TWILIO_CONVERSATIONS_SERVICE_SID")
 
 # Caches for distance matrix
 CACHES = {

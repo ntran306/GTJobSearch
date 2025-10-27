@@ -24,7 +24,7 @@ urlpatterns = [
     path("applications/", include("applications.urls", namespace="applications")), # applications app
     path('candidates/', include('candidates.urls', namespace="candidates")), # candidates app
     path('profiles/', include('profiles.urls', namespace="profiles")), # profiles app
-    path('email/', include('communication.urls', namespace='communication')), # communication app
+    path("communication/", include(("communication.urls", "communication"), namespace="communication")), # communication app
 ]
 
 if settings.DEBUG:

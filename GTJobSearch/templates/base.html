@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
-
-
 </head>
 <body>
     <header>
@@ -29,10 +27,12 @@
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'home:index' %}">Home</a></li>
                         <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
-                        <li><a href="{% url 'accounts:connect' %}"
-                                class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
-                                Connect
-                                </a></li>
+                        <li>
+                          <a href="{% url 'accounts:connect' %}"
+                             class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
+                             Connect
+                          </a>
+                        </li>
 
                         {% if user|has_recruiterprofile %}
                             <a href="{% url 'candidates:search_candidates' %}">Find Candidates</a>
@@ -47,9 +47,7 @@
                         <li><a href="{% url 'accounts:signup_choice' %}">Create Profile</a></li>
                         <li><a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a></li>
                     {% endif %}
-
                 </ul>
-
 
                 <button class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>
@@ -75,16 +73,605 @@
             </div>
         </section>
     </main>
+
+    {% if user.is_authenticated %}
+    <!-- Floating Chat HTML -->
+    <button id="bzChatFab" class="bz-chat-fab" aria-label="Open messages">
+        <i class="fa-solid fa-message"></i>
+    </button>
+
+    <div id="bzChatPanel" class="bz-chat-panel" role="dialog" aria-modal="false">
+        <div class="bz-chat-header">
+            <span>Messages</span>
+            <button id="bzChatClose" style="border:none;background:none;font-size:18px;cursor:pointer;">×</button>
+        </div>
+
+        <div class="bz-chat-body">
+            <!-- Left column: unified list -->
+            <div class="bz-chat-list" id="bzListColumn">
+                <div class="chat-search">
+                    <input type="text" id="bzChatSearch" placeholder="Search messages..." />
+                </div>
+                <div id="bzChatList"></div>
+            </div>
+
+            <!-- Right column: thread -->
+            <div class="bz-chat-thread">
+                <div id="bzChatTitle" class="bz-chat-title">Select a conversation</div>
+                <div id="bzChatMessages" class="bz-chat-messages"></div>
+                <form id="bzChatForm" class="bz-chat-input">
+                    <input id="bzChatInput" type="text" placeholder="Type a message…" />
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Twilio Conversations SDK -->
+    <script>
+    (async function(){
+    
+    // Function to dynamically load Twilio SDK
+    function loadTwilioSDK() {
+        return new Promise((resolve, reject) => {
+            if (typeof Twilio !== "undefined" && Twilio?.Conversations?.Client) {
+                console.log('[BZChat] Twilio SDK already loaded');
+                resolve();
+                return;
+            }
+            
+            console.log('[BZChat] Loading Twilio SDK...');
+            const script = document.createElement('script');
+            script.src = 'https://sdk.twilio.com/js/conversations/releases/2.6.0/twilio-conversations.min.js';
+            script.crossOrigin = 'anonymous';
+            
+            script.onload = () => {
+                setTimeout(() => {
+                    if (typeof Twilio !== "undefined" && Twilio?.Conversations?.Client) {
+                        console.log('[BZChat] Twilio SDK loaded successfully');
+                        resolve();
+                    } else {
+                        reject(new Error("Twilio SDK loaded but not initialized"));
+                    }
+                }, 200);
+            };
+            
+            script.onerror = () => reject(new Error("Failed to load Twilio SDK script"));
+            document.head.appendChild(script);
+            
+            setTimeout(() => {
+                if (typeof Twilio === "undefined" || !Twilio?.Conversations?.Client) {
+                    reject(new Error("Twilio SDK load timeout"));
+                }
+            }, 30000);
+        });
+    }
+
+    try {
+        await loadTwilioSDK();
+    } catch (error) {
+        console.error('[BZChat] Failed to load Twilio SDK:', error);
+        alert('Chat service unavailable. Please refresh the page.');
+        return;
+    }
+
+    let twilioClient = null;
+    let identity = null;
+    let currentConv = null;
+    let allConversations = [];
+    let conversationMetadata = new Map(); // Store conversation metadata
+    let myUserId = null; // Store current user's ID
+
+    // Prevent form submission from redirecting
+    const chatForm = document.getElementById('bzChatForm');
+    const chatInput = document.getElementById('bzChatInput');
+    
+    if (chatForm) {
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const msg = chatInput.value.trim();
+            if (!msg || !currentConv) {
+                console.log('[BZChat] Cannot send: no message or no conversation');
+                return;
+            }
+            
+            try {
+                await currentConv.sendMessage(msg);
+                chatInput.value = '';
+                console.log('[BZChat] Message sent:', msg);
+            } catch (err) {
+                console.error('[BZChat] Error sending message:', err);
+                alert('Failed to send message. Please try again.');
+            }
+        });
+    }
+
+    // Initialize Twilio client
+    try {
+        const tokenResp = await fetch('/communication/messaging/token/');
+        const tokenData = await tokenResp.json();
+        
+        if (!tokenData.token) {
+            throw new Error('No token received');
+        }
+        
+        identity = tokenData.identity;
+        myUserId = extractUserIdFromIdentity(identity); // Extract my user ID
+        twilioClient = new Twilio.Conversations.Client(tokenData.token);
+        console.log('[BZChat] Twilio client initialized for:', identity, 'User ID:', myUserId);
+        
+        await initializeChatUI();
+        
+    } catch (err) {
+        console.error('[BZChat] Failed to initialize chat:', err);
+        alert('Failed to initialize chat. Please refresh the page.');
+    }
+
+    // Chat UI initialization
+    async function initializeChatUI() {
+        const fab = document.getElementById('bzChatFab');
+        const panel = document.getElementById('bzChatPanel');
+        const closeBtn = document.getElementById('bzChatClose');
+        const searchInput = document.getElementById('bzChatSearch');
+        
+        fab.addEventListener('click', () => {
+            panel.style.display = 'flex';
+            loadUnifiedList();
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            panel.style.display = 'none';
+        });
+        
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            filterConversations(query);
+        });
+        
+        await loadUnifiedList();
+    }
+
+    // Load unified conversations and connections list
+    async function loadUnifiedList() {
+        const listContainer = document.getElementById('bzChatList');
+        listContainer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
+        
+        try {
+            // Fetch both conversations and connections
+            const [convsResp, connsResp] = await Promise.all([
+                fetch('/communication/messaging/list/'),
+                fetch('/communication/api/connections')
+            ]);
+            
+            const convsData = await convsResp.json();
+            const connections = await connsResp.json();
+            
+            // Get all Twilio conversations for this user
+            const subscribedConversations = await twilioClient.getSubscribedConversations();
+            allConversations = subscribedConversations.items || [];
+            
+            console.log('[BZChat] Loaded', allConversations.length, 'Twilio conversations');
+            
+            // Build metadata map for conversations
+            conversationMetadata.clear();
+            
+            for (const conv of allConversations) {
+                console.log('[BZChat] ========================================');
+                console.log('[BZChat] Processing conversation:', conv.sid);
+                console.log('[BZChat] Unique name:', conv.uniqueName);
+                console.log('[BZChat] Raw attributes:', conv.attributes);
+                console.log('[BZChat] Attributes type:', typeof conv.attributes);
+                
+                const participants = await conv.getParticipants();
+                console.log('[BZChat] Participants:', participants.map(p => p.identity));
+                
+                const otherParticipant = participants.find(p => p.identity !== identity);
+                console.log('[BZChat] My identity:', identity);
+                console.log('[BZChat] Other participant:', otherParticipant?.identity);
+                
+                // Extract the other person's username from attributes
+                let displayName = 'Unknown';
+                try {
+                    if (conv.attributes) {
+                        let attributes;
+                        
+                        // Attributes might be a string or already parsed
+                        if (typeof conv.attributes === 'string') {
+                            console.log('[BZChat] Attributes is string, parsing...');
+                            attributes = JSON.parse(conv.attributes);
+                        } else {
+                            console.log('[BZChat] Attributes already parsed');
+                            attributes = conv.attributes;
+                        }
+                        
+                        console.log('[BZChat] Parsed attributes:', attributes);
+                        console.log('[BZChat] Attribute keys:', Object.keys(attributes));
+                        
+                        const otherUserId = extractUserIdFromIdentity(otherParticipant?.identity);
+                        console.log('[BZChat] Other user ID:', otherUserId);
+                        
+                        const lookupKey = `user_${otherUserId}`;
+                        console.log('[BZChat] Looking for key:', lookupKey);
+                        console.log('[BZChat] Key exists?', lookupKey in attributes);
+                        console.log('[BZChat] Value:', attributes[lookupKey]);
+                        
+                        // Look for the other user's name in attributes
+                        if (otherUserId && attributes[lookupKey]) {
+                            displayName = attributes[lookupKey];
+                            console.log('[BZChat] ✓ Found display name:', displayName);
+                        } else {
+                            console.log('[BZChat] ✗ Could not find', lookupKey, 'in attributes');
+                            console.log('[BZChat] All attributes:', JSON.stringify(attributes));
+                            
+                            // Fallback
+                            if (otherParticipant?.identity) {
+                                displayName = otherParticipant.identity.replace('user_', 'User ');
+                                console.log('[BZChat] Using fallback name:', displayName);
+                            }
+                        }
+                    } else {
+                        console.log('[BZChat] ✗ No attributes for conversation', conv.sid);
+                        if (otherParticipant?.identity) {
+                            displayName = otherParticipant.identity.replace('user_', 'User ');
+                        }
+                    }
+                } catch (err) {
+                    console.error('[BZChat] ✗ Error parsing attributes:', err);
+                    if (otherParticipant?.identity) {
+                        displayName = otherParticipant.identity.replace('user_', 'User ');
+                    }
+                }
+                
+                console.log('[BZChat] Final display name:', displayName);
+                console.log('[BZChat] ========================================');
+                
+                let lastMessage = null;
+                let lastTimestamp = null;
+                
+                try {
+                    const messages = await conv.getMessages(1);
+                    if (messages.items && messages.items.length > 0) {
+                        const msg = messages.items[0];
+                        lastMessage = msg.body;
+                        lastTimestamp = msg.dateCreated;
+                    }
+                } catch (err) {
+                    console.log('[BZChat] No messages in conversation:', conv.sid);
+                }
+                
+                conversationMetadata.set(conv.sid, {
+                    sid: conv.sid,
+                    friendlyName: displayName,  // Just the other person's name
+                    otherIdentity: otherParticipant?.identity,
+                    lastMessage: lastMessage,
+                    lastTimestamp: lastTimestamp,
+                    conversation: conv
+                });
+            }
+            
+            // Build unified list
+            const items = [];
+            
+            // Add existing conversations
+            conversationMetadata.forEach((meta, sid) => {
+                items.push({
+                    type: 'conversation',
+                    sid: meta.sid,
+                    name: meta.friendlyName,
+                    lastMessage: meta.lastMessage,
+                    timestamp: meta.lastTimestamp,
+                    userId: extractUserIdFromIdentity(meta.otherIdentity)
+                });
+            });
+            
+            // Add connections that don't have conversations yet
+            for (const conn of connections) {
+                const hasConversation = Array.from(conversationMetadata.values())
+                    .some(meta => meta.otherIdentity === `user_${conn.id}`);
+                
+                if (!hasConversation) {
+                    items.push({
+                        type: 'connection',
+                        userId: conn.id,
+                        name: conn.username,
+                        lastMessage: 'Start a conversation',
+                        timestamp: null
+                    });
+                }
+            }
+            
+            // Sort by timestamp (most recent first)
+            items.sort((a, b) => {
+                if (!a.timestamp) return 1;
+                if (!b.timestamp) return -1;
+                return b.timestamp - a.timestamp;
+            });
+            
+            if (items.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><p>No conversations yet</p></div>';
+                return;
+            }
+            
+            // Render list
+            listContainer.innerHTML = items.map(item => `
+                <div class="bz-chat-list-item" 
+                     data-type="${item.type}"
+                     data-sid="${item.sid || ''}"
+                     data-user-id="${item.userId || ''}"
+                     data-name="${escapeHtml(item.name)}">
+                    <div class="chat-user-name">${escapeHtml(item.name)}</div>
+                    <div class="chat-last-message">${escapeHtml(item.lastMessage || 'No messages yet')}</div>
+                    ${item.timestamp ? `<div class="chat-timestamp">${formatTimestamp(item.timestamp)}</div>` : ''}
+                </div>
+            `).join('');
+            
+            // Attach click handlers
+            document.querySelectorAll('.bz-chat-list-item').forEach(el => {
+                el.addEventListener('click', async () => {
+                    // Remove active class from all items
+                    document.querySelectorAll('.bz-chat-list-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    el.classList.add('active');
+                    
+                    const type = el.dataset.type;
+                    
+                    if (type === 'conversation') {
+                        await openConversation(el.dataset.sid);
+                    } else {
+                        await openWithUser(el.dataset.userId, el.dataset.name);
+                    }
+                });
+            });
+            
+        } catch (err) {
+            console.error('[BZChat] Failed to load unified list:', err);
+            listContainer.innerHTML = '<div class="empty-state" style="color:red;"><i class="fas fa-exclamation-triangle"></i><p>Failed to load conversations</p></div>';
+        }
+    }
+
+    // Filter conversations by search query
+    function filterConversations(query) {
+        document.querySelectorAll('.bz-chat-list-item').forEach(el => {
+            const name = el.dataset.name.toLowerCase();
+            const lastMsg = el.querySelector('.chat-last-message')?.textContent.toLowerCase() || '';
+            
+            if (name.includes(query) || lastMsg.includes(query)) {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+    }
+
+    // Open conversation by SID
+    async function openConversation(sid) {
+        console.log('[BZChat] Opening conversation:', sid);
+        
+        try {
+            const meta = conversationMetadata.get(sid);
+            
+            if (meta && meta.conversation) {
+                currentConv = meta.conversation;
+            } else {
+                currentConv = await twilioClient.getConversationBySid(sid);
+            }
+            
+            console.log('[BZChat] Conversation loaded:', currentConv.sid);
+            
+            // Get the other person's name from metadata
+            let displayTitle = 'Conversation';
+            if (meta && meta.friendlyName) {
+                displayTitle = meta.friendlyName;
+            } else {
+                displayTitle = currentConv.friendlyName || currentConv.uniqueName || 'Conversation';
+            }
+            
+            document.getElementById('bzChatTitle').textContent = displayTitle;
+            
+            const msgContainer = document.getElementById('bzChatMessages');
+            
+            let messageItems = [];
+            try {
+                const messages = await currentConv.getMessages();
+                messageItems = messages.items || [];
+                console.log('[BZChat] Loaded', messageItems.length, 'messages');
+            } catch (msgErr) {
+                console.log('[BZChat] No messages yet:', msgErr.message);
+            }
+            
+            if (messageItems.length === 0) {
+                msgContainer.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><p>No messages yet. Start the conversation!</p></div>';
+            } else {
+                msgContainer.innerHTML = messageItems.map(m => {
+                    const isOwn = m.author === identity;
+                    // Don't show author label for own messages in 1-on-1 chat
+                    if (isOwn) {
+                        return `
+                            <div class="bz-chat-bubble bz-me">
+                                ${escapeHtml(m.body)}
+                            </div>
+                        `;
+                    } else {
+                        const displayName = extractDisplayName(m.author);
+                        return `
+                            <div class="bz-chat-bubble bz-them">
+                                ${escapeHtml(m.body)}
+                            </div>
+                        `;
+                    }
+                }).join('');
+            }
+            
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+            
+            currentConv.removeAllListeners('messageAdded');
+            
+            currentConv.on('messageAdded', (msg) => {
+                console.log('[BZChat] New message received from', msg.author);
+                const isOwn = msg.author === identity;
+                
+                const emptyState = msgContainer.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+                
+                const div = document.createElement('div');
+                div.className = `bz-chat-bubble ${isOwn ? 'bz-me' : 'bz-them'}`;
+                // Don't show author label in 1-on-1 chat
+                div.innerHTML = escapeHtml(msg.body);
+                msgContainer.appendChild(div);
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+                
+                // Update conversation list
+                loadUnifiedList();
+            });
+            
+            console.log('[BZChat] Conversation ready');
+            
+        } catch (err) {
+            console.error('[BZChat] Failed to open conversation:', err);
+            const msgContainer = document.getElementById('bzChatMessages');
+            msgContainer.innerHTML = `
+                <div class="empty-state" style="color:#d32f2f;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p><strong>Error loading conversation</strong></p>
+                    <p style="font-size:12px;margin-top:8px;">${escapeHtml(err.message)}</p>
+                </div>
+            `;
+        }
+    }
+
+    // Open conversation with a specific user
+    async function openWithUser(userId, name) {
+        try {
+            console.log(`[BZChat] Starting conversation with user ${userId} (${name})`);
+            
+            const resp = await fetch(`/communication/messaging/start/${userId}/`);
+            
+            if (!resp.ok) {
+                const text = await resp.text();
+                console.error('[BZChat] Server error:', resp.status, text);
+                throw new Error(`Server returned ${resp.status}`);
+            }
+            
+            const data = await resp.json();
+            console.log('[BZChat] Start conversation response:', data);
+            
+            if (!data.ok || !data.sid) {
+                throw new Error(data.error || 'Failed to start conversation');
+            }
+            
+            console.log('[BZChat] Opening conversation SID:', data.sid);
+            await openConversation(data.sid);
+            await loadUnifiedList();
+            
+        } catch (err) {
+            console.error('[BZChat] Failed to open conversation with user:', err);
+            alert('Failed to start conversation: ' + err.message);
+        }
+    }
+
+    // Expose for external click handler
+    window.BZChat = { openWithUser };
+
+    // Handle pending chat request
+    if (window.__BZ_PENDING_CHAT__) {
+        const { userId, name } = window.__BZ_PENDING_CHAT__;
+        await openWithUser(userId, name);
+        delete window.__BZ_PENDING_CHAT__;
+    }
+
+    // Helper functions
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function extractUserIdFromIdentity(identity) {
+        if (!identity) return null;
+        const match = identity.match(/user_(\d+)/);
+        const userId = match ? match[1] : null;
+        console.log('[BZChat] extractUserIdFromIdentity:', identity, '→', userId);
+        return userId;
+    }
+    
+    function extractDisplayName(identity) {
+        if (!identity) return 'Unknown';
+        // If it's in format "user_123", try to find the friendly name
+        const userId = extractUserIdFromIdentity(identity);
+        if (userId) {
+            // Look through metadata for friendly name
+            for (const meta of conversationMetadata.values()) {
+                if (meta.otherIdentity === identity && meta.friendlyName) {
+                    return meta.friendlyName;
+                }
+            }
+        }
+        return identity.replace('user_', 'User ');
+    }
+    
+    function formatTimestamp(date) {
+        if (!date) return '';
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString();
+    }
+
+    })();
+    </script>
+    {% endif %}
+
+    <!-- Messages auto-hide -->
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('.messages .message').forEach(el => {
+          el.style.transition = 'opacity .3s ease, transform .3s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-6px)';
+          setTimeout(() => el.remove(), 300);
+        });
+      }, 3000);
+    </script>
+
+    <script>
+    /* Minimal, bomb-proof interceptor for .js-open-chat */
+    (function(){
+      function handle(ev){
+        const a = ev.target.closest('a.js-open-chat,button.js-open-chat');
+        if (!a) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const userId = a.getAttribute('data-user-id');
+        const name = a.getAttribute('data-name') || '';
+        console.log('[BZChat] Intercepted click for user:', userId, name);
+
+        const panel = document.getElementById('bzChatPanel');
+        if (panel) panel.style.display = 'flex';
+
+        if (window.BZChat && typeof window.BZChat.openWithUser === 'function') {
+          window.BZChat.openWithUser(String(userId), name);
+        } else {
+          window.__BZ_PENDING_CHAT__ = { userId: String(userId), name };
+        }
+      }
+      document.addEventListener('click', handle, true);
+    })();
+    </script>
+
 </body>
 </html>
-
-<script>
-  setTimeout(() => {
-    document.querySelectorAll('.messages .message').forEach(el => {
-      el.style.transition = 'opacity .3s ease, transform .3s ease';
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(-6px)';
-      setTimeout(() => el.remove(), 300);
-    });
-  }, 3000);
-</script>

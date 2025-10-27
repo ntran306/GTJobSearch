@@ -15,6 +15,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from jobs.models import Skill
+from communication.models import Connection
 
 from .forms import (
     JobSeekerProfileForm,
@@ -148,15 +149,42 @@ def profile_view(request):
         profile = None
         profile_type = None
 
+    # --- Add these so your home profile can manage connections too ---
+    # handle enum vs string safely
+    STATUS_PENDING  = getattr(getattr(Connection, "Status", object()), "PENDING",  "pending")
+    STATUS_ACCEPTED = getattr(getattr(Connection, "Status", object()), "ACCEPTED", "accepted")
+
+    pending_in = (
+        Connection.objects
+        .filter(addressee=owner, status=STATUS_PENDING)
+        .select_related("requester")
+        .order_by("-created_at")
+    )
+    pending_out = (
+        Connection.objects
+        .filter(requester=owner, status=STATUS_PENDING)
+        .select_related("addressee")
+        .order_by("-created_at")
+    )
+    connections = (
+        Connection.objects
+        .filter(Q(requester=owner) | Q(addressee=owner), status=STATUS_ACCEPTED)
+        .select_related("requester", "addressee")
+        .order_by("-responded_at", "-created_at")
+    )
+
     return render(request, "accounts/profile.html", {
         "owner": owner,
         "is_owner": True,
         "profile": profile,
         "profile_type": profile_type,
-        "can_email": False, # never email yourself
+        "can_email": False,  # never email yourself
         "saved_jobs": [] if profile_type == "jobseeker" else None,
+        # NEW:
+        "pending_in": pending_in,
+        "pending_out": pending_out,
+        "connections": connections,
     })
-
 
 # ---------- EDIT PROFILE ----------
 @login_required
@@ -207,25 +235,146 @@ RATE_LIMIT_SECONDS = 60  # 1 email/minute per (sender, recipient) to prevent spa
 
 # VIEW OTHER USER'S PROFILE
 @login_required
+def profile_view(request):
+    owner = request.user
+
+    # Handle privacy updates (job seekers)
+    if request.method == "POST" and "privacy" in request.POST:
+        privacy_setting = (request.POST.get("privacy") or "").lower()
+        if hasattr(owner, "jobseekerprofile") and privacy_setting in {"public", "employers_only", "employers", "private"}:
+            if privacy_setting == "employers":
+                privacy_setting = "employers_only"
+            owner.jobseekerprofile.privacy = privacy_setting
+            owner.jobseekerprofile.save()
+            messages.success(request, "Privacy settings updated.")
+        return redirect("accounts:profile")
+
+    if hasattr(owner, "jobseekerprofile"):
+        profile = owner.jobseekerprofile
+        profile_type = "jobseeker"
+    elif hasattr(owner, "recruiterprofile"):
+        profile = owner.recruiterprofile
+        profile_type = "recruiter"
+    else:
+        profile = None
+        profile_type = None
+
+    # FIX: Add connection data for your own profile
+    STATUS_PENDING  = getattr(getattr(Connection, "Status", object()), "PENDING",  "pending")
+    STATUS_ACCEPTED = getattr(getattr(Connection, "Status", object()), "ACCEPTED", "accepted")
+
+    pending_in = (
+        Connection.objects
+        .filter(addressee=owner, status=STATUS_PENDING)
+        .select_related("requester")
+        .order_by("-created_at")
+    )
+    pending_out = (
+        Connection.objects
+        .filter(requester=owner, status=STATUS_PENDING)
+        .select_related("addressee")
+        .order_by("-created_at")
+    )
+    connections = (
+        Connection.objects
+        .filter(Q(requester=owner) | Q(addressee=owner), status=STATUS_ACCEPTED)
+        .select_related("requester", "addressee")
+        .order_by("-responded_at", "-created_at")
+    )
+
+    return render(request, "accounts/profile.html", {
+        "owner": owner,
+        "is_owner": True,
+        "profile": profile,
+        "profile_type": profile_type,
+        "can_email": False,  # never email yourself
+        "saved_jobs": [] if profile_type == "jobseeker" else None,
+        # Connection data:
+        "pending_in": pending_in,
+        "pending_out": pending_out,
+        "connections": connections,
+    })
+
+
+# ---------- VIEW OTHER USER'S PROFILE ----------
+@login_required
 def view_profile(request, user_id: int):
     profile = _get_profile_for_user_id(user_id)
     owner = profile.user
 
+    # --- email / privacy logic ---
     can_email = (request.user.id != owner.id) and bool(owner.email)
     if isinstance(profile, JobSeekerProfile):
-        privacy = (profile.privacy or "").lower()
+        privacy = (profile.privacy or "public").strip().lower()
         if privacy == "private":
             can_email = False
         elif privacy in {"employers_only", "employers"} and not is_recruiter(request.user):
             can_email = False
 
-    return render(request, "accounts/profile.html", {
+    profile_type = "jobseeker" if isinstance(profile, JobSeekerProfile) else "recruiter"
+    is_owner = (request.user.id == owner.id)
+
+    # --- ALWAYS create a base context first ---
+    context = {
         "owner": owner,
-        "is_owner": owner.id == request.user.id,
+        "is_owner": is_owner,
         "profile": profile,
-        "profile_type": "jobseeker" if isinstance(profile, JobSeekerProfile) else "recruiter",
+        "profile_type": profile_type,
         "can_email": can_email,
-    })
+    }
+
+    # --- Relationship (only matters when viewing someone else) ---
+    if not is_owner:
+        rel = (
+            Connection.objects
+            .filter(
+                Q(requester=request.user, addressee=owner) |
+                Q(requester=owner, addressee=request.user)
+            )
+            .first()
+        )
+        if rel:
+            # Normalize to a lowercase string for template checks
+            status_str = (str(getattr(rel, "status", "")).lower() or None)
+            context["relation"] = {
+                "status": status_str,  # "pending" | "accepted" | "declined"
+                "incoming": (status_str == "pending" and rel.requester_id == owner.id),
+                "outgoing": (status_str == "pending" and rel.requester_id == request.user.id),
+                "other_id": owner.id,
+            }
+        else:
+            # No relation exists
+            context["relation"] = {
+                "status": None,
+                "incoming": False,
+                "outgoing": False,
+                "other_id": owner.id,
+            }
+    else:
+        # --- Pending/Connections (when viewing your own profile via user_id) ---
+        STATUS_PENDING  = getattr(getattr(Connection, "Status", object()), "PENDING",  "pending")
+        STATUS_ACCEPTED = getattr(getattr(Connection, "Status", object()), "ACCEPTED", "accepted")
+
+        context["pending_in"] = (
+            Connection.objects
+            .filter(addressee=request.user, status=STATUS_PENDING)
+            .select_related("requester")
+            .order_by("-created_at")
+        )
+        context["pending_out"] = (
+            Connection.objects
+            .filter(requester=request.user, status=STATUS_PENDING)
+            .select_related("addressee")
+            .order_by("-created_at")
+        )
+        context["connections"] = (
+            Connection.objects
+            .filter(Q(requester=request.user) | Q(addressee=request.user), status=STATUS_ACCEPTED)
+            .select_related("requester", "addressee")
+            .order_by("-responded_at", "-created_at")
+        )
+
+    return render(request, "accounts/profile.html", context)
 
 @login_required
 @require_http_methods(["GET", "POST"])
