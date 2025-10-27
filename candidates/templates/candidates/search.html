@@ -10,48 +10,73 @@
     <div class="form-row">
       <div class="form-group">
         <label for="skill">Skill</label>
-        <input 
-          type="text" 
-          id="skill" 
-          name="skill" 
-          placeholder="e.g. Python, HTML, Leadership" 
+        <input
+          type="text"
+          id="skill"
+          name="skill"
+          placeholder="e.g. Python, HTML, Leadership"
           value="{{ skill_query|default:'' }}">
       </div>
 
       <div class="form-group">
         <label for="location">Location</label>
-        <input 
-          type="text" 
-          id="location" 
-          name="location" 
-          placeholder="e.g. Atlanta, Remote" 
+        <input
+          type="text"
+          id="location-input"
+          name="location"
+          placeholder="e.g. Atlanta, Remote"
           value="{{ location_query|default:'' }}">
+      </div>
+
+      <!-- Hidden fields for lat/lng -->
+      <input type="hidden" id="lat-input" name="lat" value="{{ lat|default:'' }}">
+      <input type="hidden" id="lng-input" name="lng" value="{{ lng|default:'' }}">
+
+      <div class="form-group">
+        <label for="radius">Radius (miles)</label>
+        <input
+          type="number"
+          id="radius"
+          name="radius"
+          placeholder="e.g. 25"
+          min="1"
+          value="{{ radius|default:'' }}">
       </div>
 
       <div class="form-group">
         <label for="project">Project</label>
-        <input 
-          type="text" 
-          id="project" 
-          name="project" 
-          placeholder="e.g. Portfolio Website, App" 
+        <input
+          type="text"
+          id="project"
+          name="project"
+          placeholder="e.g. Portfolio Website, App"
           value="{{ project_query|default:'' }}">
       </div>
 
-      <div class = "form-group">
-        <button type="submit" class="btn btn-primary search-btn" >
-        <i class="fas fa-search"></i> Search
-      </button>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary search-btn">
+          <i class="fas fa-search"></i> Search
+        </button>
       </div>
-      
     </div>
   </form>
 
-  <!-- Candidate Results -->
+  <!-- Results Header -->
   {% if candidates %}
+  <div class="results-header">
+    <div class="results-count">
+      <i class="fas fa-list"></i>
+      {{ candidates|length }} candidate{{ candidates|length|pluralize }} found
+    </div>
+  </div>
+
+  <!-- Interactive Map -->
+  <div id="map" style="width: 100%; height: 400px; margin: 20px 0; border-radius: 8px;"></div>
+
+  <!-- Candidate Results -->
   <div class="candidate-grid">
     {% for candidate in candidates %}
-    <div class="candidate-card card">
+    <div class="candidate-card card" data-candidate-id="{{ candidate.user.id }}">
       <h3 class="candidate-name">{{ candidate.user.username }}</h3>
       <p class="text-muted"><strong>Location:</strong> {{ candidate.location|default:"—" }}</p>
       <p class="description">
@@ -79,6 +104,11 @@
       <a href="{% url 'profiles:view_profile' candidate.user.id %}" class="btn btn-secondary view-profile-btn">
         View Profile
       </a>
+      {% if candidate.user.email %}
+      <a href="{% url 'accounts:contact_user' candidate.user.id %}" class="btn btn-primary">
+        <i class="fas fa-envelope"></i> Contact
+      </a>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -86,4 +116,182 @@
   <p class="no-results">No candidates found matching your criteria.</p>
   {% endif %}
 </div>
+
+<script>
+  /* Data from Django - You'll need to pass this from your view */
+  const candidateMarkers = JSON.parse('{{ candidate_markers_json|escapejs }}');
+
+  /* Globals */
+  let map, infoWindow, directionsService, directionsRenderer, geocoder;
+  const originLat = parseFloat(document.getElementById("lat-input").value);
+  const originLng = parseFloat(document.getElementById("lng-input").value);
+  const radiusMiles = parseFloat("{{ radius|default:'0' }}") || 0;
+
+  function milesToMeters(mi) { return mi * 1609.34; }
+
+  /* Haversine distance calculation */
+  function distanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (d) => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  /* Draw route from origin to destination */
+  function drawRouteTo(destLat, destLng) {
+    if (Number.isNaN(originLat) || Number.isNaN(originLng)) return;
+    directionsService.route(
+      {
+        origin: { lat: originLat, lng: originLng },
+        destination: { lat: destLat, lng: destLng },
+        travelMode: google.maps.TravelMode.DRIVING
+      },
+      (result, status) => {
+        if (status === "OK" || status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+        }
+      }
+    );
+  }
+
+  /* Highlight a candidate card */
+  function highlightCandidateCard(candidateId) {
+    document.querySelectorAll(".candidate-card.highlighted").forEach(el => el.classList.remove("highlighted"));
+    const card = document.querySelector(`.candidate-card[data-candidate-id="${candidateId}"]`);
+    if (card) {
+      card.classList.add("highlighted");
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /* Build info window content */
+  function buildInfoContent(c) {
+    const safe = s => String(s || "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const name = safe(c.name);
+    const headline = safe(c.headline);
+    const location = safe(c.location);
+    const skills = safe(c.skills);
+    const viewHref = c.profileUrl;
+    const contactHref = c.contactUrl;
+
+    return `
+      <div style="font-size:14px; max-width:260px;">
+        <strong>${name}</strong><br/>
+        ${headline ? headline + "<br/>" : ""}
+        <div style="opacity:.7; margin-top:4px;">${location}</div>
+        ${skills ? '<div style="margin-top:4px; font-size:12px;">Skills: ' + skills + '</div>' : ''}
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <a href="${viewHref}" class="btn btn-secondary" style="flex:1; text-align:center; padding:4px 8px;">View</a>
+          ${contactHref ? '<a href="' + contactHref + '" class="btn btn-primary" style="flex:1; text-align:center; padding:4px 8px;">Contact</a>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /* Geocode a single address */
+  function geocodeAddress(address) {
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ address }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          const ll = results[0].geometry.location;
+          resolve({ lat: ll.lat(), lng: ll.lng() });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  /* Init Autocomplete + Map + Markers */
+  window.initCandidatesMap = async function () {
+    // Places Autocomplete
+    const input = document.getElementById("location-input");
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.setFields(["geometry", "formatted_address"]);
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      if (place && place.geometry) {
+        document.getElementById("lat-input").value = place.geometry.location.lat();
+        document.getElementById("lng-input").value = place.geometry.location.lng();
+        if (map) {
+          map.setCenter(place.geometry.location);
+          map.setZoom(12);
+        }
+      }
+    });
+
+    // Map & helpers
+    geocoder = new google.maps.Geocoder();
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 4,
+      center: { lat: 39.8283, lng: -98.5795 }
+    });
+    infoWindow = new google.maps.InfoWindow();
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({ suppressMarkers: false, preserveViewport: true });
+    directionsRenderer.setMap(map);
+
+    const bounds = new google.maps.LatLngBounds();
+
+    // Ensure all markers have lat/lng
+    const withCoords = [];
+    for (const c of candidateMarkers) {
+      if (c.lat != null && c.lng != null) {
+        withCoords.push(c);
+      } else if (c.location) {
+        const res = await geocodeAddress(c.location);
+        if (res) withCoords.push({ ...c, lat: res.lat, lng: res.lng });
+      }
+    }
+
+    // Optional client-side radius filter
+    const filtered = (!Number.isNaN(originLat) && !Number.isNaN(originLng) && radiusMiles > 0)
+      ? withCoords.filter(c => distanceMeters(originLat, originLng, c.lat, c.lng) <= milesToMeters(radiusMiles))
+      : withCoords;
+
+    // Create markers
+    filtered.forEach(c => {
+      const pos = { lat: c.lat, lng: c.lng };
+      const marker = new google.maps.Marker({
+        position: pos,
+        map: map,
+        title: c.name
+      });
+
+      marker.addListener("click", () => {
+        drawRouteTo(c.lat, c.lng);
+        infoWindow.setContent(buildInfoContent(c));
+        infoWindow.open(map, marker);
+        highlightCandidateCard(c.id);
+      });
+
+      bounds.extend(pos);
+    });
+
+    if (filtered.length > 0) {
+      map.fitBounds(bounds);
+    } else if (!Number.isNaN(originLat) && !Number.isNaN(originLng)) {
+      map.setCenter({ lat: originLat, lng: originLng });
+      map.setZoom(12);
+    }
+  };
+</script>
+
+<!-- Google Maps API -->
+{% if MAPS_KEY %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ MAPS_KEY }}&libraries=places&callback=initCandidatesMap" async defer></script>
+{% else %}
+<!-- No MAPS_KEY configured; map disabled -->
+{% endif %}
+
+<style>
+  .candidate-card.highlighted {
+    border: 2px solid #4299e1;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    transition: all 0.3s ease;
+  }
+</style>
 {% endblock %}
