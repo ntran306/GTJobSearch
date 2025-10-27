@@ -61,11 +61,11 @@ def jobseeker_signup(request):
     else:
         form = JobSeekerSignUpForm()
 
-    skills = Skill.objects.all()
+    skills = list(Skill.objects.values('id', 'name'))
 
     return render(request, "accounts/jobseeker_signup.html", {
         "form": form,
-        "skills": skills,  # required for {{ skills|json_script }}
+        "skills": skills,
     })
 
 # ----------- Skills Creating ---------------
