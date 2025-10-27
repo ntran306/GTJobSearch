@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Edit Job | BuzzedIn{% endblock %}
+
 {% block content %}
 <div class="page-container">
     <div class="form-page-header">
@@ -10,40 +12,119 @@
         <p class="form-page-subtitle">Update the details for "{{ job.title }}"</p>
     </div>
 
-    <div class="form-card">
+    <div class="form-card create-job-form">
         <form method="POST" enctype="multipart/form-data" class="modern-form">
             {% csrf_token %}
-            
+
             {% if form.non_field_errors %}
-            <div class="form-errors">
-                {{ form.non_field_errors }}
-            </div>
+            <div class="form-errors">{{ form.non_field_errors }}</div>
             {% endif %}
 
             <div class="form-grid">
                 {% for field in form %}
-                <div class="form-group {% if field.field.widget.input_type == 'textarea' %}form-group-full{% endif %}">
-                    <label for="{{ field.id_for_label }}" class="form-label">
-                        {{ field.label }}
-                        {% if field.field.required %}
-                        <span class="required-indicator">*</span>
-                        {% endif %}
-                    </label>
-                    
-                    {{ field }}
-                    
-                    {% if field.help_text %}
-                    <span class="help-text">{{ field.help_text }}</span>
+                    {% if field.name == "required_skills" %}
+                        <!-- ✅ Required Skills Selector -->
+                        <div class="form-group form-group-full">
+                            <label for="requiredSkillSearch" class="form-label">
+                                Required Skills *
+                            </label>
+
+                            <!-- Search bar + Add button -->
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div style="flex: 1; position: relative;">
+                                    <input 
+                                        type="text" 
+                                        id="requiredSkillSearch" 
+                                        placeholder="Search for required skills..." 
+                                        autocomplete="off"
+                                        style="width: 100%; padding: 0.875rem 2.5rem 0.875rem 1rem;
+                                               border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; background: #f7fafc;">
+                                    <i class="fas fa-search"
+                                       style="position: absolute; right: 1rem; top: 50%;
+                                              transform: translateY(-50%); color: #9ca3af;"></i>
+                                </div>
+                                <button type="button" id="addRequiredSkillBtn"
+                                        style="padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                               color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+
+                            <div id="requiredSkillDropdown"
+                                 style="display: none; max-height: 200px; overflow-y: auto;
+                                        border: 2px solid #e2e8f0; border-radius: 12px; background: white;
+                                        margin-bottom: 0.5rem;"></div>
+
+                            <div id="selectedRequiredSkills"
+                                 style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;
+                                        min-height: 40px; padding: 0.5rem; background: #f7fafc;
+                                        border: 2px solid #e2e8f0; border-radius: 12px;"></div>
+
+                            <input type="hidden" name="required_skills" id="requiredSkillsInput" value="">
+                            <small class="help-text">Search and click to add required skills. Click + to add custom ones.</small>
+                        </div>
+
+                    {% elif field.name == "preferred_skills" %}
+                        <!-- ✅ Preferred Skills Selector -->
+                        <div class="form-group form-group-full">
+                            <label for="preferredSkillSearch" class="form-label">
+                                Preferred Skills
+                            </label>
+
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div style="flex: 1; position: relative;">
+                                    <input 
+                                        type="text" 
+                                        id="preferredSkillSearch" 
+                                        placeholder="Search for preferred skills..." 
+                                        autocomplete="off"
+                                        style="width: 100%; padding: 0.875rem 2.5rem 0.875rem 1rem;
+                                               border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; background: #f7fafc;">
+                                    <i class="fas fa-search"
+                                       style="position: absolute; right: 1rem; top: 50%;
+                                              transform: translateY(-50%); color: #9ca3af;"></i>
+                                </div>
+                                <button type="button" id="addPreferredSkillBtn"
+                                        style="padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                               color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+
+                            <div id="preferredSkillDropdown"
+                                 style="display: none; max-height: 200px; overflow-y: auto;
+                                        border: 2px solid #e2e8f0; border-radius: 12px; background: white;
+                                        margin-bottom: 0.5rem;"></div>
+
+                            <div id="selectedPreferredSkills"
+                                 style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;
+                                        min-height: 40px; padding: 0.5rem; background: #f7fafc;
+                                        border: 2px solid #e2e8f0; border-radius: 12px;"></div>
+
+                            <input type="hidden" name="preferred_skills" id="preferredSkillsInput" value="">
+                            <small class="help-text">Search and click to add preferred skills. Click + to add custom ones.</small>
+                        </div>
+
+                    {% else %}
+                        <!-- Standard field rendering -->
+                        <div class="form-group form-group-full">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="required-indicator">*</span>
+                                {% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <span class="help-text">{{ field.help_text }}</span>
+                            {% endif %}
+                            {% if field.errors %}
+                            <span class="error-message">
+                                {% for error in field.errors %}{{ error }}{% endfor %}
+                            </span>
+                            {% endif %}
+                        </div>
                     {% endif %}
-                    
-                    {% if field.errors %}
-                    <span class="error-message">
-                        {% for error in field.errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </span>
-                    {% endif %}
-                </div>
                 {% endfor %}
             </div>
 
@@ -58,4 +139,134 @@
         </form>
     </div>
 </div>
+
+<!-- ✅ Safe JSON Embeds -->
+{{ skills|json_script:"available-skills" }}
+{{ required_skills|json_script:"selected-required-skills" }}
+{{ preferred_skills|json_script:"selected-preferred-skills" }}
+
+<script>
+const availableSkills = JSON.parse(document.getElementById('available-skills').textContent);
+let requiredSelected = JSON.parse(document.getElementById('selected-required-skills').textContent);
+let preferredSelected = JSON.parse(document.getElementById('selected-preferred-skills').textContent);
+
+function setupSkillSelector(prefix, selected = []) {
+    const search = document.getElementById(`${prefix}Search`);
+    const dropdown = document.getElementById(`${prefix}Dropdown`);
+    const selectedDiv = document.getElementById(`selected${prefix.charAt(0).toUpperCase() + prefix.slice(1)}s`);
+    const input = document.getElementById(`${prefix}sInput`);
+    const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase() + prefix.slice(1)}Btn`);
+
+    // ✅ Always keep input synced
+    function updateInput() {
+        input.value = selected.map(s => s.id).join(',');
+    }
+
+    function render() {
+        if (!selected.length) {
+            selectedDiv.innerHTML = '<span style="color: var(--gray-400);">No skills selected</span>';
+            input.value = ''; // make sure input is cleared too
+            return;
+        }
+
+        selectedDiv.innerHTML = selected.map(s =>
+            `<span class="skill-tag" style="display:inline-flex;align-items:center;gap:0.5rem;">
+                ${s.name}
+                <button type="button" onclick="remove${prefix}Skill(${s.id})"
+                        style="background:none;border:none;color:var(--secondary-600);font-weight:bold;cursor:pointer;">×</button>
+            </span>`
+        ).join('');
+
+        updateInput();
+    }
+
+    // ✅ Remove skill
+    window[`remove${prefix}Skill`] = id => {
+        selected = selected.filter(s => s.id !== id);
+        render();
+    };
+
+    // ✅ Add skill
+    function addSkill(id, name) {
+        if (!selected.find(s => s.id === id)) {
+            selected.push({ id, name });
+            render();
+        }
+        search.value = '';
+        dropdown.style.display = 'none';
+    }
+
+    // ✅ Filter skills
+    search.addEventListener('input', e => {
+        const text = e.target.value.toLowerCase();
+        const filtered = availableSkills.filter(sk =>
+            sk.name.toLowerCase().includes(text) && !selected.find(s => s.id === sk.id)
+        );
+        dropdown.innerHTML = filtered.map(sk =>
+            `<div class="skill-option" data-id="${sk.id}" data-name="${sk.name}">${sk.name}</div>`
+        ).join('');
+        dropdown.style.display = filtered.length ? 'block' : 'none';
+    });
+
+    dropdown.addEventListener('click', e => {
+        if (e.target.classList.contains('skill-option')) {
+            addSkill(parseInt(e.target.dataset.id), e.target.dataset.name);
+        }
+    });
+
+    // ✅ Add custom skill button
+    addBtn.addEventListener('click', async () => {
+        const skillName = search.value.trim();
+        if (!skillName) return alert('Enter a skill name first');
+
+        const existing = availableSkills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
+        if (existing) return addSkill(existing.id, existing.name);
+
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        try {
+            const res = await fetch('/accounts/api/skills/create/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+                body: JSON.stringify({ name: skillName })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                availableSkills.push({ id: data.id, name: data.name });
+                addSkill(data.id, data.name);
+            } else alert('Failed to add skill.');
+        } catch (err) {
+            console.error('Error adding skill:', err);
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (!search.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+    });
+
+    // ✅ Initialize with preloaded skills
+    render();
+    updateInput();
+}
+
+// ✅ Initialize both dropdowns with preselected values
+setupSkillSelector('requiredSkill', requiredSelected);
+setupSkillSelector('preferredSkill', preferredSelected);
+</script>
+
+
+<style>
+.skill-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-800);
+}
+.skill-option:hover {
+    background: var(--primary-50);
+    color: var(--gray-900);
+}
+.skill-option:last-child { border-bottom: none; }
+</style>
 {% endblock %}
