@@ -6,7 +6,6 @@
 
 {% block content %}
 <div class="container profile-page">
-
   <form method="post" enctype="multipart/form-data" class="edit-profile-form">
     {% csrf_token %}
 
@@ -17,7 +16,7 @@
       </div>
     {% endif %}
 
-    <!-- Profile Header -->
+    <!-- ==================== PROFILE HEADER ==================== -->
     <section class="profile-card profile-header">
       <div class="profile-avatar centered-avatar">
         <div class="avatar-placeholder">
@@ -30,7 +29,6 @@
 
         {% if form.avatar %}
           <div class="avatar-input">
-            <!-- label triggers the hidden file input (we hide the native file input with CSS) -->
             <label for="{{ form.avatar.id_for_label }}" class="btn btn-outline btn-sm">Change Photo</label>
             {{ form.avatar }}
             {% if form.avatar.errors %}
@@ -46,7 +44,7 @@
       </div>
     </section>
 
-    <!-- Headline -->
+    <!-- ==================== HEADLINE ==================== -->
     {% if form.headline %}
     <section class="card profile-section">
       <div class="section-header">
@@ -57,13 +55,12 @@
           {{ form.headline.label_tag }}
           {{ form.headline }}
           {% if form.headline.errors %}<span class="error-message">{{ form.headline.errors|striptags }}</span>{% endif %}
-          {% if form.headline.help_text %}<span class="help-text">{{ form.headline.help_text }}</span>{% endif %}
         </div>
       </div>
     </section>
     {% endif %}
 
-    <!-- Skills -->
+    <!-- ==================== SKILLS ==================== -->
     {% if form.skills %}
     <section class="card profile-section">
       <div class="section-header">
@@ -80,7 +77,7 @@
     </section>
     {% endif %}
 
-    <!-- Education -->
+    <!-- ==================== EDUCATION ==================== -->
     {% if form.education %}
     <section class="card profile-section">
       <div class="section-header">
@@ -91,13 +88,12 @@
           {{ form.education.label_tag }}
           {{ form.education }}
           {% if form.education.errors %}<span class="error-message">{{ form.education.errors|striptags }}</span>{% endif %}
-          {% if form.education.help_text %}<span class="help-text">{{ form.education.help_text }}</span>{% endif %}
         </div>
       </div>
     </section>
     {% endif %}
 
-    <!-- Work Experience -->
+    <!-- ==================== WORK EXPERIENCE ==================== -->
     {% if form.work_experience %}
     <section class="card profile-section">
       <div class="section-header">
@@ -108,13 +104,46 @@
           {{ form.work_experience.label_tag }}
           {{ form.work_experience }}
           {% if form.work_experience.errors %}<span class="error-message">{{ form.work_experience.errors|striptags }}</span>{% endif %}
-          {% if form.work_experience.help_text %}<span class="help-text">{{ form.work_experience.help_text }}</span>{% endif %}
         </div>
       </div>
     </section>
     {% endif %}
 
-    <!-- Links -->
+    <!-- ==================== LOCATION ==================== -->
+    {% if form.location %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-map-marker-alt"></i> Location</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.location.label_tag }}
+          {{ form.location }}
+          {% if form.location.errors %}<span class="error-message">{{ form.location.errors|striptags }}</span>{% endif %}
+          {% if form.location.help_text %}<span class="help-text">{{ form.location.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ==================== PROJECTS ==================== -->
+    {% if form.projects %}
+    <section class="card profile-section">
+      <div class="section-header">
+        <h2><i class="fas fa-project-diagram"></i> Projects</h2>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          {{ form.projects.label_tag }}
+          {{ form.projects }}
+          {% if form.projects.errors %}<span class="error-message">{{ form.projects.errors|striptags }}</span>{% endif %}
+          {% if form.projects.help_text %}<span class="help-text">{{ form.projects.help_text }}</span>{% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ==================== LINKS ==================== -->
     {% if form.links %}
     <section class="card profile-section">
       <div class="section-header">
@@ -125,13 +154,12 @@
           {{ form.links.label_tag }}
           {{ form.links }}
           {% if form.links.errors %}<span class="error-message">{{ form.links.errors|striptags }}</span>{% endif %}
-          {% if form.links.help_text %}<span class="help-text">{{ form.links.help_text }}</span>{% endif %}
         </div>
       </div>
     </section>
     {% endif %}
 
-    <!-- Submit -->
+    <!-- ==================== SAVE / CANCEL ==================== -->
     <div class="form-actions" style="margin: 1.25rem 0;">
       <button type="submit" class="btn btn-primary">Save Changes</button>
       <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Cancel</a>
