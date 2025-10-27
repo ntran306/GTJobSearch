@@ -25,27 +25,68 @@
 
                 <ul class="nav-links">
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'home:index' %}">Home</a></li>
-                        <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
                         <li>
-                          <a href="{% url 'accounts:connect' %}"
-                             class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
-                             Connect
-                          </a>
+                            <a href="{% url 'home:index' %}"
+                            class="{% if request.resolver_match.view_name == 'home:index' %}active{% endif %}">
+                            Home
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'accounts:profile' %}"
+                            class="{% if request.resolver_match.view_name == 'accounts:profile' %}active{% endif %}">
+                            Profile
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'accounts:connect' %}"
+                            class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
+                            Connect
+                            </a>
                         </li>
 
                         {% if user|has_recruiterprofile %}
-                            <a href="{% url 'candidates:search_candidates' %}">Find Candidates</a>
-                            <li><a href="{% url 'jobs:my_jobs' %}">My Job Postings</a></li>
+                            <li>
+                                <a href="{% url 'candidates:search_candidates' %}"
+                                class="{% if request.resolver_match.view_name == 'candidates:search_candidates' %}active{% endif %}">
+                                Find Candidates
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'jobs:my_jobs' %}"
+                                class="{% if request.resolver_match.view_name == 'jobs:my_jobs' %}active{% endif %}">
+                                My Job Postings
+                                </a>
+                            </li>
                         {% elif user|has_jobseekerprofile %}
-                            <li><a href="{% url 'jobs:index' %}">Find Jobs</a></li>
-                            <li><a href="{% url 'applications:view_applications' %}">My Applications</a></li>
+                            <li>
+                                <a href="{% url 'jobs:index' %}"
+                                class="{% if request.resolver_match.view_name == 'jobs:index' %}active{% endif %}">
+                                Find Jobs
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'applications:view_applications' %}"
+                                class="{% if request.resolver_match.view_name == 'applications:view_applications' %}active{% endif %}">
+                                My Applications
+                                </a>
+                            </li>
                         {% endif %}
 
-                        <li><a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a></li>
+                        <li>
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a>
+                        </li>
                     {% else %}
-                        <li><a href="{% url 'accounts:signup_choice' %}">Create Profile</a></li>
-                        <li><a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a></li>
+                        <li>
+                            <a href="{% url 'accounts:signup_choice' %}"
+                            class="{% if request.resolver_match.view_name == 'accounts:signup_choice' %}active{% endif %}">
+                            Create Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
+                        </li>
                     {% endif %}
                 </ul>
 

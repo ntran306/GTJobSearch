@@ -252,21 +252,25 @@
       : withCoords;
 
     // 3) Create markers
-    filtered.forEach(u => {
-      const pos = { lat: u.lat, lng: u.lng };
-      const marker = new google.maps.Marker({
-        position: pos,
-        map,
-        title: `${u.name} (${u.role})`
-      });
-      marker.addListener("click", () => {
+filtered.forEach(u => {
+    const pos = { lat: u.lat, lng: u.lng };
+    const marker = new google.maps.Marker({ 
+      position: pos, 
+      map: map, 
+      title: `${u.name} (${u.role})`
+    });
+
+    // Click listener
+    marker.addListener("click", () => {
         drawRouteTo(u.lat, u.lng);
         infoWindow.setContent(buildInfoContent(u));
         infoWindow.open(map, marker);
         highlightUserCard(u.id);
-      });
-      bounds.extend(pos);
     });
+
+
+    bounds.extend(pos);
+  });
 
     if (filtered.length > 0) {
       map.fitBounds(bounds);

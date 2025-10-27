@@ -61,7 +61,13 @@ def jobseeker_signup(request):
             return redirect("home:index")
     else:
         form = JobSeekerSignUpForm()
-    return render(request, "accounts/jobseeker_signup.html", {"form": form})
+
+    skills = list(Skill.objects.values('id', 'name'))
+
+    return render(request, "accounts/jobseeker_signup.html", {
+        "form": form,
+        "skills": skills,
+    })
 
 # ----------- Skills Creating ---------------
 @require_http_methods(["POST"])

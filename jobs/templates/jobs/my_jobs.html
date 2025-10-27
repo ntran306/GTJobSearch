@@ -77,6 +77,7 @@
                     <a href="{% url 'jobs:edit_job' job.id %}" class="btn btn-outline edit-btn">
                         <i class="fas fa-edit"></i> Edit
                     </a>
+                    <a href="{% url 'jobs:view_applicants' job.id %}" class="btn btn-outline edit-btn">View Applicants</a>
                     <form action="{% url 'jobs:delete_job' job.id %}" 
                           method="POST" 
                           class="inline-form"

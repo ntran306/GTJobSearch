@@ -774,6 +774,8 @@ main {
     }
 }
 
+
+
 /* ========================================
    CANDIDATE SEARCH FORM STYLING
    ======================================== */
@@ -2329,13 +2331,21 @@ form[action*="profile"] .btn {
     border-radius: 12px;
     font-weight: 600;
     transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;  
+    line-height: 1;
+    
 }
 
 .action-btn:hover {
+    
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-    color: white;
+    color: white !important;
     text-decoration: none;
+    background: var(--primary-700);
 }
 
 @media (max-width: 768px) {
@@ -2431,6 +2441,12 @@ form[action*="profile"] .btn {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+}
+
+/* Make only the Create Job form one column */
+.create-job-form .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
 }
 
 .required-indicator {
@@ -3153,6 +3169,9 @@ form[action*="profile"] .btn {
    /* Back Button */
 .back-nav {
     margin-bottom: 2rem;
+    display: flex;                /* ensures predictable layout */
+    justify-content: flex-start;  /* always aligns the button to the left */
+    width: 100%;                  /* spans full container width */
 }
 
 .back-btn {
@@ -3167,13 +3186,16 @@ form[action*="profile"] .btn {
     transition: all 0.3s ease;
     background: white;
     border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* optional subtle depth */
 }
 
 .back-btn:hover {
     background: var(--gray-50);
     text-decoration: none;
     color: var(--primary-600);
+    transform: translateX(-2px); /* optional subtle motion effect */
 }
+
 
 
 /* status css */

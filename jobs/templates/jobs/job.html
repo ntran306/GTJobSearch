@@ -14,11 +14,18 @@
     <div class="page-container">
         <!-- Back Navigation -->
         <div class="back-nav">
+        {% if user.is_authenticated and user.recruiterprofile %}
+            <a href="{% url 'jobs:my_jobs' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to My Job Postings
+            </a>
+        {% else %}
             <a href="{% url 'jobs:index' %}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
                 Back to Job Listings
             </a>
-        </div>
+        {% endif %}
+    </div>
 
         <div class="job-container">
             <!-- Job Header -->
@@ -123,23 +130,28 @@
                         <!-- Skills Card -->
                         <div class="sidebar-card">
                             <h4><i class="fas fa-tools"></i> Required Skills</h4>
-                            <ul class="job-details-list">
-                                {% for skill in job.required_skills.all %}
-                                    <li>{{ skill.name }}</li>
-                                {% empty %}
-                                    <li>No required skills listed.</li>
-                                {% endfor %}
-                            </ul>
+                            {% if job.required_skills.exists %}
+                                <ul class="job-details-list">
+                                    {% for skill in job.required_skills.all %}
+                                        <li><i class="fas fa-check-circle" style="color:#667eea;margin-right:5px;"></i>{{ skill.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="no-skills">No required skills listed.</p>
+                            {% endif %}
 
-                            <h4><i class="fas fa-lightbulb"></i> Preferred Skills</h4>
-                            <ul class="job-details-list">
-                                {% for skill in job.preferred_skills.all %}
-                                    <li>{{ skill.name }}</li>
-                                {% empty %}
-                                    <li>No preferred skills listed.</li>
-                                {% endfor %}
-                            </ul>
+                            <h4 style="margin-top:1rem;"><i class="fas fa-lightbulb"></i> Preferred Skills</h4>
+                            {% if job.preferred_skills.exists %}
+                                <ul class="job-details-list">
+                                    {% for skill in job.preferred_skills.all %}
+                                        <li><i class="fas fa-star" style="color:#fbbf24;margin-right:5px;"></i>{{ skill.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="no-skills">No preferred skills listed.</p>
+                            {% endif %}
                         </div>
+
 
                         <!-- Action Buttons -->
                         <div class="sidebar-card">
@@ -232,13 +244,48 @@
     function submitApplication() {
         const note = document.getElementById('applicationNote').value;
         console.log("Note for job", currentJobId, ":", note); // just logs for now
-
+        fetch(`/applications/apply/${currentJobId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": getCookie("csrftoken")  // you need a CSRF token
+            },
+            body: `note=${encodeURIComponent(note)}`
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Application submitted!");
+                closeModal();
+            } else {
+                alert("Error submitting application.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error submitting application.");
+        });
         // Redirect to your apply URL
         window.location.href = `/applications/apply/${currentJobId}/`;
 
         closeModal();
     }
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
     </script>
+    
 
 </body>
 {% endblock content %}

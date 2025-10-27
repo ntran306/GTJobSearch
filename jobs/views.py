@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from accounts.models import RecruiterProfile
 from functools import wraps
+from applications.models import Application
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -252,54 +253,104 @@ def my_jobs(request):
 @recruiter_required
 @login_required
 def create_job(request):
-    recruiter_profile = getattr(request.user, "recruiterprofile", None)
-    if not recruiter_profile:
-        messages.error(request, "Only recruiters can post jobs.")
-        return redirect('jobs:my_jobs')
+    """Create a new job posting with required and preferred skills."""
+    # ✅ Get recruiter profile
+    if hasattr(request.user, "recruiterprofile"):
+        profile = request.user.recruiterprofile
+    else:
+        messages.error(request, "Only recruiters can create job postings.")
+        return redirect("home:index")
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = JobForm(request.POST, request.FILES)
         if form.is_valid():
             job = form.save(commit=False)
-            job.recruiter = recruiter_profile
-
-            print("RecruiterProfile assigned:", recruiter_profile)
-            print("RecruiterProfile ID:", recruiter_profile.id)
-            print("RecruiterProfile exists in DB:", recruiter_profile.__class__.objects.filter(id=recruiter_profile.id).exists())
-
+            job.recruiter = profile
             job.save()
-            form.save_m2m()
-            messages.success(request, "Job posted successfully!")
-            return redirect('jobs:my_jobs')
+
+            # ✅ Handle skills from hidden inputs
+            required_ids = request.POST.get("required_skills", "").split(",")
+            preferred_ids = request.POST.get("preferred_skills", "").split(",")
+
+            valid_required = Skill.objects.filter(id__in=[s for s in required_ids if s.isdigit()])
+            valid_preferred = Skill.objects.filter(id__in=[s for s in preferred_ids if s.isdigit()])
+
+            job.required_skills.set(valid_required)
+            job.preferred_skills.set(valid_preferred)
+            job.save()
+
+            messages.success(request, "Job created successfully!")
+            return redirect("jobs:my_jobs")
         else:
-            messages.error(request, f"Please fix the errors below: {form.errors}")
+            # 👇 Add this debug print to your terminal
+            print("❌ FORM INVALID:", form.errors)
+            messages.error(request, "Please correct the errors below.")
     else:
         form = JobForm()
 
-    return render(request, 'jobs/create_job.html', {'form': form})
+    skills = list(Skill.objects.values("id", "name"))
+    return render(request, "jobs/create_job.html", {
+        "form": form,
+        "skills": skills,
+    })
 
-@recruiter_required
+
+
 @login_required
+@recruiter_required
 def edit_job(request, job_id):
-    # Get the logged-in user's recruiter profile
-    recruiter_profile = getattr(request.user, "recruiterprofile", None)
-    if not recruiter_profile:
-        messages.error(request, "Only recruiters can edit jobs.")
-        return redirect("jobs:my_jobs")
+    """Edit an existing job posting with required and preferred skills."""
+    if hasattr(request.user, "recruiterprofile"):
+        profile = request.user.recruiterprofile
+    else:
+        messages.error(request, "Only recruiters can edit job postings.")
+        return redirect("home:index")
 
-    # Ensure this recruiter owns the job being edited
-    job = get_object_or_404(Job, id=job_id, recruiter=recruiter_profile)
+    job = get_object_or_404(Job, id=job_id, recruiter=profile)
 
     if request.method == "POST":
         form = JobForm(request.POST, request.FILES, instance=job)
         if form.is_valid():
-            form.save()
+            # ✅ Save job first (excluding skills)
+            job = form.save(commit=False)
+            job.recruiter = profile
+            job.save()
+
+            # ✅ Parse skill IDs safely
+            required_ids = [
+                s for s in request.POST.get("required_skills", "").split(",") if s.isdigit()
+            ]
+            preferred_ids = [
+                s for s in request.POST.get("preferred_skills", "").split(",") if s.isdigit()
+            ]
+
+            valid_required = Skill.objects.filter(id__in=required_ids)
+            valid_preferred = Skill.objects.filter(id__in=preferred_ids)
+
+            # ✅ Update ManyToMany fields
+            job.required_skills.set(valid_required)
+            job.preferred_skills.set(valid_preferred)
+            job.save()
+
             messages.success(request, "Job updated successfully!")
             return redirect("jobs:my_jobs")
+        else:
+            print("❌ FORM INVALID:", form.errors)
     else:
         form = JobForm(instance=job)
 
-    return render(request, "jobs/edit_job.html", {"form": form, "job": job})
+    # ✅ Pass skills data for JS
+    skills = list(Skill.objects.values("id", "name"))
+    required_skills = list(job.required_skills.values("id", "name"))
+    preferred_skills = list(job.preferred_skills.values("id", "name"))
+
+    return render(request, "jobs/edit_job.html", {
+        "form": form,
+        "skills": skills,
+        "job": job,
+        "required_skills": required_skills,
+        "preferred_skills": preferred_skills,
+    })
 
 
 # Delete job
@@ -319,3 +370,24 @@ def delete_job(request, job_id):
         return redirect("jobs:my_jobs")
 
     return render(request, "jobs/job_confirm_delete.html", {"job": job})
+
+@recruiter_required
+@login_required
+def view_applicants(request, job_id):
+    job = get_object_or_404(Job, id=job_id, recruiter=request.user.recruiterprofile)
+    applicants = job.applications.select_related('user')
+    
+    # Count applications by status
+    status_counts = {
+        'applied': applicants.filter(status='applied').count(),
+        'review': applicants.filter(status='review').count(),
+        'interview': applicants.filter(status='interview').count(),
+        'offer': applicants.filter(status='offer').count(),
+        'closed': applicants.filter(status='closed').count(),
+    }
+    
+    return render(request, 'jobs/applicants_list.html', {
+        'job': job,
+        'applicants': applicants,
+        'status_counts': status_counts,
+    })
