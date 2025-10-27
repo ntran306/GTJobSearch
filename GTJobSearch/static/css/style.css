@@ -3169,6 +3169,9 @@ form[action*="profile"] .btn {
    /* Back Button */
 .back-nav {
     margin-bottom: 2rem;
+    display: flex;                /* ensures predictable layout */
+    justify-content: flex-start;  /* always aligns the button to the left */
+    width: 100%;                  /* spans full container width */
 }
 
 .back-btn {
@@ -3183,13 +3186,16 @@ form[action*="profile"] .btn {
     transition: all 0.3s ease;
     background: white;
     border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* optional subtle depth */
 }
 
 .back-btn:hover {
     background: var(--gray-50);
     text-decoration: none;
     color: var(--primary-600);
+    transform: translateX(-2px); /* optional subtle motion effect */
 }
+
 
 
 /* status css */
