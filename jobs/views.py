@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from accounts.models import RecruiterProfile
 from functools import wraps
+from applications.models import Application
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -319,12 +320,24 @@ def delete_job(request, job_id):
         return redirect("jobs:my_jobs")
 
     return render(request, "jobs/job_confirm_delete.html", {"job": job})
+
 @recruiter_required
 @login_required
 def view_applicants(request, job_id):
     job = get_object_or_404(Job, id=job_id, recruiter=request.user.recruiterprofile)
     applicants = job.applications.select_related('user')
+    
+    # Count applications by status
+    status_counts = {
+        'applied': applicants.filter(status='applied').count(),
+        'review': applicants.filter(status='review').count(),
+        'interview': applicants.filter(status='interview').count(),
+        'offer': applicants.filter(status='offer').count(),
+        'closed': applicants.filter(status='closed').count(),
+    }
+    
     return render(request, 'jobs/applicants_list.html', {
         'job': job,
-        'applicants': applicants
+        'applicants': applicants,
+        'status_counts': status_counts,
     })
