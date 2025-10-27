@@ -254,20 +254,10 @@
     // 3) Create markers
 filtered.forEach(u => {
     const pos = { lat: u.lat, lng: u.lng };
-    const marker = new google.maps.Marker({
-        position: pos,
-        map,
-        title: `${u.name} (${u.role})`,
-        icon: {
-            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z",
-            fillColor: "#FFC107",        // BuzzedIn yellow
-            fillOpacity: 1,
-            strokeWeight: 2.5,
-            strokeColor: "#222222",       // Charcoal black
-            scale: 1.8,
-            anchor: new google.maps.Point(12, 22),
-        },
-        animation: google.maps.Animation.DROP,  // Drop animation on load
+    const marker = new google.maps.Marker({ 
+      position: pos, 
+      map: map, 
+      title: `${u.name} (${u.role})`
     });
 
     // Click listener
@@ -280,7 +270,7 @@ filtered.forEach(u => {
 
 
     bounds.extend(pos);
-});
+  });
 
     if (filtered.length > 0) {
       map.fitBounds(bounds);
