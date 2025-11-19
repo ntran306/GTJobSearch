@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load skill_filters %}
+
 {% block title %}Find Candidates | BuzzedIn{% endblock %}
 
 {% block content %}
@@ -105,7 +107,7 @@
         View Profile
       </a>
       {% if candidate.user.email %}
-      <a href="{% url 'accounts:contact_user' candidate.user.id %}" class="btn btn-primary">
+      <a href="{% url 'accounts:contact_user' candidate.user.id %}" class="btn btn-primary" style="margin-top:1rem;">
         <i class="fas fa-envelope"></i> Contact
       </a>
       {% endif %}
@@ -114,6 +116,97 @@
   </div>
   {% else %}
   <p class="no-results">No candidates found matching your criteria.</p>
+  {% endif %}
+
+  {% if request.user.recruiterprofile %}
+
+    <div class="recommended-section recommended-styled">
+
+      <!-- Section Title -->
+      <h2 class="recommended-title">Recommended Candidates</h2>
+
+      <!-- Job Dropdown -->
+      <form method="get" class="recommended-job-form" style="margin-bottom: 3rem;">
+
+        <div class="recommended-form-column">
+
+            <!-- Job Dropdown -->
+            <div class="form-group" style="max-width: 300px; margin: 0 auto;">
+                <label for="recommended_job">Select a Job</label>
+
+                <select 
+                    name="recommended_job" 
+                    id="recommended_job"
+                    class="recommended-select"
+                    style="padding: 0.875rem 1.25rem; border-radius: 12px; border: 2px solid var(--gray-300); font-size: 1rem;">
+                    <option value="">-- Choose a Job --</option>
+
+                    {% for job in recruiter_jobs %}
+                      <option value="{{ job.id }}"
+                        {% if selected_job and job.id == selected_job.id %}selected{% endif %}>
+                        {{ job.title }} – {{ job.company }}
+                      </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Search Button under dropdown -->
+            <div class="form-group" style="margin: 1.5rem auto 0; width: fit-content;">
+                <button type="submit" class="btn btn-primary search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+
+            <!-- Preserve filters -->
+            <input type="hidden" name="skill" value="{{ request.GET.skill }}">
+            <input type="hidden" name="location" value="{{ request.GET.location }}">
+            <input type="hidden" name="project" value="{{ request.GET.project }}">
+        </div>
+    </form>
+
+      {% if selected_job %}
+        <h3 class="recommended-subtitle">
+          Matches for <strong>{{ selected_job.title }}</strong>
+        </h3>
+
+        {% if recommended %}
+          <div class="candidate-grid">
+            {% for c in recommended %}
+            <div class="candidate-card card">
+
+              <h3 class="candidate-name">{{ c.user.username }}</h3>
+              <p class="text-muted"><strong>Location:</strong> {{ c.location|default:"—" }}</p>
+              <p class="description">
+                {{ c.headline|default:c.work_experience|default:"No description available." }}
+              </p>
+
+              <div class="skills">
+                <p class="label"><strong>Skills:</strong></p>
+
+                {% for skill in c.skills.all %}
+                  <span class="tag">{{ skill.name }}</span>
+                {% empty %}
+                  <span class="text-muted">No skills listed.</span>
+                {% endfor %}
+              </div>
+
+              <a href="{% url 'profiles:view_profile' c.user.id %}" class="btn btn-secondary view-profile-btn">
+                View Profile
+              </a>
+
+            </div>
+            {% endfor %}
+          </div>
+
+        {% else %}
+          <p class="no-results">No recommended candidates for this job.</p>
+        {% endif %}
+
+      {% else %}
+        <p class="no-results">Select a job to view recommended candidates.</p>
+      {% endif %}
+
+  </div>
   {% endif %}
 </div>
 

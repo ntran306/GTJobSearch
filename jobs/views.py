@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from accounts.models import RecruiterProfile
 from functools import wraps
 from applications.models import Application
+from accounts.models import JobSeekerProfile
 
 def index(request):
     pay_type = request.GET.get("pay_type")
@@ -223,8 +224,24 @@ def jobs_by_commute_radius(request):
 
 def show(request, job_id):
     job = get_object_or_404(Job, id=job_id)
+
+    recommended = None
+
+    # Show recommended candidates only if recruiter owns the job
+    if hasattr(request.user, "recruiterprofile") and job.recruiter == request.user.recruiterprofile:
+
+        # Combine required + preferred skills
+        job_skills = list(job.required_skills.all()) + list(job.preferred_skills.all())
+
+        recommended = (
+            JobSeekerProfile.objects
+            .filter(skills__in=job_skills)
+            .distinct()
+        )
+
     return render(request, "jobs/job.html", {
         "job": job,
+        "recommended": recommended,
         "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
     })
 
@@ -293,8 +310,6 @@ def create_job(request):
         "form": form,
         "skills": skills,
     })
-
-
 
 @login_required
 @recruiter_required
