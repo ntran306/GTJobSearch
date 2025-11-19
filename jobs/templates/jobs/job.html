@@ -174,7 +174,48 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        {% if request.user.is_authenticated and request.user.recruiterprofile %}
+            <div class="recommended-section card" 
+                style="margin: 3rem auto; padding: 2.5rem; border-radius: 20px; background: #fff; max-width: 1200px;">
+
+                <!-- SINGLE title -->
+                <h2 class="page-title" style="margin-bottom: 1.5rem;">Recommended Candidates</h2>
+
+                <p class="text-muted" style="margin-bottom: 2rem;">
+                    Based on skills required for <strong>{{ job.title }}</strong>
+                </p>
+
+                {% if recommended %}
+                    <!-- SINGLE grid -->
+                    <div class="candidate-grid">
+                        {% for c in recommended %}
+                        <div class="candidate-card card">
+
+                            <h3 class="candidate-name">{{ c.user.username }}</h3>
+                            <p class="text-muted">
+                                <strong>Location:</strong> {{ c.location|default:"—" }}
+                            </p>
+
+                            <div class="skills">
+                                <p class="label"><strong>Skills:</strong></p>
+                                {% for skill in c.skills.all %}
+                                <span class="tag">{{ skill.name }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <a href="{% url 'profiles:view_profile' c.user.id %}" 
+                            class="btn btn-secondary view-profile-btn">
+                                View Profile
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-results">No recommended candidates found for this job.</p>
+                {% endif %}
+            </div>
+        {% endif %}
 
     <script>
         function shareJob(jobName, companyName) {
