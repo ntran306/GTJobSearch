@@ -5,6 +5,8 @@ from django.dispatch import receiver
 from decimal import Decimal
 import requests
 from .utils import haversine
+from django.db.models import Count  
+from accounts.models import JobSeekerProfile 
 
 # Import the recruiter profile correctly
 # (Assuming your RecruiterProfile is defined in accounts/models.py)
@@ -106,6 +108,10 @@ class Job(models.Model):
     required_skills = models.ManyToManyField("Skill", blank=True, related_name="required_for_jobs")
     preferred_skills = models.ManyToManyField("Skill", blank=True, related_name="preferred_for_jobs")
 
+    is_approved = models.BooleanField(default=False)
+    is_flagged = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = JobQuerySet.as_manager()
@@ -128,6 +134,16 @@ class Job(models.Model):
             except Exception as e:
                 print(f"Geocoding failed for {self.location}: {e}")
         super().save(*args, **kwargs)
+    
+    def get_recommended_candidates(self):
+        job_skills = self.skills.all()
+        return (
+            JobSeekerProfile.objects
+            .filter(skills__in=job_skills)
+            .distinct()
+            .annotate(matches=Count('skills'))
+            .order_by('-matches')
+        )
 
 
 @receiver(post_migrate)
@@ -141,3 +157,4 @@ def create_default_skills(sender, **kwargs):
             if created:
                 created_count += 1
         print(f"Skills setup complete! Created {created_count} new skills.")
+

@@ -1,0 +1,116 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block result_list %}
+    {% if cl.formset or cl.show_admin_actions %}
+        <form id="changelist-form" method="post">
+            {% csrf_token %}
+            {% if cl.show_admin_actions %}
+                <div class="actions">
+                    <label>{% translate "Action:" %}
+                        <select name="action" required>
+                            <option value="">---------</option>
+                            {% if cl.show_admin_actions %}
+                                <option value="delete_selected">{% translate "Delete selected users" %}</option>
+                                <option value="export_users_csv">{% translate "Export selected users to CSV" %}</option>
+                            {% endif %}
+                        </select>
+                    </label>
+                    <button type="submit" class="button" title="{% translate 'Run the selected action' %}" name="index" value="0">
+                        {% translate "Go" %}
+                    </button>
+                    <span class="action-counter" data-actions-icnt="{{ cl.result_list|length }}">0 of {{ cl.result_count }} selected</span>
+                </div>
+            {% endif %}
+    {% endif %}
+
+    {% if cl.result_count %}
+        <div class="results">
+            <table id="result_list">
+                <thead>
+                    <tr>
+                        <th scope="col" class="action-checkbox-column">
+                            <div class="text">
+                                <span>
+                                    <input type="checkbox" id="action-toggle">
+                                </span>
+                            </div>
+                            <div class="clear"></div>
+                        </th>
+                        <th scope="col" class="sortable column-username">
+                            <div class="text"><a href="?o=1">{% translate "Username" %}</a></div>
+                        </th>
+                        <th scope="col" class="column-email">
+                            <div class="text"><span>{% translate "Email address" %}</span></div>
+                        </th>
+                        <th scope="col" class="column-first_name">
+                            <div class="text"><span>{% translate "First name" %}</span></div>
+                        </th>
+                        <th scope="col" class="column-last_name">
+                            <div class="text"><span>{% translate "Last name" %}</span></div>
+                        </th>
+                        <th scope="col" class="column-is_staff">
+                            <div class="text"><span>{% translate "Staff status" %}</span></div>
+                        </th>
+                        <th scope="col" class="column-user_role">
+                            <div class="text"><span>{% translate "Role" %}</span></div>
+                        </th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                {% for group in grouped_users %}
+                    <tr class="role-header-row">
+                        <td colspan="7" class="role-header">
+                            <strong>{{ group.name }}</strong> <span style="color: #666; font-weight: normal;">({{ group.users|length }})</span>
+                        </td>
+                    </tr>
+                    
+                    {% for user in group.users %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td class="action-checkbox">
+                                <input type="checkbox" name="_selected_action" value="{{ user.pk }}" class="action-select">
+                            </td>
+                            <th class="field-username">
+                                <a href="{% url opts|admin_urlname:'change' user.pk|admin_urlquote %}">{{ user.username }}</a>
+                            </th>
+                            <td class="field-email">
+                                {{ user.email|default:"-" }}
+                            </td>
+                            <td class="field-first_name">
+                                {{ user.first_name|default:"-" }}
+                            </td>
+                            <td class="field-last_name">
+                                {{ user.last_name|default:"-" }}
+                            </td>
+                            <td class="field-is_staff">
+                                <img src="{% static 'admin/img/icon-' %}{% if user.is_staff %}yes{% else %}no{% endif %}.svg" 
+                                     alt="{% if user.is_staff %}True{% else %}False{% endif %}">
+                            </td>
+                            <td class="field-user_role">
+                                {% if user.is_superuser or user.is_staff %}
+                                    Admin
+                                {% else %}
+                                    {% if user.recruiterprofile %}
+                                        Recruiter
+                                    {% elif user.jobseekerprofile %}
+                                        Job Seeker
+                                    {% else %}
+                                        Unassigned
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="paginator">0 {% translate 'users' %}</p>
+    {% endif %}
+
+    {% if cl.formset or cl.show_admin_actions %}
+        </form>
+    {% endif %}
+{% endblock %}
