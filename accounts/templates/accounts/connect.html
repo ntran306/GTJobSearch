@@ -97,11 +97,60 @@
             <i class="fas fa-eye"></i>
             View Profile
           </a>
-          {% if request.user.id != p.id and p.email %}
-            <a href="{% url 'accounts:contact_user' p.id %}" class="save-btn">
-              <i class="fas fa-envelope"></i>
-              Contact
-            </a>
+          
+          {% if request.user.id != p.id %}
+            {% with relation=p.connection_relation %}
+              {% if relation %}
+                {% if relation.status == "accepted" %}
+                  <!-- Connected: Show Message button -->
+                  <a href="{% url 'communication:start_conversation' user_id=p.id %}"
+                     class="save-btn js-open-chat"
+                     data-user-id="{{ p.id }}"
+                     data-name="{{ p.username }}">
+                    <i class="fas fa-comments"></i>
+                    Message
+                  </a>
+
+                {% elif relation.status == "pending" and relation.incoming %}
+                  <!-- Incoming request: Accept/Decline -->
+                  <form method="post" action="{% url 'communication:connections_accept' user_id=p.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="save-btn" style="background:#48bb78;">
+                      <i class="fas fa-check"></i> Accept
+                    </button>
+                  </form>
+
+                {% elif relation.status == "pending" and relation.outgoing %}
+                  <!-- Outgoing request: Pending -->
+                  <button type="button" class="save-btn" disabled style="opacity:0.6; cursor:not-allowed;">
+                    <i class="fas fa-hourglass-half"></i>
+                    Pending
+                  </button>
+
+                {% else %}
+                  <!-- Declined or unknown: Show Connect -->
+                  <form method="post" action="{% url 'communication:connections_request' user_id=p.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="save-btn">
+                      <i class="fas fa-user-plus"></i>
+                      Connect
+                    </button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <!-- No relation: Show Connect -->
+                <form method="post" action="{% url 'communication:connections_request' user_id=p.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="save-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Connect
+                  </button>
+                </form>
+              {% endif %}
+            {% endwith %}
           {% endif %}
         </div>
       </div>
@@ -174,16 +223,14 @@
     const headline = safe(u.headline);
     const locText = safe(u.location_text);
     const viewHref = u.profileUrl;
-    const contactHref = u.contactUrl;
 
     return `
       <div style="font-size:14px; max-width:260px;">
         <strong>${name}</strong> <span style="opacity:.7">(${role})</span><br/>
         ${headline ? headline+"<br/>" : ""}
         ${locText}
-        <div style="margin-top:8px; display:flex; gap:8px;">
-          <a href="${viewHref}" class="apply-btn" style="flex:1; text-align:center;">View</a>
-          <a href="${contactHref}" class="save-btn" style="flex:1; text-align:center;">Contact</a>
+        <div style="margin-top:8px;">
+          <a href="${viewHref}" class="apply-btn" style="text-align:center; display:inline-block;">View Profile</a>
         </div>
       </div>
     `;
@@ -252,25 +299,24 @@
       : withCoords;
 
     // 3) Create markers
-filtered.forEach(u => {
-    const pos = { lat: u.lat, lng: u.lng };
-    const marker = new google.maps.Marker({ 
-      position: pos, 
-      map: map, 
-      title: `${u.name} (${u.role})`
-    });
+    filtered.forEach(u => {
+      const pos = { lat: u.lat, lng: u.lng };
+      const marker = new google.maps.Marker({ 
+        position: pos, 
+        map: map, 
+        title: `${u.name} (${u.role})`
+      });
 
-    // Click listener
-    marker.addListener("click", () => {
+      // Click listener
+      marker.addListener("click", () => {
         drawRouteTo(u.lat, u.lng);
         infoWindow.setContent(buildInfoContent(u));
         infoWindow.open(map, marker);
         highlightUserCard(u.id);
+      });
+
+      bounds.extend(pos);
     });
-
-
-    bounds.extend(pos);
-  });
 
     if (filtered.length > 0) {
       map.fitBounds(bounds);

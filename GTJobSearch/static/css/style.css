@@ -2077,12 +2077,23 @@ footer {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);  display: flex;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   color: white;
   margin: 0 auto 0.5rem;
+  position: relative;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .profile-avatar .btn {
@@ -2202,6 +2213,8 @@ footer {
     color: var(--gray-400);
     font-style: italic;
 }
+
+
 
 /* Privacy Options Styling */
 .profile-section form[action*="profile"] {
@@ -4134,6 +4147,50 @@ form[action*="profile"] .btn {
   transform: translateY(0);
 }
 
+/* Modern unread notification dot - pure red circle extending outside FAB */
+.bz-chat-unread-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5252 0%, #f44336 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+  display: none;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Subtle pulse animation for unread dot */
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 2px 12px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* Show the dot when there are unread messages */
+.bz-chat-fab.has-unread .bz-chat-unread-dot {
+  display: block;
+}
+
+/* Removed reddish outline - clean modern look */
+
+@media (max-width: 768px) {
+  .bz-chat-unread-dot {
+    top: -3px;
+    right: -3px;
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
+}
+
 /* Chat panel container */
 .bz-chat-panel {
   position: fixed;
@@ -4218,23 +4275,76 @@ form[action*="profile"] .btn {
   box-shadow: 0 0 0 3px rgba(234, 170, 0, 0.1);
 }
 
-/* Conversation list items */
+/* Conversation list items - base styles */
 .bz-chat-list-item {
   padding: 14px 16px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   background: #ffffff;
+  position: relative;
 }
 
 .bz-chat-list-item:hover {
   background: #f3f4f6;
 }
 
+/* Active/selected conversation - GOLD accent */
 .bz-chat-list-item.active {
-  background: #FFF8E1;
+  background: linear-gradient(to right, 
+    rgba(234, 170, 0, 0.1) 0%, 
+    transparent 100%
+  );
   border-left: 3px solid #EAAA00;
   padding-left: 13px;
+}
+
+.bz-chat-list-item.active .chat-user-name {
+  font-weight: 700;
+  color: #c79400;
+}
+
+/* Unread conversations - RED accent */
+.bz-chat-list-item.has-unread {
+  background: linear-gradient(to right, 
+    rgba(255, 82, 82, 0.08) 0%, 
+    transparent 100%
+  );
+  border-left: 3px solid #f44336;
+  padding-left: 13px;
+}
+
+.bz-chat-list-item.has-unread .chat-user-name {
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+/* When a conversation is BOTH unread AND active - gold takes priority */
+.bz-chat-list-item.has-unread.active {
+  background: linear-gradient(to right, 
+    rgba(234, 170, 0, 0.12) 0%, 
+    rgba(255, 82, 82, 0.06) 100%
+  );
+  border-left: 3px solid #EAAA00; /* Gold for active */
+}
+
+.bz-chat-list-item.has-unread.active .chat-user-name {
+  color: #c79400; /* Gold for active, even if unread */
+}
+
+/* Unread badge in sidebar (shows count) */
+.unread-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff5252 0%, #f44336 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 12px;
+  margin-left: 8px;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
 }
 
 .chat-user-name {
@@ -4242,6 +4352,10 @@ form[action*="profile"] .btn {
   color: #1f2937;
   margin-bottom: 4px;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 0.2s ease;
 }
 
 .chat-last-message {
@@ -4468,6 +4582,12 @@ form[action*="profile"] .btn {
   .bz-chat-bubble {
     max-width: 80%;
   }
+
+  .unread-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    min-width: 18px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -4593,4 +4713,40 @@ form[action*="profile"] .btn {
 
 .current-pending-box .connection-item:last-child {
   border-bottom: none;
+}
+
+.connection-avatar .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.connection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.connection-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.connection-info a {
+  font-weight: 600;
+}
+
+.connection-meta {
+  font-size: 0.8rem;
+  color: var(--gray-500);
 }

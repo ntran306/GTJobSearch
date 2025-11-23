@@ -18,21 +18,33 @@
 
     <!-- ==================== PROFILE HEADER ==================== -->
     <section class="profile-card profile-header">
+      <style>
+        /* Hide the raw file input so only the Change Photo button shows */
+        .avatar-input input[type="file"] {
+          display: none;
+        }
+      </style>
+
       <div class="profile-avatar centered-avatar">
         <div class="avatar-placeholder">
-          {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="{{ user.username }}'s avatar" class="avatar-img">
+          {% if profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}'s avatar" class="avatar-img">
           {% else %}
             <i class="fas fa-user avatar-icon"></i>
           {% endif %}
         </div>
 
-        {% if form.avatar %}
+        {% if form.profile_picture %}
           <div class="avatar-input">
-            <label for="{{ form.avatar.id_for_label }}" class="btn btn-outline btn-sm">Change Photo</label>
-            {{ form.avatar }}
-            {% if form.avatar.errors %}
-              <span class="error-message">{{ form.avatar.errors|striptags }}</span>
+            <!-- This is the only visible button -->
+            <label for="{{ form.profile_picture.id_for_label }}" class="btn btn-outline btn-sm">
+              Change Photo
+            </label>
+
+            <!-- Hidden file input (still bound to form field) -->
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}
+              <span class="error-message">{{ form.profile_picture.errors|striptags }}</span>
             {% endif %}
           </div>
         {% endif %}

@@ -45,6 +45,8 @@ class JobSeekerProfile(AddressFields):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='jobseekerprofile', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     headline = models.CharField(max_length=255, blank=True)
     skills = models.ManyToManyField('jobs.Skill', blank=True, related_name='jobseekers')
     education = models.TextField(blank=True)
@@ -58,10 +60,17 @@ class JobSeekerProfile(AddressFields):
 
     def __str__(self):
         return f"{self.user.username}'s Job Seeker Profile"
+    
+    @property
+    def resume_filename(self):
+        if self.resume:
+            return self.resume.name.split('/')[-1]
+        return None
 
 
 class RecruiterProfile(AddressFields):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='recruiterprofile', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     name = models.CharField(max_length=255)
     company = models.CharField(max_length=255, default="Sole Proprietorship")
     website = models.URLField(blank=True, null=True)

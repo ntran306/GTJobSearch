@@ -207,7 +207,7 @@ def edit_profile(request):
         return redirect("accounts:profile")  # fallback if no profile
 
     if request.method == "POST":
-        form = form_class(request.POST, instance=profile)
+        form = form_class(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated successfully.")
@@ -215,7 +215,10 @@ def edit_profile(request):
     else:
         form = form_class(instance=profile)
 
-    return render(request, "accounts/edit_profile.html", {"form": form})
+    return render(request, "accounts/edit_profile.html", {
+        "form": form,
+        "profile": profile,
+    })
 
 
 # ---------- OPTIONAL SEPARATE RECRUITER EDIT ----------
@@ -226,7 +229,7 @@ def edit_recruiter_profile(request):
         return redirect("accounts:profile")
 
     if request.method == "POST":
-        form = RecruiterProfileForm(request.POST, instance=profile)
+        form = RecruiterProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, "Recruiter profile updated successfully.")
