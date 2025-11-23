@@ -55,13 +55,33 @@
           value="{{ project_query|default:'' }}">
       </div>
 
-      <div class="form-group">
+      <div class="form-group button-group">
+        <button type="button" id="filtersBtn" class="btn btn-secondary filter-btn">
+          <i class="fas fa-sliders-h"></i> Filters
+        </button>
         <button type="submit" class="btn btn-primary search-btn">
           <i class="fas fa-search"></i> Search
         </button>
       </div>
     </div>
   </form>
+
+  <div id="filtersModal" class="filters-modal" style="display: none;">
+    <div class="filters-modal-content">
+    
+      <h3>Saved Filters</h3>
+
+      <button id="saveFilterBtn" class="btn btn-primary" style="margin-bottom: 1rem;">
+        <i class="fas fa-save"></i> Save Current Filter
+      </button>
+
+      <ul id="savedFiltersList" class="saved-filters-list">
+      <!-- Filled dynamically -->
+      </ul>
+
+      <button id="closeFiltersBtn" class="btn btn-secondary" style="margin-top: 1rem;">Close</button>
+    </div>
+  </div>
 
   <!-- Results Header -->
   {% if candidates %}
@@ -379,6 +399,180 @@
 {% else %}
 <!-- No MAPS_KEY configured; map disabled -->
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filtersBtn = document.getElementById('filtersBtn');
+  const filtersModal = document.getElementById('filtersModal');
+  const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+  const saveFilterBtn = document.getElementById('saveFilterBtn');
+  const savedFiltersList = document.getElementById('savedFiltersList');
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  if (filtersBtn) {
+    filtersBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      filtersModal.style.display = 'flex';
+      loadSavedFilters();
+    });
+  }
+
+  if (closeFiltersBtn) {
+    closeFiltersBtn.addEventListener('click', function() {
+      filtersModal.style.display = 'none';
+    });
+  }
+
+  window.addEventListener('click', function(e) {
+    if (e.target === filtersModal) {
+      filtersModal.style.display = 'none';
+    }
+  });
+
+  if (saveFilterBtn) {
+    saveFilterBtn.addEventListener('click', async function() {
+      const skill = document.getElementById('skill').value.trim();
+      const location = document.getElementById('location-input').value.trim();
+      const radius = document.getElementById('radius').value.trim();
+      const project = document.getElementById('project').value.trim();
+
+      if (!skill && !location && !radius && !project) {
+        alert('Please enter at least one search criterion before saving a filter.');
+        return;
+      }
+
+      const filterData = {
+        skill: skill,
+        location: location,
+        radius: radius ? parseInt(radius) : null,
+        project: project
+      };
+
+      try {
+        const response = await fetch('/candidates/save_filter/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify(filterData)
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+          alert('Filter saved successfully!');
+          loadSavedFilters();
+        } else {
+          alert('Error: ' + (result.error || 'Could not save filter'));
+        }
+      } catch (error) {
+        console.error('Error saving filter:', error);
+        alert('An error occurred while saving the filter.');
+      }
+    });
+  }
+
+  async function loadSavedFilters() {
+    try {
+      const response = await fetch('/candidates/list_filters/');
+      const result = await response.json();
+
+      if (result.ok && result.filters) {
+        displayFilters(result.filters);
+      } else {
+        savedFiltersList.innerHTML = '<li class="no-filters-message">No saved filters yet.</li>';
+      }
+    } catch (error) {
+      console.error('Error loading filters:', error);
+      savedFiltersList.innerHTML = '<li class="no-filters-message">Error loading filters.</li>';
+    }
+  }
+
+  function displayFilters(filters) {
+    if (filters.length === 0) {
+      savedFiltersList.innerHTML = '<li class="no-filters-message">No saved filters yet.</li>';
+      return;
+    }
+
+    savedFiltersList.innerHTML = filters.map(filter => {
+      const details = [];
+      if (filter.skill) details.push(`Skill: ${filter.skill}`);
+      if (filter.location) details.push(`Location: ${filter.location}`);
+      if (filter.radius) details.push(`Radius: ${filter.radius} miles`);
+      if (filter.project) details.push(`Project: ${filter.project}`);
+
+      return `
+        <li class="saved-filter-item" data-filter-id="${filter.id}">
+          <div class="filter-details">
+            ${details.map(d => `<p class="filter-detail"><strong>${d.split(':')[0]}:</strong> ${d.split(':')[1]}</p>`).join('')}
+          </div>
+          <div class="filter-actions">
+            <button class="apply-filter-btn" onclick="applyFilter(${filter.id}, ${JSON.stringify(filter).replace(/"/g, '&quot;')})">
+              <i class="fas fa-check"></i> Apply
+            </button>
+            <button class="delete-filter-btn" onclick="deleteFilter(${filter.id})">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        </li>
+      `;
+    }).join('');
+  }
+
+  window.applyFilter = function(filterId, filterData) {
+    document.getElementById('skill').value = filterData.skill || '';
+    document.getElementById('location-input').value = filterData.location || '';
+    document.getElementById('radius').value = filterData.radius || '';
+    document.getElementById('project').value = filterData.project || '';
+    
+    filtersModal.style.display = 'none';
+    alert('Filter applied! Click Search to see results.');
+  };
+
+  window.deleteFilter = async function(filterId) {
+    if (!confirm('Are you sure you want to delete this filter?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/candidates/delete_filter/${filterId}/`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': csrftoken
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.ok) {
+        alert('Filter deleted successfully!');
+        loadSavedFilters();
+      } else {
+        alert('Error: ' + (result.error || 'Could not delete filter'));
+      }
+    } catch (error) {
+      console.error('Error deleting filter:', error);
+      alert('An error occurred while deleting the filter.');
+    }
+  };
+});
+</script>
 
 <style>
   .candidate-card.highlighted {

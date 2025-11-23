@@ -12,6 +12,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -47,6 +48,7 @@
                         </li>
 
                         {% if user|has_recruiterprofile %}
+                            
                             <li>
                                 <a href="{% url 'candidates:search_candidates' %}"
                                 class="{% if request.resolver_match.view_name == 'candidates:search_candidates' %}active{% endif %}">
@@ -58,6 +60,23 @@
                                 class="{% if request.resolver_match.view_name == 'jobs:my_jobs' %}active{% endif %}">
                                 My Job Postings
                                 </a>
+                            </li>
+
+                            <li style="position: relative;">
+                                <div class="notification-bell" id="notificationBell">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                                </div>
+                                
+                                <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
+                                    <div class="notification-header">
+                                        <h4>Notifications</h4>
+                                        <button id="markAllRead" class="btn-link">Mark all read</button>
+                                    </div>
+                                    <div class="notification-list" id="notificationList">
+                                    <!-- Filled dynamically -->
+                                    </div>
+                                </div>
                             </li>
                         {% elif user|has_jobseekerprofile %}
                             <li>
@@ -72,6 +91,8 @@
                                 My Applications
                                 </a>
                             </li>
+
+                            
                         {% endif %}
 
                         <li>
@@ -200,10 +221,9 @@
     let identity = null;
     let currentConv = null;
     let allConversations = [];
-    let conversationMetadata = new Map(); // Store conversation metadata
-    let myUserId = null; // Store current user's ID
+    let conversationMetadata = new Map();
+    let myUserId = null;
 
-    // Prevent form submission from redirecting
     const chatForm = document.getElementById('bzChatForm');
     const chatInput = document.getElementById('bzChatInput');
     
@@ -229,7 +249,6 @@
         });
     }
 
-    // Initialize Twilio client
     try {
         const tokenResp = await fetch('/communication/messaging/token/');
         const tokenData = await tokenResp.json();
@@ -239,7 +258,7 @@
         }
         
         identity = tokenData.identity;
-        myUserId = extractUserIdFromIdentity(identity); // Extract my user ID
+        myUserId = extractUserIdFromIdentity(identity);
         twilioClient = new Twilio.Conversations.Client(tokenData.token);
         console.log('[BZChat] Twilio client initialized for:', identity, 'User ID:', myUserId);
         
@@ -250,7 +269,6 @@
         alert('Failed to initialize chat. Please refresh the page.');
     }
 
-    // Chat UI initialization
     async function initializeChatUI() {
         const fab = document.getElementById('bzChatFab');
         const panel = document.getElementById('bzChatPanel');
@@ -266,7 +284,6 @@
             panel.style.display = 'none';
         });
         
-        // Search functionality
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             filterConversations(query);
@@ -275,13 +292,11 @@
         await loadUnifiedList();
     }
 
-    // Load unified conversations and connections list
     async function loadUnifiedList() {
         const listContainer = document.getElementById('bzChatList');
         listContainer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
         
         try {
-            // Fetch both conversations and connections
             const [convsResp, connsResp] = await Promise.all([
                 fetch('/communication/messaging/list/'),
                 fetch('/communication/api/connections')
@@ -290,84 +305,45 @@
             const convsData = await convsResp.json();
             const connections = await connsResp.json();
             
-            // Get all Twilio conversations for this user
             const subscribedConversations = await twilioClient.getSubscribedConversations();
             allConversations = subscribedConversations.items || [];
             
             console.log('[BZChat] Loaded', allConversations.length, 'Twilio conversations');
             
-            // Build metadata map for conversations
             conversationMetadata.clear();
             
             for (const conv of allConversations) {
-                console.log('[BZChat] ========================================');
-                console.log('[BZChat] Processing conversation:', conv.sid);
-                console.log('[BZChat] Unique name:', conv.uniqueName);
-                console.log('[BZChat] Raw attributes:', conv.attributes);
-                console.log('[BZChat] Attributes type:', typeof conv.attributes);
-                
                 const participants = await conv.getParticipants();
-                console.log('[BZChat] Participants:', participants.map(p => p.identity));
-                
                 const otherParticipant = participants.find(p => p.identity !== identity);
-                console.log('[BZChat] My identity:', identity);
-                console.log('[BZChat] Other participant:', otherParticipant?.identity);
                 
-                // Extract the other person's username from attributes
                 let displayName = 'Unknown';
                 try {
                     if (conv.attributes) {
                         let attributes;
                         
-                        // Attributes might be a string or already parsed
                         if (typeof conv.attributes === 'string') {
-                            console.log('[BZChat] Attributes is string, parsing...');
                             attributes = JSON.parse(conv.attributes);
                         } else {
-                            console.log('[BZChat] Attributes already parsed');
                             attributes = conv.attributes;
                         }
                         
-                        console.log('[BZChat] Parsed attributes:', attributes);
-                        console.log('[BZChat] Attribute keys:', Object.keys(attributes));
-                        
                         const otherUserId = extractUserIdFromIdentity(otherParticipant?.identity);
-                        console.log('[BZChat] Other user ID:', otherUserId);
-                        
                         const lookupKey = `user_${otherUserId}`;
-                        console.log('[BZChat] Looking for key:', lookupKey);
-                        console.log('[BZChat] Key exists?', lookupKey in attributes);
-                        console.log('[BZChat] Value:', attributes[lookupKey]);
                         
-                        // Look for the other user's name in attributes
                         if (otherUserId && attributes[lookupKey]) {
                             displayName = attributes[lookupKey];
-                            console.log('[BZChat] ✓ Found display name:', displayName);
-                        } else {
-                            console.log('[BZChat] ✗ Could not find', lookupKey, 'in attributes');
-                            console.log('[BZChat] All attributes:', JSON.stringify(attributes));
-                            
-                            // Fallback
-                            if (otherParticipant?.identity) {
-                                displayName = otherParticipant.identity.replace('user_', 'User ');
-                                console.log('[BZChat] Using fallback name:', displayName);
-                            }
-                        }
-                    } else {
-                        console.log('[BZChat] ✗ No attributes for conversation', conv.sid);
-                        if (otherParticipant?.identity) {
+                        } else if (otherParticipant?.identity) {
                             displayName = otherParticipant.identity.replace('user_', 'User ');
                         }
+                    } else if (otherParticipant?.identity) {
+                        displayName = otherParticipant.identity.replace('user_', 'User ');
                     }
                 } catch (err) {
-                    console.error('[BZChat] ✗ Error parsing attributes:', err);
+                    console.error('[BZChat] Error parsing attributes:', err);
                     if (otherParticipant?.identity) {
                         displayName = otherParticipant.identity.replace('user_', 'User ');
                     }
                 }
-                
-                console.log('[BZChat] Final display name:', displayName);
-                console.log('[BZChat] ========================================');
                 
                 let lastMessage = null;
                 let lastTimestamp = null;
@@ -385,7 +361,7 @@
                 
                 conversationMetadata.set(conv.sid, {
                     sid: conv.sid,
-                    friendlyName: displayName,  // Just the other person's name
+                    friendlyName: displayName,
                     otherIdentity: otherParticipant?.identity,
                     lastMessage: lastMessage,
                     lastTimestamp: lastTimestamp,
@@ -393,10 +369,8 @@
                 });
             }
             
-            // Build unified list
             const items = [];
             
-            // Add existing conversations
             conversationMetadata.forEach((meta, sid) => {
                 items.push({
                     type: 'conversation',
@@ -408,7 +382,6 @@
                 });
             });
             
-            // Add connections that don't have conversations yet
             for (const conn of connections) {
                 const hasConversation = Array.from(conversationMetadata.values())
                     .some(meta => meta.otherIdentity === `user_${conn.id}`);
@@ -424,7 +397,6 @@
                 }
             }
             
-            // Sort by timestamp (most recent first)
             items.sort((a, b) => {
                 if (!a.timestamp) return 1;
                 if (!b.timestamp) return -1;
@@ -436,7 +408,6 @@
                 return;
             }
             
-            // Render list
             listContainer.innerHTML = items.map(item => `
                 <div class="bz-chat-list-item" 
                      data-type="${item.type}"
@@ -449,15 +420,12 @@
                 </div>
             `).join('');
             
-            // Attach click handlers
             document.querySelectorAll('.bz-chat-list-item').forEach(el => {
                 el.addEventListener('click', async () => {
-                    // Remove active class from all items
                     document.querySelectorAll('.bz-chat-list-item').forEach(item => {
                         item.classList.remove('active');
                     });
                     
-                    // Add active class to clicked item
                     el.classList.add('active');
                     
                     const type = el.dataset.type;
@@ -476,7 +444,6 @@
         }
     }
 
-    // Filter conversations by search query
     function filterConversations(query) {
         document.querySelectorAll('.bz-chat-list-item').forEach(el => {
             const name = el.dataset.name.toLowerCase();
@@ -490,10 +457,7 @@
         });
     }
 
-    // Open conversation by SID
     async function openConversation(sid) {
-        console.log('[BZChat] Opening conversation:', sid);
-        
         try {
             const meta = conversationMetadata.get(sid);
             
@@ -503,9 +467,6 @@
                 currentConv = await twilioClient.getConversationBySid(sid);
             }
             
-            console.log('[BZChat] Conversation loaded:', currentConv.sid);
-            
-            // Get the other person's name from metadata
             let displayTitle = 'Conversation';
             if (meta && meta.friendlyName) {
                 displayTitle = meta.friendlyName;
@@ -521,7 +482,6 @@
             try {
                 const messages = await currentConv.getMessages();
                 messageItems = messages.items || [];
-                console.log('[BZChat] Loaded', messageItems.length, 'messages');
             } catch (msgErr) {
                 console.log('[BZChat] No messages yet:', msgErr.message);
             }
@@ -531,21 +491,11 @@
             } else {
                 msgContainer.innerHTML = messageItems.map(m => {
                     const isOwn = m.author === identity;
-                    // Don't show author label for own messages in 1-on-1 chat
-                    if (isOwn) {
-                        return `
-                            <div class="bz-chat-bubble bz-me">
-                                ${escapeHtml(m.body)}
-                            </div>
-                        `;
-                    } else {
-                        const displayName = extractDisplayName(m.author);
-                        return `
-                            <div class="bz-chat-bubble bz-them">
-                                ${escapeHtml(m.body)}
-                            </div>
-                        `;
-                    }
+                    return `
+                        <div class="bz-chat-bubble ${isOwn ? 'bz-me' : 'bz-them'}">
+                            ${escapeHtml(m.body)}
+                        </div>
+                    `;
                 }).join('');
             }
             
@@ -554,7 +504,6 @@
             currentConv.removeAllListeners('messageAdded');
             
             currentConv.on('messageAdded', (msg) => {
-                console.log('[BZChat] New message received from', msg.author);
                 const isOwn = msg.author === identity;
                 
                 const emptyState = msgContainer.querySelector('.empty-state');
@@ -564,16 +513,12 @@
                 
                 const div = document.createElement('div');
                 div.className = `bz-chat-bubble ${isOwn ? 'bz-me' : 'bz-them'}`;
-                // Don't show author label in 1-on-1 chat
                 div.innerHTML = escapeHtml(msg.body);
                 msgContainer.appendChild(div);
                 msgContainer.scrollTop = msgContainer.scrollHeight;
                 
-                // Update conversation list
                 loadUnifiedList();
             });
-            
-            console.log('[BZChat] Conversation ready');
             
         } catch (err) {
             console.error('[BZChat] Failed to open conversation:', err);
@@ -588,7 +533,6 @@
         }
     }
 
-    // Open conversation with a specific user
     async function openWithUser(userId, name) {
         try {
             console.log(`[BZChat] Starting conversation with user ${userId} (${name})`);
@@ -602,13 +546,11 @@
             }
             
             const data = await resp.json();
-            console.log('[BZChat] Start conversation response:', data);
             
             if (!data.ok || !data.sid) {
                 throw new Error(data.error || 'Failed to start conversation');
             }
             
-            console.log('[BZChat] Opening conversation SID:', data.sid);
             await openConversation(data.sid);
             await loadUnifiedList();
             
@@ -618,17 +560,14 @@
         }
     }
 
-    // Expose for external click handler
     window.BZChat = { openWithUser };
 
-    // Handle pending chat request
     if (window.__BZ_PENDING_CHAT__) {
         const { userId, name } = window.__BZ_PENDING_CHAT__;
         await openWithUser(userId, name);
         delete window.__BZ_PENDING_CHAT__;
     }
 
-    // Helper functions
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -638,24 +577,7 @@
     function extractUserIdFromIdentity(identity) {
         if (!identity) return null;
         const match = identity.match(/user_(\d+)/);
-        const userId = match ? match[1] : null;
-        console.log('[BZChat] extractUserIdFromIdentity:', identity, '→', userId);
-        return userId;
-    }
-    
-    function extractDisplayName(identity) {
-        if (!identity) return 'Unknown';
-        // If it's in format "user_123", try to find the friendly name
-        const userId = extractUserIdFromIdentity(identity);
-        if (userId) {
-            // Look through metadata for friendly name
-            for (const meta of conversationMetadata.values()) {
-                if (meta.otherIdentity === identity && meta.friendlyName) {
-                    return meta.friendlyName;
-                }
-            }
-        }
-        return identity.replace('user_', 'User ');
+        return match ? match[1] : null;
     }
     
     function formatTimestamp(date) {
@@ -677,6 +599,144 @@
     </script>
     {% endif %}
 
+    <!-- NOTIFICATION SYSTEM SCRIPT - MOVE HERE -->
+    <script>
+    {% if request.user.is_authenticated and request.user|has_recruiterprofile %}
+    (function() {
+      const bell = document.getElementById('notificationBell');
+      const dropdown = document.getElementById('notificationDropdown');
+      const badge = document.getElementById('notificationBadge');
+      const notificationList = document.getElementById('notificationList');
+      const markAllReadBtn = document.getElementById('markAllRead');
+      
+      if (!bell) return;
+      
+      bell.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) loadNotifications();
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+      
+      async function loadNotifications() {
+        try {
+          const response = await fetch('/candidates/notifications/');
+          const data = await response.json();
+          
+          if (data.ok) {
+            updateBadge(data.unread_count);
+            displayNotifications(data.notifications);
+          }
+        } catch (error) {
+          console.error('Error loading notifications:', error);
+        }
+      }
+      
+      function updateBadge(count) {
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.style.display = 'block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+      
+      function displayNotifications(notifications) {
+        if (notifications.length === 0) {
+          notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
+          return;
+        }
+        
+        notificationList.innerHTML = notifications.map(n => `
+          <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" data-candidate-id="${n.candidate_id}">
+            <div class="notification-message">${n.message}</div>
+            <div class="notification-time">${formatTime(n.created_at)}</div>
+          </div>
+        `).join('');
+        
+        document.querySelectorAll('.notification-item').forEach(item => {
+          item.addEventListener('click', function() {
+            const notificationId = this.dataset.id;
+            const candidateId = this.dataset.candidateId;
+            markAsRead(notificationId);
+            window.location.href = `/profiles/${candidateId}/`;
+          });
+        });
+      }
+      
+      async function markAsRead(notificationId) {
+        try {
+          await fetch(`/candidates/notifications/${notificationId}/read/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          });
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
+      }
+      
+      if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function() {
+          try {
+            const response = await fetch('/candidates/notifications/read_all/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            });
+            if (response.ok) {
+              loadNotifications();
+            }
+          } catch (error) {
+            console.error('Error marking all as read:', error);
+          }
+        });
+      }
+      
+      function formatTime(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString();
+      }
+      
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      
+      loadNotifications();
+      setInterval(loadNotifications, 120000);
+    })();
+    {% endif %}
+    </script>
+
     <!-- Messages auto-hide -->
     <script>
       setTimeout(() => {
@@ -690,7 +750,6 @@
     </script>
 
     <script>
-    /* Minimal, bomb-proof interceptor for .js-open-chat */
     (function(){
       function handle(ev){
         const a = ev.target.closest('a.js-open-chat,button.js-open-chat');
