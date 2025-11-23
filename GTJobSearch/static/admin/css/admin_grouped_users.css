@@ -1,0 +1,44 @@
+.role-header-row {
+    background-color: #424242 !important;
+}
+
+.role-header {
+    background: linear-gradient(to bottom, #0c0c0c, #111111);
+    padding: 12px 10px !important;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    border-top: 2px solid #2e2e2e;
+    border-bottom: 1px solid #2b2b2b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-header strong {   
+    font-size: 13px;
+    color: #417690;
+}
+
+/* Alternate row colors within groups */
+#result_list tbody tr.row1 {
+    background-color: #141414;
+}
+
+#result_list tbody tr.row2 {
+    background-color: #0a0a0a;
+}
+
+/* Add a subtle separator between groups */
+.role-header-row + tr {
+    border-top: none;
+}
+
+/* Hover effect for data rows */
+#result_list tbody tr:not(.role-header-row):hover {
+    background-color: #212729 !important;
+}
+
+/* Ensure checkboxes are visible */
+#result_list tbody .action-select {
+    margin-right: 8px;
+}

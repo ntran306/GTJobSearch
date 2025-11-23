@@ -1,6 +1,8 @@
 # accounts/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete, post_delete
+from django.dispatch import receiver
 
 class AddressFields(models.Model):
     address_line1 = models.CharField(max_length=255, blank=True, null=True)
@@ -72,3 +74,59 @@ class RecruiterProfile(AddressFields):
 
     def __str__(self):
         return f"{self.name} (Recruiter)"
+
+@receiver(pre_delete, sender=RecruiterProfile)
+def delete_recruiter_jobs(sender, instance, **kwargs):
+    """Delete all jobs owned by this recruiter before the profile is deleted"""
+    try:
+        from jobs.models import Job
+        jobs = Job.objects.filter(recruiter=instance)
+        job_count = jobs.count()
+        jobs.delete()
+        print(f"Deleted {job_count} jobs for recruiter: {instance.name}")
+    except Exception as e:
+        print(f"Warning: couldn't auto-delete jobs for recruiter: {e}")
+
+
+@receiver(pre_delete, sender=User)
+def cleanup_user_data(sender, instance, **kwargs):
+    """
+    Clean up all user data before deletion.
+    This ensures that even if some relations don't cascade properly,
+    we explicitly clean them up.
+    """
+    print(f"Cleaning up data for user: {instance.username}")
+    
+    # If user is a recruiter, delete their jobs BEFORE the profile is deleted
+    try:
+        if hasattr(instance, 'recruiterprofile'):
+            from jobs.models import Job
+            recruiter_profile = instance.recruiterprofile
+            jobs = Job.objects.filter(recruiter=recruiter_profile)
+            job_count = jobs.count()
+            jobs.delete()
+            print(f"  - Deleted {job_count} jobs for recruiter")
+    except Exception as e:
+        print(f"  - Error deleting jobs: {e}")
+    
+    # Delete all applications (should cascade via CASCADE, but being explicit)
+    try:
+        from applications.models import Application
+        app_count = instance.applications.count()
+        instance.applications.all().delete()
+        print(f"  - Deleted {app_count} applications")
+    except Exception as e:
+        print(f"  - Error deleting applications: {e}")
+    
+    # Delete all connections (both as requester and addressee)
+    try:
+        from communication.models import Connection
+        conn_out_count = instance.connections_out.count()
+        conn_in_count = instance.connections_in.count()
+        instance.connections_out.all().delete()
+        instance.connections_in.all().delete()
+        print(f"  - Deleted {conn_out_count + conn_in_count} connections")
+    except Exception as e:
+        print(f"  - Error deleting connections: {e}")
+    
+    print(f"User cleanup complete for: {instance.username}")

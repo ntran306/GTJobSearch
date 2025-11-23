@@ -108,6 +108,10 @@ class Job(models.Model):
     required_skills = models.ManyToManyField("Skill", blank=True, related_name="required_for_jobs")
     preferred_skills = models.ManyToManyField("Skill", blank=True, related_name="preferred_for_jobs")
 
+    is_approved = models.BooleanField(default=False)
+    is_flagged = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = JobQuerySet.as_manager()
