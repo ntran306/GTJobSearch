@@ -27,7 +27,7 @@
                     {% for application in applicants %}
                         {% if application.status == 'applied' %}
                             <div class="applicant-card">
-                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                                <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
                                 {% if application.note %}

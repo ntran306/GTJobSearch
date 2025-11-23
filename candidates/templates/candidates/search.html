@@ -103,7 +103,7 @@
         {% endif %}
       </div>
 
-      <a href="{% url 'profiles:view_profile' candidate.user.id %}" class="btn btn-secondary view-profile-btn">
+      <a href="{% url 'accounts:view_profile' candidate.user.id %}" class="btn btn-secondary view-profile-btn">
         View Profile
       </a>
       {% if candidate.user.email %}
