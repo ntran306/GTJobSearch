@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django.conf import settings
+from django.urls import reverse
 from .models import Job, Skill
 from .utils import haversine, batch_road_distance_and_time
 from django.core.serializers.json import DjangoJSONEncoder
@@ -390,7 +391,7 @@ def delete_job(request, job_id):
 @login_required
 def view_applicants(request, job_id):
     job = get_object_or_404(Job, id=job_id, recruiter=request.user.recruiterprofile)
-    applicants = job.applications.select_related('user')
+    applicants = job.applications.select_related('user', 'user__jobseekerprofile')  # Changed here
     
     # Count applications by status
     status_counts = {
@@ -401,8 +402,43 @@ def view_applicants(request, job_id):
         'closed': applicants.filter(status='closed').count(),
     }
     
+    # Create user markers data for map
+    user_markers = []
+    
+    for application in applicants:
+        user = application.user
+        
+        # Use jobseekerprofile instead of profile
+        if hasattr(user, 'jobseekerprofile'):
+            profile = user.jobseekerprofile
+            
+            # Build location text from available fields
+            location_text = profile.location or profile.full_address or ''
+            
+            # Get coordinates
+            lat = float(profile.latitude) if profile.latitude else None
+            lng = float(profile.longitude) if profile.longitude else None
+            
+            marker_data = {
+                'id': user.id,
+                'name': user.get_full_name() or user.username,
+                'role': 'Job Seeker',
+                'headline': profile.headline or '',
+                'location_text': location_text,
+                'lat': lat,
+                'lng': lng,
+                'profileUrl': reverse('profiles:view_profile', kwargs={'user_id': user.id}),
+                'contactUrl': f'/messages/compose/{user.id}/',
+            }
+            
+            # Add marker if we have location data
+            if location_text or (lat and lng):
+                user_markers.append(marker_data)
+    
     return render(request, 'jobs/applicants_list.html', {
         'job': job,
         'applicants': applicants,
         'status_counts': status_counts,
+        'user_markers_json': json.dumps(user_markers, cls=DjangoJSONEncoder),
+        'MAPS_KEY': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
     })
