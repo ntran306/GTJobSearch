@@ -206,7 +206,130 @@
             <p>No candidates have applied to this position yet. Check back later!</p>
         </div>
     {% endif %}
+    <!-- Interactive Map -->
+    <div id="map" style="width: 100%; height: 400px; margin: 20px 0; border-radius: 8px;"></div>
 </div>
+
+<script>
+  /* Data from Django */
+  const userMarkersRaw = '{{ user_markers_json|escapejs }}';
+  const userMarkers = userMarkersRaw ? JSON.parse(userMarkersRaw) : [];
+  console.log('User markers loaded:', userMarkers.length);
+
+  /* Globals */
+  let map, infoWindow, geocoder;
+
+  /* Highlight a user card */
+  function highlightUserCard(userId) {
+    document.querySelectorAll(".applicant-card.highlighted").forEach(el => el.classList.remove("highlighted"));
+    const card = document.querySelector(`.applicant-card[data-user-id="${userId}"]`);
+    if (card) {
+      card.classList.add("highlighted");
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /* Build info window content */
+  function buildInfoContent(u) {
+    const safe = s => String(s || "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    const name = safe(u.name);
+    const role = safe(u.role);
+    const headline = safe(u.headline);
+    const locText = safe(u.location_text);
+    const viewHref = u.profileUrl;
+    const contactHref = u.contactUrl;
+
+    return `
+      <div style="font-size:14px; max-width:260px;">
+        <strong>${name}</strong> <span style="opacity:.7">(${role})</span><br/>
+        ${headline ? headline+"<br/>" : ""}
+        ${locText}
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <a href="${viewHref}" class="apply-btn" style="flex:1; text-align:center;">View</a>
+          <a href="${contactHref}" class="save-btn" style="flex:1; text-align:center;">Contact</a>
+        </div>
+      </div>
+    `;
+  }
+
+  /* Geocode a single address -> Promise<{lat,lng}> */
+  function geocodeAddress(address){
+    return new Promise((resolve,reject)=>{
+      geocoder.geocode({ address }, (results,status)=>{
+        if(status === "OK" && results[0]){
+          const ll = results[0].geometry.location;
+          resolve({ lat: ll.lat(), lng: ll.lng() });
+        } else {
+          console.warn('Geocoding failed for:', address, status);
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  /* Init Map + Markers */
+  window.initConnectMap = async function () {
+    console.log('Initializing map...');
+    
+    // Map & helpers
+    geocoder = new google.maps.Geocoder();
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 4,
+      center: { lat: 39.8283, lng: -98.5795 }
+    });
+    infoWindow = new google.maps.InfoWindow();
+
+    const bounds = new google.maps.LatLngBounds();
+
+    // Ensure all markers have lat/lng (geocode on the fly if missing)
+    const withCoords = [];
+    for (const u of userMarkers) {
+      if (u.lat != null && u.lng != null) {
+        withCoords.push(u);
+      } else if (u.location_text) {
+        console.log('Geocoding:', u.location_text);
+        const res = await geocodeAddress(u.location_text);
+        if (res) withCoords.push({ ...u, lat: res.lat, lng: res.lng });
+      }
+    }
+
+    console.log('Markers with coordinates:', withCoords.length);
+
+    // Create markers
+    withCoords.forEach(u => {
+      const pos = { lat: u.lat, lng: u.lng };
+      const marker = new google.maps.Marker({ 
+        position: pos, 
+        map: map, 
+        title: `${u.name} (${u.role})`
+      });
+
+      // Click listener
+      marker.addListener("click", () => {
+        infoWindow.setContent(buildInfoContent(u));
+        infoWindow.open(map, marker);
+        highlightUserCard(u.id);
+      });
+
+      bounds.extend(pos);
+    });
+
+    if (withCoords.length > 0) {
+      map.fitBounds(bounds);
+    } else {
+      console.log('No applicants with location data to display');
+    }
+  };
+</script>
+
+<!-- Google Maps API -->
+{% if MAPS_KEY %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ MAPS_KEY }}&callback=initConnectMap" async defer></script>
+{% else %}
+<!-- No MAPS_KEY configured; map disabled -->
+{% endif %}
 
 <style>
 /* Kanban Board Container */
