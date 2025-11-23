@@ -12,6 +12,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -47,6 +48,7 @@
                         </li>
 
                         {% if user|has_recruiterprofile %}
+                            
                             <li>
                                 <a href="{% url 'candidates:search_candidates' %}"
                                 class="{% if request.resolver_match.view_name == 'candidates:search_candidates' %}active{% endif %}">
@@ -58,6 +60,23 @@
                                 class="{% if request.resolver_match.view_name == 'jobs:my_jobs' %}active{% endif %}">
                                 My Job Postings
                                 </a>
+                            </li>
+
+                            <li style="position: relative;">
+                                <div class="notification-bell" id="notificationBell">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                                </div>
+                                
+                                <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
+                                    <div class="notification-header">
+                                        <h4>Notifications</h4>
+                                        <button id="markAllRead" class="btn-link">Mark all read</button>
+                                    </div>
+                                    <div class="notification-list" id="notificationList">
+                                    <!-- Filled dynamically -->
+                                    </div>
+                                </div>
                             </li>
                         {% elif user|has_jobseekerprofile %}
                             <li>
@@ -72,6 +91,8 @@
                                 My Applications
                                 </a>
                             </li>
+
+                            
                         {% endif %}
 
                         <li>
@@ -265,6 +286,7 @@
 
         identity = tokenData.identity;
         myUserId = extractUserIdFromIdentity(identity);
+        myUserId = extractUserIdFromIdentity(identity);
         twilioClient = new Twilio.Conversations.Client(tokenData.token);
         console.log('[BZChat] Twilio client initialized for:', identity, 'User ID:', myUserId);
 
@@ -274,6 +296,7 @@
         alert('Failed to initialize chat. Please refresh the page.');
       }
 
+    async function initializeChatUI() {
       // Chat UI initialization
       async function initializeChatUI() {
         const fab = document.getElementById('bzChatFab');
@@ -300,6 +323,7 @@
         await loadUnifiedList();
       }
 
+    async function loadUnifiedList() {
       // Load unified conversations + connections
       async function loadUnifiedList() {
         const listContainer = document.getElementById('bzChatList');
@@ -309,6 +333,147 @@
           '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
 
         try {
+            const [convsResp, connsResp] = await Promise.all([
+                fetch('/communication/messaging/list/'),
+                fetch('/communication/api/connections')
+            ]);
+            
+            const convsData = await convsResp.json();
+            const connections = await connsResp.json();
+            
+            const subscribedConversations = await twilioClient.getSubscribedConversations();
+            allConversations = subscribedConversations.items || [];
+            
+            console.log('[BZChat] Loaded', allConversations.length, 'Twilio conversations');
+            
+            conversationMetadata.clear();
+            
+            for (const conv of allConversations) {
+                const participants = await conv.getParticipants();
+                const otherParticipant = participants.find(p => p.identity !== identity);
+                
+                let displayName = 'Unknown';
+                try {
+                    if (conv.attributes) {
+                        let attributes;
+                        
+                        if (typeof conv.attributes === 'string') {
+                            attributes = JSON.parse(conv.attributes);
+                        } else {
+                            attributes = conv.attributes;
+                        }
+                        
+                        const otherUserId = extractUserIdFromIdentity(otherParticipant?.identity);
+                        const lookupKey = `user_${otherUserId}`;
+                        
+                        if (otherUserId && attributes[lookupKey]) {
+                            displayName = attributes[lookupKey];
+                        } else if (otherParticipant?.identity) {
+                            displayName = otherParticipant.identity.replace('user_', 'User ');
+                        }
+                    } else if (otherParticipant?.identity) {
+                        displayName = otherParticipant.identity.replace('user_', 'User ');
+                    }
+                } catch (err) {
+                    console.error('[BZChat] Error parsing attributes:', err);
+                    if (otherParticipant?.identity) {
+                        displayName = otherParticipant.identity.replace('user_', 'User ');
+                    }
+                }
+                
+                let lastMessage = null;
+                let lastTimestamp = null;
+                
+                try {
+                    const messages = await conv.getMessages(1);
+                    if (messages.items && messages.items.length > 0) {
+                        const msg = messages.items[0];
+                        lastMessage = msg.body;
+                        lastTimestamp = msg.dateCreated;
+                    }
+                } catch (err) {
+                    console.log('[BZChat] No messages in conversation:', conv.sid);
+                }
+                
+                conversationMetadata.set(conv.sid, {
+                    sid: conv.sid,
+                    friendlyName: displayName,
+                    otherIdentity: otherParticipant?.identity,
+                    lastMessage: lastMessage,
+                    lastTimestamp: lastTimestamp,
+                    conversation: conv
+                });
+            }
+            
+            const items = [];
+            
+            conversationMetadata.forEach((meta, sid) => {
+                items.push({
+                    type: 'conversation',
+                    sid: meta.sid,
+                    name: meta.friendlyName,
+                    lastMessage: meta.lastMessage,
+                    timestamp: meta.lastTimestamp,
+                    userId: extractUserIdFromIdentity(meta.otherIdentity)
+                });
+            });
+            
+            for (const conn of connections) {
+                const hasConversation = Array.from(conversationMetadata.values())
+                    .some(meta => meta.otherIdentity === `user_${conn.id}`);
+                
+                if (!hasConversation) {
+                    items.push({
+                        type: 'connection',
+                        userId: conn.id,
+                        name: conn.username,
+                        lastMessage: 'Start a conversation',
+                        timestamp: null
+                    });
+                }
+            }
+            
+            items.sort((a, b) => {
+                if (!a.timestamp) return 1;
+                if (!b.timestamp) return -1;
+                return b.timestamp - a.timestamp;
+            });
+            
+            if (items.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><p>No conversations yet</p></div>';
+                return;
+            }
+            
+            listContainer.innerHTML = items.map(item => `
+                <div class="bz-chat-list-item" 
+                     data-type="${item.type}"
+                     data-sid="${item.sid || ''}"
+                     data-user-id="${item.userId || ''}"
+                     data-name="${escapeHtml(item.name)}">
+                    <div class="chat-user-name">${escapeHtml(item.name)}</div>
+                    <div class="chat-last-message">${escapeHtml(item.lastMessage || 'No messages yet')}</div>
+                    ${item.timestamp ? `<div class="chat-timestamp">${formatTimestamp(item.timestamp)}</div>` : ''}
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.bz-chat-list-item').forEach(el => {
+                el.addEventListener('click', async () => {
+                    document.querySelectorAll('.bz-chat-list-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    el.classList.add('active');
+                    
+                    const type = el.dataset.type;
+                    
+                    if (type === 'conversation') {
+                        await openConversation(el.dataset.sid);
+                    } else {
+                        await openWithUser(el.dataset.userId, el.dataset.name);
+                    }
+                });
+            });
+            
           // Fetch both conversations and connections
           const [convsResp, connsResp] = await Promise.all([
             fetch('/communication/messaging/list/'),
@@ -782,6 +947,144 @@
     </script>
     {% endif %}
 
+    <!-- NOTIFICATION SYSTEM SCRIPT - MOVE HERE -->
+    <script>
+    {% if request.user.is_authenticated and request.user|has_recruiterprofile %}
+    (function() {
+      const bell = document.getElementById('notificationBell');
+      const dropdown = document.getElementById('notificationDropdown');
+      const badge = document.getElementById('notificationBadge');
+      const notificationList = document.getElementById('notificationList');
+      const markAllReadBtn = document.getElementById('markAllRead');
+      
+      if (!bell) return;
+      
+      bell.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) loadNotifications();
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+      
+      async function loadNotifications() {
+        try {
+          const response = await fetch('/candidates/notifications/');
+          const data = await response.json();
+          
+          if (data.ok) {
+            updateBadge(data.unread_count);
+            displayNotifications(data.notifications);
+          }
+        } catch (error) {
+          console.error('Error loading notifications:', error);
+        }
+      }
+      
+      function updateBadge(count) {
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.style.display = 'block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+      
+      function displayNotifications(notifications) {
+        if (notifications.length === 0) {
+          notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
+          return;
+        }
+        
+        notificationList.innerHTML = notifications.map(n => `
+          <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" data-candidate-id="${n.candidate_id}">
+            <div class="notification-message">${n.message}</div>
+            <div class="notification-time">${formatTime(n.created_at)}</div>
+          </div>
+        `).join('');
+        
+        document.querySelectorAll('.notification-item').forEach(item => {
+          item.addEventListener('click', function() {
+            const notificationId = this.dataset.id;
+            const candidateId = this.dataset.candidateId;
+            markAsRead(notificationId);
+            window.location.href = `/profiles/${candidateId}/`;
+          });
+        });
+      }
+      
+      async function markAsRead(notificationId) {
+        try {
+          await fetch(`/candidates/notifications/${notificationId}/read/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          });
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
+      }
+      
+      if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function() {
+          try {
+            const response = await fetch('/candidates/notifications/read_all/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            });
+            if (response.ok) {
+              loadNotifications();
+            }
+          } catch (error) {
+            console.error('Error marking all as read:', error);
+          }
+        });
+      }
+      
+      function formatTime(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString();
+      }
+      
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      
+      loadNotifications();
+      setInterval(loadNotifications, 120000);
+    })();
+    {% endif %}
+    </script>
+
     <!-- Messages auto-hide -->
     <script>
       setTimeout(() => {
@@ -795,7 +1098,6 @@
     </script>
 
     <script>
-    /* Minimal, bomb-proof interceptor for .js-open-chat */
     (function(){
       function handle(ev){
         const a = ev.target.closest('a.js-open-chat,button.js-open-chat');
