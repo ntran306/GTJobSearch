@@ -193,10 +193,46 @@ def profile_view(request):
     })
 
 # ---------- EDIT PROFILE ----------
+def update_profile_skills_from_post(profile, request):
+    raw = (request.POST.get("skills") or request.POST.get("skillsInput") or "").strip()
+
+    if not raw:
+        # No skills selected -> clear the M2M
+        if hasattr(profile, "skills"):
+            profile.skills.clear()
+        return
+
+    # Split on commas, strip whitespace, drop empties
+    pieces = [s.strip() for s in raw.split(",") if s.strip()]
+    if not pieces:
+        if hasattr(profile, "skills"):
+            profile.skills.clear()
+        return
+
+    # Try to interpret pieces as IDs
+    ids = []
+    for p in pieces:
+        try:
+            ids.append(int(p))
+        except ValueError:
+            # If anything is not an int, just skip it (avoids the ',' crash)
+            continue
+
+    if not ids:
+        if hasattr(profile, "skills"):
+            profile.skills.clear()
+        return
+
+    # Fetch Skill objects by ID
+    skills_qs = Skill.objects.filter(id__in=ids)
+    if hasattr(profile, "skills"):
+        profile.skills.set(skills_qs)
+
 @login_required
 def edit_profile(request):
     user = request.user
 
+    # Figure out which profile + form to use
     if hasattr(user, "jobseekerprofile"):
         profile = user.jobseekerprofile
         form_class = JobSeekerProfileForm
@@ -211,12 +247,19 @@ def edit_profile(request):
     if request.method == "POST":
         form = form_class(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            profile = form.save() 
-            if hasattr(form, "save_m2m"):
-                form.save_m2m()   
+            # Save basic fields
+            profile = form.save(commit=False)
+            profile.save()
 
-            
+            # ⚠️ IMPORTANT:
+            # For recruiters, let Django handle M2M normally.
+            if not is_jobseeker and hasattr(form, "save_m2m"):
+                form.save_m2m()
+
+            # For jobseekers, handle skills manually from the hidden field (IDs).
             if is_jobseeker:
+                update_profile_skills_from_post(profile, request)
+
                 print("\nRUNNING MATCHING FROM EDIT PROFILE VIEW…")
                 from candidates.matching import check_candidate_against_filters
                 check_candidate_against_filters(profile)

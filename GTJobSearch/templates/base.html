@@ -27,61 +27,79 @@
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'home:index' %}"
-                            class="{% if request.resolver_match.view_name == 'home:index' %}active{% endif %}">
-                            Home
+                               class="{% if request.resolver_match.view_name == 'home:index' %}active{% endif %}">
+                                Home
                             </a>
                         </li>
 
                         <li>
                             <a href="{% url 'accounts:profile' %}"
-                            class="{% if request.resolver_match.view_name == 'accounts:profile' %}active{% endif %}">
-                            Profile
+                               class="{% if request.resolver_match.view_name == 'accounts:profile' %}active{% endif %}">
+                                Profile
                             </a>
                         </li>
 
                         <li>
                             <a href="{% url 'accounts:connect' %}"
-                            class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
-                            Connect
+                               class="{% if request.resolver_match.view_name == 'accounts:connect' %}active{% endif %}">
+                                Connect
                             </a>
                         </li>
 
                         {% if user|has_recruiterprofile %}
                             <li>
                                 <a href="{% url 'candidates:search_candidates' %}"
-                                class="{% if request.resolver_match.view_name == 'candidates:search_candidates' %}active{% endif %}">
-                                Find Candidates
+                                   class="{% if request.resolver_match.view_name == 'candidates:search_candidates' %}active{% endif %}">
+                                    Find Candidates
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'jobs:my_jobs' %}"
-                                class="{% if request.resolver_match.view_name == 'jobs:my_jobs' %}active{% endif %}">
-                                My Job Postings
+                                   class="{% if request.resolver_match.view_name == 'jobs:my_jobs' %}active{% endif %}">
+                                    My Job Postings
                                 </a>
+                            </li>
+
+                            {# NOTIFICATION BELL FOR RECRUITERS #}
+                            <li class="notification-wrapper">
+                                <button id="notificationBell" class="notification-bell" type="button">
+                                    <i class="fas fa-bell"></i>
+                                    <span id="notificationBadge" class="notification-badge" style="display:none;"></span>
+                                </button>
+
+                                <div id="notificationDropdown" class="notification-dropdown">
+                                    <div class="notification-header">
+                                        <span>Notifications</span>
+                                        <button id="markAllRead" type="button" class="mark-all-read-btn">Mark all as read</button>
+                                    </div>
+                                    <div id="notificationList" class="notification-list">
+                                        <!-- Filled by JS -->
+                                    </div>
+                                </div>
                             </li>
                         {% elif user|has_jobseekerprofile %}
                             <li>
                                 <a href="{% url 'jobs:index' %}"
-                                class="{% if request.resolver_match.view_name == 'jobs:index' %}active{% endif %}">
-                                Find Jobs
+                                   class="{% if request.resolver_match.view_name == 'jobs:index' %}active{% endif %}">
+                                    Find Jobs
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'applications:view_applications' %}"
-                                class="{% if request.resolver_match.view_name == 'applications:view_applications' %}active{% endif %}">
-                                My Applications
+                                   class="{% if request.resolver_match.view_name == 'applications:view_applications' %}active{% endif %}">
+                                    My Applications
                                 </a>
                             </li>
                         {% endif %}
-
+                        
                         <li>
                             <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Logout</a>
                         </li>
                     {% else %}
                         <li>
                             <a href="{% url 'accounts:signup_choice' %}"
-                            class="{% if request.resolver_match.view_name == 'accounts:signup_choice' %}active{% endif %}">
-                            Create Profile
+                               class="{% if request.resolver_match.view_name == 'accounts:signup_choice' %}active{% endif %}">
+                                Create Profile
                             </a>
                         </li>
                         <li>
@@ -150,7 +168,7 @@
         </div>
     </div>
 
-    <!-- Twilio Conversations SDK -->
+    <!-- Twilio Conversations SDK + Chat Logic -->
     <script>
     (async function(){
       // Dynamically load Twilio SDK
@@ -786,131 +804,142 @@
     {% if request.user.is_authenticated and request.user|has_recruiterprofile %}
     <script>
     (function() {
-    const bell = document.getElementById('notificationBell');
-    const dropdown = document.getElementById('notificationDropdown');
-    const badge = document.getElementById('notificationBadge');
-    const notificationList = document.getElementById('notificationList');
-    const markAllReadBtn = document.getElementById('markAllRead');
-
-    if (!bell) return;
-
-    bell.addEventListener('click', function(e) {
+      const bell = document.getElementById('notificationBell');
+      const dropdown = document.getElementById('notificationDropdown');
+      const badge = document.getElementById('notificationBadge');
+      const notificationList = document.getElementById('notificationList');
+      const markAllReadBtn = document.getElementById('markAllRead');
+      
+      if (!bell || !dropdown || !badge || !notificationList) {
+        console.warn('Notification elements not found in DOM');
+        return;
+      }
+      
+      bell.addEventListener('click', function(e) {
         e.stopPropagation();
         const isVisible = dropdown.style.display === 'block';
         dropdown.style.display = isVisible ? 'none' : 'block';
         if (!isVisible) loadNotifications();
-    });
-
-    document.addEventListener('click', function(e) {
+      });
+      
+      document.addEventListener('click', function(e) {
         if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.style.display = 'none';
+          dropdown.style.display = 'none';
         }
-    });
-
-    async function loadNotifications() {
+      });
+      
+      async function loadNotifications() {
         try {
-        const response = await fetch('/candidates/notifications/');
-        const data = await response.json();
-
-        if (data.ok) {
+          const response = await fetch('/candidates/notifications/');
+          const data = await response.json();
+          
+          if (data.ok) {
             updateBadge(data.unread_count);
             displayNotifications(data.notifications);
-        }
+          }
         } catch (error) {
-        console.error('Error loading notifications:', error);
+          console.error('Error loading notifications:', error);
         }
-    }
-
-    function updateBadge(count) {
+      }
+      
+      function updateBadge(count) {
         if (count > 0) {
-        badge.textContent = count > 99 ? '99+' : count;
-        badge.style.display = 'block';
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.style.display = 'block';
         } else {
-        badge.style.display = 'none';
+          badge.style.display = 'none';
         }
-    }
-
-    function displayNotifications(notifications) {
-        if (notifications.length === 0) {
-        notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
-        return;
+      }
+      
+      function displayNotifications(notifications) {
+        if (!notifications || notifications.length === 0) {
+          notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
+          return;
         }
-
+        
         notificationList.innerHTML = notifications.map(n => `
-        <div class="notification-item ${n.is_read ? '' : 'unread'}"
-            data-id="${n.id}" data-candidate-id="${n.candidate_id}">
+          <div class="notification-item ${n.is_read ? '' : 'unread'}"
+               data-id="${n.id}"
+               data-candidate-id="${n.candidate_id}">
             <div class="notification-message">${n.message}</div>
             <div class="notification-time">${formatTime(n.created_at)}</div>
-        </div>
+          </div>
         `).join('');
-
+        
         document.querySelectorAll('.notification-item').forEach(item => {
-        item.addEventListener('click', async function() {
+          item.addEventListener('click', function() {
             const notificationId = this.dataset.id;
             const candidateId = this.dataset.candidateId;
-            await markAsRead(notificationId);
-            window.location.href = `/profiles/view/${candidateId}/`;
+            markAsRead(notificationId);
+            window.location.href = `/profiles/${candidateId}/`;
+          });
         });
-        });
-    }
-
-    async function markAsRead(notificationId) {
+      }
+      
+      async function markAsRead(notificationId) {
         try {
-        await fetch(`/candidates/notifications/${notificationId}/read/`, {
+          await fetch(`/candidates/notifications/${notificationId}/read/`, {
             method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
-        });
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          });
         } catch (error) {
-        console.error('Error marking notification as read:', error);
+          console.error('Error marking notification as read:', error);
         }
-    }
-
-    if (markAllReadBtn) {
+      }
+      
+      if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async function() {
-        try {
+          try {
             const response = await fetch('/candidates/notifications/read_all/', {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
             });
-            if (response.ok) loadNotifications();
-        } catch (error) {
+            if (response.ok) {
+              loadNotifications();
+            }
+          } catch (error) {
             console.error('Error marking all as read:', error);
-        }
+          }
         });
-    }
-
-    function formatTime(isoString) {
+      }
+      
+      function formatTime(isoString) {
         const date = new Date(isoString);
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-
+        
         if (diffMins < 1) return 'Just now';
         if (diffMins < 60) return `${diffMins}m ago`;
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
         return date.toLocaleDateString();
-    }
-
-    function getCookie(name) {
+      }
+      
+      function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
-            break;
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
             }
-        }
+          }
         }
         return cookieValue;
-    }
-
-    loadNotifications();
-    setInterval(loadNotifications, 120000);
+      }
+      
+      // Initial load + polling
+      loadNotifications();
+      setInterval(loadNotifications, 120000);
     })();
     </script>
     {% endif %}
