@@ -62,19 +62,32 @@
     {% for p in page_obj.object_list %}
       <div class="job-card" data-user-id="{{ p.id }}">
         <div class="job-card-info">
-          <h2 class="job-title">
-            <i class="fas fa-user"></i> {{ p.username }}
-            <span class="badge" style="margin-left:8px; font-size:0.8rem; background:#edf2f7; color:#4a5568; padding:2px 8px; border-radius:12px;">
-              {{ p.profile_type|title }}
-            </span>
-          </h2>
-          <h3 class="company-name">
-            {% if p.profile_type == 'recruiter' %}
-              {{ p.company_or_school }}
-            {% else %}
-              {{ p.headline|default:"" }}
-            {% endif %}
-          </h3>
+          <div class="candidate-header">
+            <div class="profile-avatar">
+              {% if p.profile_picture %}
+                <img src="{{ p.profile_picture }}" alt="{{ p.username }}">
+              {% else %}
+                <div class="avatar-placeholder">
+                  {{ p.username|first|upper }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="candidate-info">
+              <h2 class="job-title">
+                <i class="fas fa-user"></i> {{ p.username }}
+                <span class="badge" style="margin-left:8px; font-size:0.8rem; background:#edf2f7; color:#4a5568; padding:2px 8px; border-radius:12px;">
+                  {{ p.profile_type|title }}
+                </span>
+              </h2>
+              <h3 class="company-name">
+                {% if p.profile_type == 'recruiter' %}
+                  {{ p.company_or_school }}
+                {% else %}
+                  {{ p.headline|default:"" }}
+                {% endif %}
+              </h3>
+            </div>
+          </div>
 
           <div class="job-details">
             {% if p.location_text %}
@@ -239,13 +252,19 @@
     const headline = safe(u.headline);
     const locText = safe(u.location_text);
     const viewHref = u.profileUrl;
+    const profilePic = u.profilePicture;
 
     return `
-      <div style="font-size:14px; max-width:260px;">
-        <strong>${name}</strong> <span style="opacity:.7">(${role})</span><br/>
-        ${headline ? headline+"<br/>" : ""}
-        ${locText}
-        <div style="margin-top:8px;">
+      <div style="font-size:14px; max-width:300px;">
+        <div style="display:flex; gap:12px; align-items:start;">
+          ${profilePic ? `<img src="${profilePic}" alt="${name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;">` : ''}
+          <div style="flex:1;">
+            <strong style="font-size:15px;">${name}</strong> <span style="opacity:.7; font-size:13px;">(${role})</span><br/>
+            ${headline ? '<div style="margin-top:2px; color:#666;">' + headline + '</div>' : ''}
+            <div style="opacity:.7; margin-top:4px; font-size:13px;">${locText}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
           <a href="${viewHref}" class="apply-btn" style="text-align:center; display:inline-block;">View Profile</a>
         </div>
       </div>

@@ -1,16 +1,22 @@
-# candidates/views.py
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q, Count
+from django.urls import reverse
 from accounts.models import JobSeekerProfile, RecruiterProfile  
 from jobs.models import Skill
 from django.contrib.auth.decorators import login_required
 from jobs.models import Job
+import json, os
 
 # Show all public/visible candidates, filter by skill, location, projects (TextField)
 def search_candidates(request):
     skill_query = (request.GET.get('skill') or "").strip()
     location_query = (request.GET.get('location') or "").strip()
     project_query = (request.GET.get('project') or "").strip()
+    
+    # Get lat/lng and radius from request
+    lat = request.GET.get('lat', '').strip()
+    lng = request.GET.get('lng', '').strip()
+    radius = request.GET.get('radius', '').strip()
 
     # Only candidates who are visible to recruiters
     candidates = (
@@ -41,12 +47,40 @@ def search_candidates(request):
     for c in candidates:
         print(" -", c.user.username, "| privacy:", c.privacy, "| location:", c.location)
 
+    # Build candidate markers for map
+    candidate_markers = []
+    for candidate in candidates:
+        marker_data = {
+            'id': candidate.user.id,
+            'name': candidate.user.username,
+            'location': candidate.location or '',
+            'headline': candidate.headline or '',
+            'skills': ', '.join([s.name for s in candidate.skills.all()[:3]]),
+            'profileUrl': reverse('accounts:view_profile', args=[candidate.user.id]),
+            'profilePicture': candidate.profile_picture.url if candidate.profile_picture else '',
+        }
+        
+        # Add lat/lng if available (from AddressFields)
+        if candidate.latitude is not None and candidate.longitude is not None:
+            marker_data['lat'] = float(candidate.latitude)
+            marker_data['lng'] = float(candidate.longitude)
+        
+        # Determine connection status for Connect button
+        if request.user.is_authenticated and request.user.id != candidate.user.id:
+            # Check connection relation (you'll need to add this logic based on your Connection model)
+            # For now, we'll just add a connectUrl
+            marker_data['connectUrl'] = reverse('communication:connections_request', 
+                                               kwargs={'user_id': candidate.user.id})
+        else:
+            marker_data['connectUrl'] = ''
+            
+        candidate_markers.append(marker_data)
+
     recommended = None
     selected_job = None
     recruiter_jobs = None
 
     # Only recruiters can see recommended candidates
-        # Only recruiters can see recommended candidates
     if hasattr(request.user, "recruiterprofile"):
         recruiter = request.user.recruiterprofile
         recruiter_jobs = Job.objects.filter(recruiter=recruiter)
@@ -74,19 +108,21 @@ def search_candidates(request):
                     .distinct()
                 )
 
-
-
     return render(request, 'candidates/search.html', {
         'candidates': candidates,
         'skill_query': skill_query,
         'location_query': location_query,
         'project_query': project_query,
+        'lat': lat,
+        'lng': lng,
+        'radius': radius,
         'skills': skills,
-        "recruiter_jobs": recruiter_jobs,
-        "selected_job": selected_job,
-        "recommended": recommended,
+        'recruiter_jobs': recruiter_jobs,
+        'selected_job': selected_job,
+        'recommended': recommended,
+        'candidate_markers_json': json.dumps(candidate_markers),
+        'MAPS_KEY': os.environ.get('GOOGLE_MAPS_API_KEY', ''),
     })
-
 
 
 @login_required

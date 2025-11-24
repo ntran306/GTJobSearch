@@ -26,7 +26,7 @@
                 <div class="column-content">
                     {% for application in applicants %}
                         {% if application.status == 'applied' %}
-                            <div class="applicant-card">
+                            <div class="applicant-card" data-user-id="{{ application.user.id }}">
                                 <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
@@ -62,8 +62,8 @@
                 <div class="column-content">
                     {% for application in applicants %}
                         {% if application.status == 'review' %}
-                            <div class="applicant-card">
-                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                            <div class="applicant-card" data-user-id="{{ application.user.id }}">
+                                <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
                                 {% if application.note %}
@@ -98,8 +98,8 @@
                 <div class="column-content">
                     {% for application in applicants %}
                         {% if application.status == 'interview' %}
-                            <div class="applicant-card">
-                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                            <div class="applicant-card" data-user-id="{{ application.user.id }}">
+                                <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
                                 {% if application.note %}
@@ -134,8 +134,8 @@
                 <div class="column-content">
                     {% for application in applicants %}
                         {% if application.status == 'offer' %}
-                            <div class="applicant-card">
-                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                            <div class="applicant-card" data-user-id="{{ application.user.id }}">
+                                <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
                                 {% if application.note %}
@@ -170,8 +170,8 @@
                 <div class="column-content">
                     {% for application in applicants %}
                         {% if application.status == 'closed' %}
-                            <div class="applicant-card">
-                                <a href="{% url 'profiles:view_profile' user_id=application.user.id %}" class="applicant-name">
+                            <div class="applicant-card" data-user-id="{{ application.user.id }}">
+                                <a href="{% url 'accounts:view_profile' user_id=application.user.id %}" class="applicant-name">
                                     <i class="fas fa-user"></i> {{ application.user.username }}
                                 </a>
                                 {% if application.note %}
@@ -197,6 +197,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Interactive Map -->
+        <div id="map" style="width: 100%; height: 400px; margin: 20px 0; border-radius: 8px;"></div>
     {% else %}
         <div class="no-applicants">
             <div class="no-jobs-icon">
@@ -206,8 +209,6 @@
             <p>No candidates have applied to this position yet. Check back later!</p>
         </div>
     {% endif %}
-    <!-- Interactive Map -->
-    <div id="map" style="width: 100%; height: 400px; margin: 20px 0; border-radius: 8px;"></div>
 </div>
 
 <script>
@@ -239,16 +240,23 @@
     const headline = safe(u.headline);
     const locText = safe(u.location_text);
     const viewHref = u.profileUrl;
-    const contactHref = u.contactUrl;
+    const profilePic = u.profilePicture;
 
     return `
-      <div style="font-size:14px; max-width:260px;">
-        <strong>${name}</strong> <span style="opacity:.7">(${role})</span><br/>
-        ${headline ? headline+"<br/>" : ""}
-        ${locText}
-        <div style="margin-top:8px; display:flex; gap:8px;">
-          <a href="${viewHref}" class="apply-btn" style="flex:1; text-align:center;">View</a>
-          <a href="${contactHref}" class="save-btn" style="flex:1; text-align:center;">Contact</a>
+      <div style="font-size:14px; max-width:300px;">
+        <div style="display:flex; gap:12px; align-items:start;">
+          ${profilePic 
+            ? `<img src="${profilePic}" alt="${name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;">` 
+            : `<div style="width:60px; height:60px; border-radius:50%; background:#edf2f7; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px; color:#4a5568; flex-shrink:0;">${name.charAt(0).toUpperCase()}</div>`
+          }
+          <div style="flex:1;">
+            <strong style="font-size:15px;">${name}</strong> <span style="opacity:.7; font-size:13px;">(${role})</span><br/>
+            ${headline ? '<div style="margin-top:2px; color:#666;">' + headline + '</div>' : ''}
+            <div style="opacity:.7; margin-top:4px; font-size:13px;">${locText}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <a href="${viewHref}" class="apply-btn" style="text-align:center; display:inline-block;">View Profile</a>
         </div>
       </div>
     `;
@@ -381,7 +389,7 @@
     text-align: center;
 }
 
-/* Column Header Colors - Using your existing color variables */
+/* Column Header Colors */
 .applied-header {
     background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
 }
@@ -426,6 +434,12 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-600);
+}
+
+.applicant-card.highlighted {
+    border: 2px solid var(--primary-600);
+    background: var(--primary-50);
+    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.2);
 }
 
 /* Applicant Name */

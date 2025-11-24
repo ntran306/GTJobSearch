@@ -39,11 +39,9 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            {% if profile.user.email %}
-            <a href="mailto:{{ profile.user.email }}" class="action-btn">
-                <i class="fas fa-envelope"></i> Contact
+            <a href="{% url 'accounts:view_profile' user_id=profile.user.id %}" class="action-btn">
+                <i class="fas fa-user"></i> View Full Profile
             </a>
-            {% endif %}
             <button class="action-btn" onclick="window.print()">
                 <i class="fas fa-download"></i> Export Profile
             </button>

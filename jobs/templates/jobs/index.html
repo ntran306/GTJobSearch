@@ -149,9 +149,17 @@
     <div class="jobs-list">
         {% for job in jobs %}
             <div class="job-card" data-job-id="{{ job.id }}">
+                <!-- ✅ LOGO IN TOP RIGHT CORNER -->
+                {% if job.image %}
+                    <img src="{{ job.image.url }}" alt="{{ job.company }} Logo" class="job-card-logo-corner">
+                {% endif %}
+                
                 <div class="job-card-info">
                     <h2 class="job-title">{{ job.title }}</h2>
-                    <h3 class="company-name">{{ job.company }}</h3>
+                    <h3 class="company-name">
+                        <i class="fas fa-building" style="font-size: 0.85em; opacity: 0.7; margin-right: 4px;"></i>
+                        {{ job.company }}
+                    </h3>
                     
                     <div class="job-details">
                         <div class="job-detail-item">
@@ -238,7 +246,6 @@
     const originLng = parseFloat(document.getElementById("lng-input").value);
 
     if (Number.isNaN(originLat) || Number.isNaN(originLng)) {
-      // No origin yet: don't block the user with an alert; just skip drawing
       console.warn("No origin set. Use the location box to set an origin for routing.");
       return;
     }
@@ -273,12 +280,6 @@
     }
   }
 
-  /* Skills dropdown toggle (kept as-is) */
-  function toggleDropdown() {
-    const dropdown = document.getElementById("skillsDropdown");
-    dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
-  }
-
   /* Simple HTML escape */
   function escapeHtml(str) {
     return String(str)
@@ -295,11 +296,21 @@
       .map(j => `<option value="${j.id}">${escapeHtml(j.title)} — ${escapeHtml(j.company)}</option>`)
       .join("");
 
+    // ✅ ADD IMAGE TO INFO WINDOW
+    const imageHtml = primaryJob.image_url 
+      ? `<img src="${primaryJob.image_url}" alt="${escapeHtml(primaryJob.company)}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; margin-right:12px; flex-shrink:0;">`
+      : `<div style="width:60px; height:60px; border-radius:8px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; margin-right:12px; flex-shrink:0;"><i class="fas fa-building" style="color:#9ca3af; font-size:24px;"></i></div>`;
+
     return `
-      <div style="font-size:14px; max-width:260px;">
-        <strong>${escapeHtml(primaryJob.title)}</strong><br/>
-        ${escapeHtml(primaryJob.company)}<br/>
-        ${escapeHtml(primaryJob.location)}<br/>
+      <div style="font-size:14px; max-width:300px;">
+        <div style="display:flex; gap:0; align-items:start;">
+          ${imageHtml}
+          <div style="flex:1;">
+            <strong>${escapeHtml(primaryJob.title)}</strong><br/>
+            ${escapeHtml(primaryJob.company)}<br/>
+            ${escapeHtml(primaryJob.location)}<br/>
+          </div>
+        </div>
 
         <div style="margin-top:8px;">
           <label style="font-weight:600; display:block; margin-bottom:6px;">Other jobs here</label>
@@ -307,7 +318,6 @@
             ${options}
           </select>
 
-          <!-- Compact 'More details' link underneath for clarity -->
           <a id="${linkId}"
              href="#"
              class="apply-btn"
@@ -337,7 +347,7 @@
       }
     });
 
-    // Map + Directions services
+    // Map & Directions services
     map = new google.maps.Map(document.getElementById("map"), {
       zoom: 4,
       center: { lat: 39.8283, lng: -98.5795 }
@@ -362,31 +372,24 @@
       });
 
       marker.addListener("click", () => {
-        // Route immediately from origin to this pin
         drawRouteTo(md.lat, md.lng);
 
-        // Show dropdown + 'More details' (but do NOT auto-scroll/highlight)
         const key = locKey(md.lat, md.lng);
         const group = jobsByLocation[key] || [md];
         infoWindow.setContent(buildInfoContent(md, group));
         infoWindow.open(map, marker);
 
-        // Wire dropdown + link
         google.maps.event.addListenerOnce(infoWindow, "domready", () => {
           const selectEl = document.getElementById(`jobsAt_${md.id}`);
           const linkEl = document.getElementById(`moreBtn_${md.id}`);
 
-          // Track selected job id (starts as the clicked one)
           let selectedId = String(md.id);
           selectEl.addEventListener("change", (e) => { selectedId = e.target.value; });
 
           linkEl.addEventListener("click", (e) => {
             e.preventDefault();
-            // Update href and then highlight/scroll the card
             linkEl.href = detailUrlTemplate.replace("/0/", `/${selectedId}/`);
             highlightJobCard(selectedId);
-            // Optional: close info window after click
-            // infoWindow.close();
           });
         });
       });
@@ -418,7 +421,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const skill = raw.trim();
     if (!skill) return;
 
-    // avoid duplicates (case-insensitive)
     const exists = Array.from(selectedContainer.querySelectorAll('.skill-chip'))
       .some(chip => chip.dataset.skill.toLowerCase() === skill.toLowerCase());
     if (exists) return;
@@ -435,14 +437,12 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (skillInput && selectedContainer) {
-    // Add on Enter or comma
     skillInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ',') {
         e.preventDefault();
         addSkillChip(skillInput.value);
         skillInput.value = '';
       } else if (e.key === 'Backspace' && !skillInput.value) {
-        // Backspace with empty input removes last chip
         const chips = selectedContainer.querySelectorAll('.skill-chip');
         if (chips.length) {
           chips[chips.length - 1].remove();
@@ -450,7 +450,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // Remove chip
     selectedContainer.addEventListener('click', function (e) {
       if (e.target.classList.contains('remove-skill')) {
         e.target.closest('.skill-chip').remove();
@@ -464,7 +463,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (visaLabel && visaCheckbox) {
     visaLabel.addEventListener('click', function (e) {
-      // avoid double-toggle if clicking directly on the checkbox (just in case)
       if (e.target === visaCheckbox) return;
       e.preventDefault();
       visaCheckbox.checked = !visaCheckbox.checked;
@@ -473,4 +471,81 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 </script>
+
+<style>
+/* ✅ LOGO IN TOP RIGHT CORNER, FLOATING */
+.job-card {
+    position: relative;
+    padding: 1.5rem;
+}
+
+.job-card-logo-corner {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.job-card-info {
+    padding-right: 100px; /* Make space for logo */
+}
+
+.job-card-actions {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Tablet sizes */
+@media (max-width: 1024px) {
+    .job-card-logo-corner {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .job-card-info {
+        padding-right: 90px;
+    }
+}
+
+/* Mobile sizes */
+@media (max-width: 768px) {
+    .job-card-logo-corner {
+        width: 60px;
+        height: 60px;
+        top: 1rem;
+        right: 1rem;
+    }
+    
+    .job-card-info {
+        padding-right: 70px;
+    }
+    
+    .job-card-actions {
+        position: static;
+        flex-direction: row;
+        margin-top: 1rem;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    .job-card-logo-corner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .job-card-info {
+        padding-right: 60px;
+    }
+}
+</style>
 {% endblock content %}

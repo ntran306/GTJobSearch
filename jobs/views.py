@@ -157,6 +157,7 @@ def index(request):
                 "title": job.title,
                 "company": job.company,
                 "location": job.location,
+                "image_url": job.image.url if job.image else None,
             }
             # optionally include road distance/time for future info windows
             if hasattr(job, "road_miles"):

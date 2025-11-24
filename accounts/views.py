@@ -262,69 +262,6 @@ def edit_recruiter_profile(request):
 # ---------- CONTACT EMAIL ----------
 RATE_LIMIT_SECONDS = 60  # 1 email/minute per (sender, recipient) to prevent spam
 
-# VIEW OTHER USER'S PROFILE
-@login_required
-def profile_view(request):
-    owner = request.user
-
-    # Handle privacy updates (job seekers)
-    if request.method == "POST" and "privacy" in request.POST:
-        privacy_setting = (request.POST.get("privacy") or "").lower()
-        if hasattr(owner, "jobseekerprofile") and privacy_setting in {"public", "employers_only", "employers", "private"}:
-            if privacy_setting == "employers":
-                privacy_setting = "employers_only"
-            owner.jobseekerprofile.privacy = privacy_setting
-            owner.jobseekerprofile.save()
-            messages.success(request, "Privacy settings updated.")
-        return redirect("accounts:profile")
-
-    if hasattr(owner, "jobseekerprofile"):
-        profile = owner.jobseekerprofile
-        profile_type = "jobseeker"
-    elif hasattr(owner, "recruiterprofile"):
-        profile = owner.recruiterprofile
-        profile_type = "recruiter"
-    else:
-        profile = None
-        profile_type = None
-
-    # FIX: Add connection data for your own profile
-    STATUS_PENDING  = getattr(getattr(Connection, "Status", object()), "PENDING",  "pending")
-    STATUS_ACCEPTED = getattr(getattr(Connection, "Status", object()), "ACCEPTED", "accepted")
-
-    pending_in = (
-        Connection.objects
-        .filter(addressee=owner, status=STATUS_PENDING)
-        .select_related("requester")
-        .order_by("-created_at")
-    )
-    pending_out = (
-        Connection.objects
-        .filter(requester=owner, status=STATUS_PENDING)
-        .select_related("addressee")
-        .order_by("-created_at")
-    )
-    connections = (
-        Connection.objects
-        .filter(Q(requester=owner) | Q(addressee=owner), status=STATUS_ACCEPTED)
-        .select_related("requester", "addressee")
-        .order_by("-responded_at", "-created_at")
-    )
-
-    return render(request, "accounts/profile.html", {
-        "owner": owner,
-        "is_owner": True,
-        "profile": profile,
-        "profile_type": profile_type,
-        "can_email": False,  # never email yourself
-        "saved_jobs": [] if profile_type == "jobseeker" else None,
-        # Connection data:
-        "pending_in": pending_in,
-        "pending_out": pending_out,
-        "connections": connections,
-    })
-
-
 # ---------- VIEW OTHER USER'S PROFILE ----------
 @login_required
 def view_profile(request, user_id: int):
@@ -500,12 +437,14 @@ def connect(request):
         js_qs = JobSeekerProfile.objects.none()
 
     # Map to lightweight dicts for cards + markers.
-    # If you later add latitude/longitude fields to profiles, include them here (and markers will be instant).
     def map_jobseeker(p):
         skill_names = ", ".join(p.skills.values_list("name", flat=True))
-        # Try to read lat/lng if you add them later; else None
         lat_val = getattr(p, "latitude", None)
         lng_val = getattr(p, "longitude", None)
+        
+        # Add profile picture URL
+        profile_pic_url = p.profile_picture.url if p.profile_picture else None
+        
         return {
             "id": p.user_id,
             "username": p.user.username,
@@ -516,22 +455,28 @@ def connect(request):
             "lat": float(lat_val) if lat_val is not None else None,
             "lng": float(lng_val) if lng_val is not None else None,
             "profile_type": "jobseeker",
+            "profile_picture": profile_pic_url,
         }
 
     def map_recruiter(p):
-        lat_val = getattr(p, "latitude", None)   # if/when you add these fields
+        lat_val = getattr(p, "latitude", None)
         lng_val = getattr(p, "longitude", None)
+        
+        # Add profile picture URL
+        profile_pic_url = p.profile_picture.url if p.profile_picture else None
+        
         return {
             "id": p.user_id,
             "username": p.user.username,
             "email": p.user.email,
             "headline": f"Recruiter at {p.company}" if p.company else "Recruiter",
             "skills": "",
-            "location_text": getattr(p, "location", "") or "",   # if/when you add
+            "location_text": getattr(p, "location", "") or "",
             "lat": float(lat_val) if lat_val is not None else None,
             "lng": float(lng_val) if lng_val is not None else None,
             "profile_type": "recruiter",
             "company_or_school": p.company or "",
+            "profile_picture": profile_pic_url,
         }
 
     js_items = [map_jobseeker(p) for p in js_qs]
@@ -543,7 +488,31 @@ def connect(request):
     paginator = Paginator(items, 12)
     page_obj = paginator.get_page(page)
 
-    # Markers for all (not just current page) so the map shows the full picture — or switch to page_obj.object_list if you prefer.
+    # Build connection relationship data for each person on the current page
+    page_user_ids = [item["id"] for item in page_obj.object_list]
+    
+    # Fetch all connections between current user and users on this page
+    connections_qs = Connection.objects.filter(
+        Q(requester=user, addressee_id__in=page_user_ids) |
+        Q(addressee=user, requester_id__in=page_user_ids)
+    ).select_related("requester", "addressee")
+    
+    # Build a lookup dict: other_user_id -> connection info
+    connection_map = {}
+    for conn in connections_qs:
+        other_id = conn.addressee_id if conn.requester_id == user.id else conn.requester_id
+        status_str = str(getattr(conn, "status", "")).lower()
+        connection_map[other_id] = {
+            "status": status_str,
+            "incoming": (status_str == "pending" and conn.requester_id == other_id),
+            "outgoing": (status_str == "pending" and conn.requester_id == user.id),
+        }
+    
+    # Attach connection_relation to each item
+    for item in page_obj.object_list:
+        item["connection_relation"] = connection_map.get(item["id"])
+
+    # Markers for all (not just current page) so the map shows the full picture
     user_markers = []
     for it in items:
         user_markers.append({
@@ -557,13 +526,14 @@ def connect(request):
             "lng": it["lng"],
             "profileUrl": reverse("accounts:view_profile", args=[it["id"]]),
             "contactUrl": reverse("accounts:contact_user", args=[it["id"]]),
+            "profilePicture": it.get("profile_picture"),
         })
 
     return render(request, "accounts/connect.html", {
         "page_obj": page_obj,
         "q": q,
         "role": role,
-        "MAPS_KEY": settings.GOOGLE_MAPS_API_KEY,  # expose browser key only on this page
+        "MAPS_KEY": settings.GOOGLE_MAPS_API_KEY,
         "user_markers_json": json.dumps(user_markers),
         "lat": lat,
         "lng": lng,
