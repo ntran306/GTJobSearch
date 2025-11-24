@@ -867,12 +867,13 @@
         `).join('');
         
         document.querySelectorAll('.notification-item').forEach(item => {
-          item.addEventListener('click', function() {
-            const notificationId = this.dataset.id;
-            const candidateId = this.dataset.candidateId;
-            markAsRead(notificationId);
-            window.location.href = `/profiles/${candidateId}/`;
-          });
+            item.addEventListener('click', function() {
+                const notificationId = this.dataset.id;
+                const candidateId = this.dataset.candidateId;
+                markAsRead(notificationId);
+
+                window.location.href = `/accounts/view/${candidateId}/`;
+            });
         });
       }
       
