@@ -14,73 +14,116 @@
     </div>
 
     <!-- Search & Filter Form -->
-    <form method="get" action="" class="filter-form">
-        <input type="text" 
-            name="search" 
-            placeholder="Search by job title or company..." 
-            value="{{ request.GET.search }}">
+    <form method="get" action="" class="filter-form jobs-filter-form">
 
-        <!-- Google Maps Autocomplete location input -->
-        <input id="location-input"
-            type="text" 
-            name="location" 
-            placeholder="Search by location..." 
-            value="{{ request.GET.location }}">
+      <!-- ROW 1: Search / Location / Radius -->
+      <div class="filter-row">
+        <div class="filter-field">
+          <input type="text"
+                id="search"
+                name="search"
+                placeholder="Search by job title or company..."
+                value="{{ request.GET.search }}">
+        </div>
 
-        <!-- Hidden fields for lat/lng -->
-        <input type="hidden" id="lat-input" name="lat" value="{{ request.GET.lat }}">
-        <input type="hidden" id="lng-input" name="lng" value="{{ request.GET.lng }}">
+        <div class="filter-field">
+          <input id="location-input"
+                type="text"
+                name="location"
+                placeholder="Search by location..."
+                value="{{ request.GET.location }}">
 
-        <!-- Numeric radius input -->
-        <input type="number" 
-            name="radius" 
-            placeholder="Radius in miles" 
-            min="1" 
-            value="{{ request.GET.radius }}">
+          <!-- Hidden fields for lat/lng -->
+          <input type="hidden" id="lat-input" name="lat" value="{{ request.GET.lat }}">
+          <input type="hidden" id="lng-input" name="lng" value="{{ request.GET.lng }}">
+        </div>
 
-        <select name="pay_type">
-            <option value="all">All Pay Types</option>
+        <div class="filter-field">
+          <input type="number"
+                id="radius"
+                name="radius"
+                placeholder="Radius in miles"
+                min="1"
+                value="{{ request.GET.radius }}">
+        </div>
+      </div>
+
+      <!-- ROW 2: Pay type / Min / Max / Visa pill -->
+      <div class="filter-row">
+        <div class="filter-field">
+          <select name="pay_type" id="pay_type">
+            <option value="all" {% if request.GET.pay_type == "all" or not request.GET.pay_type %}selected{% endif %}>All Pay Types</option>
             <option value="annual" {% if request.GET.pay_type == "annual" %}selected{% endif %}>Annual</option>
             <option value="monthly" {% if request.GET.pay_type == "monthly" %}selected{% endif %}>Monthly</option>
             <option value="hourly" {% if request.GET.pay_type == "hourly" %}selected{% endif %}>Hourly</option>
-        </select>
-
-        <input type="number" 
-            name="min_salary" 
-            placeholder="Min salary" 
-            value="{{ request.GET.min_salary }}">
-        
-        <input type="number" 
-            name="max_salary" 
-            placeholder="Max salary" 
-            value="{{ request.GET.max_salary }}">
-
-        <!-- Visa Sponsorship Filter -->
-        <label style="margin-left: 10px;">
-            <input type="checkbox" name="visa" {% if request.GET.visa %}checked{% endif %}>
-            Visa Sponsorship
-        </label>
-
-        <div class="dropdown-checklist">
-            <div class="dropdown-header" onclick="toggleDropdown()">
-                <i class="fas fa-tools"></i> Filter by Skills
-                <span class="arrow">&#9662;</span>
-            </div>
-            <div id="skillsDropdown" class="dropdown-list" style="display: none;">
-                {% for skill in all_skills %}
-                <label class="dropdown-item">
-                    <input type="checkbox" name="skills" value="{{ skill.name }}"
-                        {% if skill.name in selected_skills %}checked{% endif %}>
-                    {{ skill.name }}
-                </label>
-                {% endfor %}
-            </div>
+          </select>
         </div>
 
+        <div class="filter-field">
+          <input type="number"
+                id="min_salary"
+                name="min_salary"
+                placeholder="Min salary"
+                value="{{ request.GET.min_salary }}">
+        </div>
+
+        <div class="filter-field">
+          <input type="number"
+                id="max_salary"
+                name="max_salary"
+                placeholder="Max salary"
+                value="{{ request.GET.max_salary }}">
+        </div>
+
+        <div class="filter-field filter-field-right">
+          <label class="visa-toggle {% if request.GET.visa %}active{% endif %}">
+            <input type="checkbox" name="visa" id="visaCheckbox" {% if request.GET.visa %}checked{% endif %}>
+            <span class="visa-pill">
+              <i class="fas fa-passport"></i>
+              Visa Sponsorship
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ROW 3: Skills full-width -->
+      <div class="filter-row skills-row">
+        <div class="filter-field filter-field-full">
+
+          <!-- Small skills input -->
+          <input
+            type="text"
+            id="skillSearchInput"
+            placeholder="Type a skill and press Enter..."
+            autocomplete="off"
+            list="allSkillsList">
+
+          <!-- Chips right under the input -->
+          <div id="selectedSkills" class="skills-chips">
+            {% for skill in selected_skills %}
+              <span class="skill-chip" data-skill="{{ skill }}">
+                <span class="skill-label">{{ skill }}</span>
+                <button type="button" class="remove-skill">&times;</button>
+                <input type="hidden" name="skills" value="{{ skill }}">
+              </span>
+            {% endfor %}
+          </div>
+
+          <datalist id="allSkillsList">
+            {% for skill in all_skills %}
+              <option value="{{ skill.name }}"></option>
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      <!-- ROW 4: Centered Search button -->
+      <div class="filter-row filter-row-center">
         <button type="submit" class="search-btn">
-            <i class="fas fa-search"></i>
-            Search Jobs
+          <i class="fas fa-search"></i>
+          Search Jobs
         </button>
+      </div>
     </form>
 
     <!-- Results Header -->
@@ -361,5 +404,73 @@
 <script
   src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initAutocomplete"
   async defer>
+</script>
+
+<!-- Skills filter update -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  /* ====== Skill chips / multi-skill filter ====== */
+  const skillInput = document.getElementById('skillSearchInput');
+  const selectedContainer = document.getElementById('selectedSkills');
+
+  function addSkillChip(raw) {
+    if (!raw) return;
+    const skill = raw.trim();
+    if (!skill) return;
+
+    // avoid duplicates (case-insensitive)
+    const exists = Array.from(selectedContainer.querySelectorAll('.skill-chip'))
+      .some(chip => chip.dataset.skill.toLowerCase() === skill.toLowerCase());
+    if (exists) return;
+
+    const span = document.createElement('span');
+    span.className = 'skill-chip';
+    span.dataset.skill = skill;
+    span.innerHTML = `
+      <span class="skill-label">${skill}</span>
+      <button type="button" class="remove-skill">&times;</button>
+      <input type="hidden" name="skills" value="${skill}">
+    `;
+    selectedContainer.appendChild(span);
+  }
+
+  if (skillInput && selectedContainer) {
+    // Add on Enter or comma
+    skillInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addSkillChip(skillInput.value);
+        skillInput.value = '';
+      } else if (e.key === 'Backspace' && !skillInput.value) {
+        // Backspace with empty input removes last chip
+        const chips = selectedContainer.querySelectorAll('.skill-chip');
+        if (chips.length) {
+          chips[chips.length - 1].remove();
+        }
+      }
+    });
+
+    // Remove chip
+    selectedContainer.addEventListener('click', function (e) {
+      if (e.target.classList.contains('remove-skill')) {
+        e.target.closest('.skill-chip').remove();
+      }
+    });
+  }
+
+  /* ====== Visa Sponsorship pill toggle ====== */
+  const visaLabel = document.querySelector('.visa-toggle');
+  const visaCheckbox = document.getElementById('visaCheckbox');
+
+  if (visaLabel && visaCheckbox) {
+    visaLabel.addEventListener('click', function (e) {
+      // avoid double-toggle if clicking directly on the checkbox (just in case)
+      if (e.target === visaCheckbox) return;
+      e.preventDefault();
+      visaCheckbox.checked = !visaCheckbox.checked;
+      visaLabel.classList.toggle('active', visaCheckbox.checked);
+    });
+  }
+});
 </script>
 {% endblock content %}

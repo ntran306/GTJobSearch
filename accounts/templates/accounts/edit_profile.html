@@ -28,25 +28,48 @@
       <div class="profile-avatar centered-avatar">
         <div class="avatar-placeholder">
           {% if profile.profile_picture %}
-            <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}'s avatar" class="avatar-img">
+            <img src="{{ profile.profile_picture.url }}"
+                 alt="{{ user.username }}'s avatar"
+                 class="avatar-img"
+                 id="avatarPreview">
           {% else %}
-            <i class="fas fa-user avatar-icon"></i>
+            {# Use a default placeholder image so JS always has an <img> to target #}
+            <img src="{% static 'img/default-avatar.png' %}"
+                 alt="Default avatar"
+                 class="avatar-img"
+                 id="avatarPreview">
           {% endif %}
         </div>
 
         {% if form.profile_picture %}
           <div class="avatar-input">
-            <!-- This is the only visible button -->
-            <label for="{{ form.profile_picture.id_for_label }}" class="btn btn-outline btn-sm">
+          <!-- Visible button -->
+          <label for="{{ form.profile_picture.id_for_label }}" class="btn btn-outline btn-sm">
               Change Photo
-            </label>
+          </label>
 
-            <!-- Hidden file input (still bound to form field) -->
-            {{ form.profile_picture }}
-            {% if form.profile_picture.errors %}
-              <span class="error-message">{{ form.profile_picture.errors|striptags }}</span>
-            {% endif %}
-          </div>
+          <!-- Django raw file input (hidden visually) -->
+          {{ form.profile_picture }}
+
+          {% if form.profile_picture.errors %}
+            <span class="error-message">{{ form.profile_picture.errors|striptags }}</span>
+          {% endif %}
+
+          <!-- Hide Django's "Currently: file.jpg" text + Clear checkbox -->
+          <style>
+              /* Hide the ugly 'Currently: file.jpg' Django output */
+              .avatar-input a,
+              .avatar-input .clearable-file-input,
+              .avatar-input p {
+                  display: none !important;
+              }
+
+              /* Keep actual file input hidden */
+              .avatar-input input[type="file"] {
+                  display: none !important;
+              }
+          </style>
+      </div>
         {% endif %}
       </div>
 
@@ -81,9 +104,45 @@
       <div class="section-content">
         <div class="form-group">
           {{ form.skills.label_tag }}
-          {{ form.skills }}
-          {% if form.skills.errors %}<span class="error-message">{{ form.skills.errors|striptags }}</span>{% endif %}
-          {% if form.skills.help_text %}<span class="help-text">{{ form.skills.help_text }}</span>{% endif %}
+
+          <!-- Search + Add row -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="flex: 1; position: relative;">
+              <input type="text"
+                     id="skillSearch"
+                     placeholder="Search for skills..."
+                     autocomplete="off"
+                     style="width: 100%; padding: 0.875rem 2.5rem 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; background: #f7fafc;">
+              <i class="fas fa-search"
+                 style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+            </div>
+
+            <!-- Same yellow gradient button as signup -->
+            <button type="button" id="addSkillBtn" class="add-skill-btn">
+              <i class="fas fa-plus"></i>
+              <span>Add</span>
+            </button>
+          </div>
+
+          <!-- Dropdown results -->
+          <div id="skillDropdown"
+               style="display: none; max-height: 200px; overflow-y: auto; border: 2px solid #e2e8f0; border-radius: 12px; background: white; margin-bottom: 0.5rem;">
+          </div>
+
+          <!-- Selected skills chips -->
+          <div id="selectedSkills"
+               style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; min-height: 40px; padding: 0.5rem; background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
+          </div>
+
+          <!-- Hidden field that actually gets submitted -->
+          <input type="hidden" name="skills" id="skillsInput" value="">
+
+          {% if form.skills.errors %}
+            <span class="error-message">{{ form.skills.errors|striptags }}</span>
+          {% endif %}
+          {% if form.skills.help_text %}
+            <span class="help-text">{{ form.skills.help_text }}</span>
+          {% endif %}
         </div>
       </div>
     </section>
@@ -172,11 +231,198 @@
     {% endif %}
 
     <!-- ==================== SAVE / CANCEL ==================== -->
-    <div class="form-actions" style="margin: 1.25rem 0;">
+    <div class="form-actions" style="margin: 1.25rem 0%;">
       <button type="submit" class="btn btn-primary">Save Changes</button>
       <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Cancel</a>
     </div>
 
   </form>
 </div>
+
+{% if skills %}
+  {{ skills|json_script:"available-skills" }}
+  {{ selected_skills|json_script:"selected-skills" }}
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ===== Avatar preview (existing code) =====
+    const fileInput = document.getElementById("{{ form.profile_picture.id_for_label }}");
+    const previewImg = document.getElementById("avatarPreview");
+
+    if (fileInput && previewImg) {
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith("image/")) {
+                alert("Please select a valid image file.");
+                fileInput.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ===== Skills widget (same behavior as signup) =====
+    const availableNode = document.getElementById('available-skills');
+    const selectedNode  = document.getElementById('selected-skills');
+
+    if (!availableNode || !selectedNode) return;  // safety net
+
+    const availableSkills = JSON.parse(availableNode.textContent);
+    let selectedSkills    = JSON.parse(selectedNode.textContent);
+
+    const skillSearch      = document.getElementById('skillSearch');
+    const skillDropdown    = document.getElementById('skillDropdown');
+    const selectedSkillsDiv= document.getElementById('selectedSkills');
+    const skillsInput      = document.getElementById('skillsInput');
+    const addSkillBtn      = document.getElementById('addSkillBtn');
+
+    function filterSkills(searchText) {
+        const filtered = availableSkills.filter(skill =>
+            skill.name.toLowerCase().includes(searchText.toLowerCase()) &&
+            !selectedSkills.find(s => s.id === skill.id)
+        );
+        skillDropdown.innerHTML = filtered.map(skill =>
+            `<div class="skill-option" data-id="${skill.id}" data-name="${skill.name}">${skill.name}</div>`
+        ).join('');
+        skillDropdown.style.display = filtered.length ? 'block' : 'none';
+    }
+
+    function addSkill(id, name) {
+        if (!selectedSkills.find(s => s.id === id)) {
+            selectedSkills.push({ id, name });
+            renderSelectedSkills();
+            updateHiddenInput();
+        }
+        if (skillSearch) skillSearch.value = '';
+        skillDropdown.style.display = 'none';
+    }
+
+    function removeSkill(id) {
+        selectedSkills = selectedSkills.filter(s => s.id !== id);
+        renderSelectedSkills();
+        updateHiddenInput();
+    }
+
+    function renderSelectedSkills() {
+        if (!selectedSkills.length) {
+            selectedSkillsDiv.innerHTML = '<span style="color: var(--gray-400);">No skills selected yet</span>';
+            return;
+        }
+        selectedSkillsDiv.innerHTML = selectedSkills.map(skill =>
+            `<span class="skill-tag" style="display:inline-flex;align-items:center;gap:0.5rem; padding: 0.35rem 0.7rem; border-radius: 999px; background: #FFF7E0; border: 1px solid #FACC15; font-size: 0.9rem;">
+                ${skill.name}
+                <button type="button"
+                        onclick="removeSkill(${skill.id})"
+                        style="background:none;border:none;color:#B45309;font-weight:bold;cursor:pointer;line-height:1;">
+                    ×
+                </button>
+            </span>`
+        ).join('');
+    }
+
+    function updateHiddenInput() {
+        skillsInput.value = selectedSkills.map(s => s.id).join(',');
+    }
+
+    // expose removeSkill for inline onclick
+    window.removeSkill = removeSkill;
+
+    // Events
+    if (skillSearch) {
+        skillSearch.addEventListener('input', e => filterSkills(e.target.value));
+    }
+
+    if (skillDropdown) {
+        skillDropdown.addEventListener('click', e => {
+            if (e.target.classList.contains('skill-option')) {
+                addSkill(parseInt(e.target.dataset.id), e.target.dataset.name);
+            }
+        });
+    }
+
+    if (addSkillBtn && skillSearch) {
+        addSkillBtn.addEventListener('click', async () => {
+            const skillName = skillSearch.value.trim();
+            if (!skillName) return alert('Enter a skill name first');
+
+            const existingSkill = availableSkills.find(
+                s => s.name.toLowerCase() === skillName.toLowerCase()
+            );
+            if (existingSkill) return addSkill(existingSkill.id, existingSkill.name);
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            try {
+                const res = await fetch('/accounts/api/skills/create/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                    body: JSON.stringify({ name: skillName })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    availableSkills.push({ id: data.id, name: data.name });
+                    addSkill(data.id, data.name);
+                } else {
+                    alert('Failed to add skill.');
+                }
+            } catch (err) {
+                console.error('Error adding skill:', err);
+            }
+        });
+    }
+
+    document.addEventListener('click', e => {
+        if (skillSearch && skillDropdown &&
+            !skillSearch.contains(e.target) &&
+            !skillDropdown.contains(e.target)) {
+            skillDropdown.style.display = 'none';
+        }
+    });
+
+    // initialize from server
+    renderSelectedSkills();
+    updateHiddenInput();
+  });
+  </script>
+
+  <style>
+  .add-skill-btn {
+      padding: 0.75rem 1.25rem;
+      background: linear-gradient(135deg, #FFE082 0%, #FFC107 40%, #FFB300 100%);
+      color: #111827;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: opacity 0.2s;
+  }
+
+  .add-skill-btn:hover {
+      opacity: 0.9;
+  }
+
+  .skill-option {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-800);
+  }
+  .skill-option:hover {
+      background: var(--primary-50);
+      color: var(--gray-900);
+  }
+  .skill-option:last-child { border-bottom: none; }
+  </style>
+{% endif %}
 {% endblock %}

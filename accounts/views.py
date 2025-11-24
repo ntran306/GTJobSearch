@@ -200,9 +200,11 @@ def edit_profile(request):
     if hasattr(user, "jobseekerprofile"):
         profile = user.jobseekerprofile
         form_class = JobSeekerProfileForm
+        is_jobseeker = True
     elif hasattr(user, "recruiterprofile"):
         profile = user.recruiterprofile
         form_class = RecruiterProfileForm
+        is_jobseeker = False
     else:
         return redirect("accounts:profile")  # fallback if no profile
 
@@ -215,10 +217,16 @@ def edit_profile(request):
     else:
         form = form_class(instance=profile)
 
-    return render(request, "accounts/edit_profile.html", {
+    context = {
         "form": form,
         "profile": profile,
-    })
+    }
+
+    if is_jobseeker:
+        context["skills"] = list(Skill.objects.values("id", "name"))
+        context["selected_skills"] = list(profile.skills.values("id", "name"))
+
+    return render(request, "accounts/edit_profile.html", context)
 
 
 # ---------- OPTIONAL SEPARATE RECRUITER EDIT ----------
@@ -237,7 +245,10 @@ def edit_recruiter_profile(request):
     else:
         form = RecruiterProfileForm(instance=profile)
 
-    return render(request, "accounts/edit_recruiter_profile.html", {"form": form})
+    return render(request, "accounts/edit_recruiter_profile.html", {
+        "form": form,
+        "profile": profile,
+    })
 
 # ---------- CONTACT EMAIL ----------
 RATE_LIMIT_SECONDS = 60  # 1 email/minute per (sender, recipient) to prevent spam

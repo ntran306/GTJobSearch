@@ -165,10 +165,10 @@ class RecruiterSignUpForm(UserCreationForm):
 #  JOB SEEKER PROFILE FORM (for editing)
 # ----------------------------
 class JobSeekerProfileForm(forms.ModelForm):
-    skills = forms.ModelMultipleChoiceField(
-        queryset=None,  # set in __init__
-        widget=forms.CheckboxSelectMultiple,
+    # CSV of skill IDs in a hidden field, e.g. "3,2,1,96"
+    skills = forms.CharField(
         required=False,
+        widget=forms.HiddenInput(),  # your template renders a custom UI + hidden input
         help_text="Select the skills you have",
     )
 
@@ -223,24 +223,23 @@ class JobSeekerProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from jobs.models import Skill
 
-        self.fields["skills"].queryset = Skill.objects.all()
-
-        # Add consistent style for all fields
+        # style visible fields only
         for name, field in self.fields.items():
+            if isinstance(field.widget, forms.HiddenInput):
+                continue  # don't style hidden skills field
+
             existing = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = (existing + " form-input").strip()
-            # textareas
+
             if isinstance(field.widget, forms.widgets.Textarea):
                 field.widget.attrs.setdefault("rows", 5)
                 field.widget.attrs.setdefault("style", "min-height:100px;")
-            # placeholders
+
             if not field.widget.attrs.get("placeholder") and field.label:
                 field.widget.attrs["placeholder"] = field.label
 
     def clean_resume(self):
-        """Validate resume file size and type."""
         resume = self.cleaned_data.get("resume")
         if resume:
             # 5MB limit
@@ -255,13 +254,44 @@ class JobSeekerProfileForm(forms.ModelForm):
         return resume
 
     def clean_profile_picture(self):
-        """Optional: validate profile picture size/type."""
         image = self.cleaned_data.get("profile_picture")
         if image:
             # Example: 3MB limit for avatar
             if image.size > 3 * 1024 * 1024:
                 raise ValidationError("Profile picture must be under 3MB.")
         return image
+
+    def save(self, commit=True):
+        from jobs.models import Skill
+
+        # IMPORTANT: commit=False so we *don't* let ModelForm auto-handle M2M
+        profile = super().save(commit=False)
+
+        if commit:
+            profile.save()
+
+        # Parse CSV safely: "3,2,1,96" -> [3,2,1,96]
+        skills_csv = (self.cleaned_data.get("skills") or "").strip()
+        skill_ids = []
+        if skills_csv:
+            for chunk in skills_csv.split(","):
+                chunk = chunk.strip()
+                if not chunk:
+                    continue
+                try:
+                    skill_ids.append(int(chunk))
+                except ValueError:
+                    # skip any junk like stray commas / bad values instead of blowing up
+                    continue
+
+        if commit and profile.pk:
+            if skill_ids:
+                profile.skills.set(Skill.objects.filter(id__in=skill_ids))
+            else:
+                # allow clearing all skills on edit
+                profile.skills.clear()
+
+        return profile
 
 
 # ----------------------------

@@ -93,63 +93,79 @@
         </div>
 
         <div class="job-card-actions">
-          <a href="{% url 'accounts:view_profile' p.id %}" class="apply-btn">
+          <!-- View Profile styled like search.html -->
+          <a href="{% url 'accounts:view_profile' p.id %}"
+            class="btn btn-secondary">
             <i class="fas fa-eye"></i>
             View Profile
           </a>
-          
-          {% if request.user.id != p.id %}
+
+          {% if request.user.is_authenticated and request.user.id != p.id %}
             {% with relation=p.connection_relation %}
+
               {% if relation %}
                 {% if relation.status == "accepted" %}
-                  <!-- Connected: Show Message button -->
+                  <!-- Connected: show Message -->
                   <a href="{% url 'communication:start_conversation' user_id=p.id %}"
-                     class="save-btn js-open-chat"
-                     data-user-id="{{ p.id }}"
-                     data-name="{{ p.username }}">
+                    class="btn btn-primary js-open-chat"
+                    style="margin-left:0.5rem;"
+                    data-user-id="{{ p.id }}"
+                    data-name="{{ p.username }}">
                     <i class="fas fa-comments"></i>
                     Message
                   </a>
 
                 {% elif relation.status == "pending" and relation.incoming %}
-                  <!-- Incoming request: Accept/Decline -->
-                  <form method="post" action="{% url 'communication:connections_accept' user_id=p.id %}" style="display:inline;">
+                  <!-- Incoming request: Accept -->
+                  <form method="post"
+                        action="{% url 'communication:connections_accept' user_id=p.id %}"
+                        style="display:inline-block; margin-left:0.5rem;">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="save-btn" style="background:#48bb78;">
-                      <i class="fas fa-check"></i> Accept
+                    <button type="submit" class="btn btn-success">
+                      <i class="fas fa-check"></i>
+                      Accept
                     </button>
                   </form>
 
                 {% elif relation.status == "pending" and relation.outgoing %}
                   <!-- Outgoing request: Pending -->
-                  <button type="button" class="save-btn" disabled style="opacity:0.6; cursor:not-allowed;">
+                  <button type="button"
+                          class="btn btn-secondary"
+                          style="margin-left:0.5rem; opacity:0.7; cursor:not-allowed;"
+                          disabled>
                     <i class="fas fa-hourglass-half"></i>
                     Pending
                   </button>
 
                 {% else %}
-                  <!-- Declined or unknown: Show Connect -->
-                  <form method="post" action="{% url 'communication:connections_request' user_id=p.id %}" style="display:inline;">
+                  <!-- Declined / unknown: allow new request -->
+                  <form method="post"
+                        action="{% url 'communication:connections_request' user_id=p.id %}"
+                        style="display:inline-block; margin-left:0.5rem;">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="save-btn">
+                    <button type="submit" class="btn btn-primary">
                       <i class="fas fa-user-plus"></i>
                       Connect
                     </button>
                   </form>
                 {% endif %}
+
               {% else %}
-                <!-- No relation: Show Connect -->
-                <form method="post" action="{% url 'communication:connections_request' user_id=p.id %}" style="display:inline;">
+                <!-- No relation: Connect Now -->
+                <form method="post"
+                      action="{% url 'communication:connections_request' user_id=p.id %}"
+                      style="display:inline-block; margin-left:0.5rem;">
                   {% csrf_token %}
                   <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                  <button type="submit" class="save-btn">
+                  <button type="submit" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i>
                     Connect
                   </button>
                 </form>
               {% endif %}
+
             {% endwith %}
           {% endif %}
         </div>

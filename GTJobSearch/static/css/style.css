@@ -2242,6 +2242,23 @@ footer {
   cursor: pointer;
 }
 
+.avatar-clear {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.avatar-clear input[type="checkbox"] {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.avatar-clear label {
+    cursor: pointer;
+}
+
 @media (max-width: 768px) { /* Just makes it look better on mobile supposedly */
   .profile-card.profile-header {
     flex-direction: column;
@@ -2314,6 +2331,103 @@ footer {
     line-height: 1.6;
 }
 
+/* Visa pill styling */
+.visa-toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.visa-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.visa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid #cbd5e1;
+  background: #f9fafb;
+  color: #2d3748;
+  transition: all 0.15s ease;
+}
+
+/* When selected — full GT Blue pill */
+.visa-toggle.active .visa-pill {
+  background: #003057;      /* GT Blue */
+  border-color: #003057;
+  color: white;
+}
+
+/* Make the passport icon white too */
+.visa-toggle.active .visa-pill i {
+  color: white;
+}
+
+.skills-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 220px;
+}
+
+.skills-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  background: #ffffff;
+  border: 1px solid #d1d5db;   /* SAME border as other boxes */
+  border-radius: 10px;         /* SAME radius as others */
+
+  padding: 0.55rem 0.9rem;     /* SAME padding as inputs */
+  min-height: 40px;            /* SAME height */
+
+  box-sizing: border-box;
+}
+
+
+#skillSearchInput {
+    border: none;
+    outline: none;
+    flex: 1 0 160px;
+    min-width: 120px;
+    font-size: 0.9rem;
+}
+
+.skills-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #edf2f7;
+    color: #2d3748;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.78rem;
+}
+
+.skill-chip .remove-skill {
+    border: none;
+    background: transparent;
+    margin-left: 0.25rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    color: #4a5568;
+}
+
+.skill-chip .remove-skill:hover {
+    color: #e53e3e;
+}
+
 .skills-display {
     display: flex;
     flex-wrap: wrap;
@@ -2327,6 +2441,31 @@ footer {
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+.add-sill-btn,
+.add-skill-btn {
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, #FFE082 0%, #FFC107 40%, #FFB300 100%);
+    color: #111827;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.add-skill-btn i {
+    font-size: 0.9rem;
+}
+
+.add-skill-btn:hover {
+    opacity: 0.9;
 }
 
 .profile-link {
@@ -3042,6 +3181,128 @@ form[action*="profile"] .btn {
    ======================================== */
 
 
+/* Filter for searchbars for jobs */
+.filter-form.jobs-filter-form {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto 1.25rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+}
+
+/* Each row (1–4) */
+.filter-form.jobs-filter-form .filter-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+/* Fields in a row */
+.filter-form.jobs-filter-form .filter-field {
+  flex: 1 1 0;
+}
+
+/* Full-width field (skills row) */
+.filter-form.jobs-filter-form .filter-field-full {
+  flex: 1 1 100%;
+}
+
+/* Inputs/selects: normal, not tall */
+.filter-form.jobs-filter-form input[type="text"],
+.filter-form.jobs-filter-form input[type="number"],
+.filter-form.jobs-filter-form select {
+  width: 100%;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  background-color: #f9fafb;
+  color: #1a202c;
+  box-sizing: border-box;
+}
+
+/* Focus */
+.filter-form.jobs-filter-form input[type="text"]:focus,
+.filter-form.jobs-filter-form input[type="number"]:focus,
+.filter-form.jobs-filter-form select:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 1px rgba(49, 130, 206, 0.25);
+  background: #ffffff;
+}
+
+/* Fix select arrow weirdness for pay_type */
+.filter-form.jobs-filter-form select {
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  appearance: auto;
+  background-image: none;
+  padding-right: 0.55rem;
+}
+
+/* Visa pill alignment (row 2 last column) */
+.filter-form.jobs-filter-form .filter-field-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Row 4: centered Search button */
+.filter-form.jobs-filter-form .filter-row-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.3rem;
+}
+
+.filter-form.jobs-filter-form .filter-row-center .search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 1.3rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+}
+
+/* ========= SKILLS (COMPACT) ========= */
+
+/* Row with skills: if you want slightly less gap, tweak here */
+.filter-form.jobs-filter-form .skills-row {
+  margin-bottom: 0.35rem;
+}
+
+/* Simple vertical stack: input, then chips */
+.filter-form.jobs-filter-form .skills-chips {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Individual chip: tiny */
+.filter-form.jobs-filter-form .skill-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #edf2f7;
+  color: #2d3748;
+  border-radius: 999px;
+  padding: 0.08rem 0.4rem;
+  font-size: 0.75rem;
+}
+
+.filter-form.jobs-filter-form .skill-chip .remove-skill {
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  margin-left: 0.2rem;
+  cursor: pointer;
+}
+
 /* Updated Page Container */
 .page-container {
     margin: 0 auto;
@@ -3388,6 +3649,34 @@ form[action*="profile"] .btn {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
+}
+
+.jobs-list .no-results {
+  text-align: center !important;
+  margin: 2rem auto !important;
+  max-width: 480px;
+}
+
+.jobs-list .no-results i {
+  display: block;
+  font-size: 2rem;
+  color: #a0aec0;
+  margin-bottom: 0.5rem;
+}
+
+.jobs-list > .no-results {
+  grid-column: 1 / -1;      /* span all grid columns */
+  justify-self: center;     /* center horizontally in the grid */
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 480px;
+}
+
+.jobs-list > .no-results i {
+  display: block;
+  font-size: 2rem;
+  color: #a0aec0;
+  margin-bottom: 0.5rem;
 }
 
 .job-card {

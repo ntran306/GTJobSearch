@@ -126,10 +126,66 @@
       <a href="{% url 'accounts:view_profile' candidate.user.id %}" class="btn btn-secondary view-profile-btn">
         View Profile
       </a>
-      {% if candidate.user.email %}
-      <a href="{% url 'accounts:contact_user' candidate.user.id %}" class="btn btn-primary" style="margin-top:1rem;">
-        <i class="fas fa-envelope"></i> Contact
-      </a>
+      {% if request.user.is_authenticated and request.user.id != candidate.user.id %}
+        {% with relation=candidate.user.connection_relation %}
+
+          {% if relation %}
+            {% if relation.status == "accepted" %}
+              <!-- Already connected → show Message -->
+              <a href="{% url 'communication:start_conversation' user_id=candidate.user.id %}"
+                class="btn btn-primary"
+                style="margin-top:1rem;">
+                <i class="fas fa-comments"></i> Message
+              </a>
+
+            {% elif relation.status == "pending" and relation.incoming %}
+              <!-- Incoming request → Accept -->
+              <form method="post"
+                    action="{% url 'communication:connections_accept' user_id=candidate.user.id %}"
+                    style="margin-top:1rem;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-check"></i> Accept Request
+                </button>
+              </form>
+
+            {% elif relation.status == "pending" and relation.outgoing %}
+              <!-- Outgoing request → Pending -->
+              <button type="button"
+                      class="btn btn-secondary"
+                      style="margin-top:1rem;"
+                      disabled>
+                <i class="fas fa-hourglass-half"></i> Pending
+              </button>
+
+            {% else %}
+              <!-- Declined or unknown → allow new request -->
+              <form method="post"
+                    action="{% url 'communication:connections_request' user_id=candidate.user.id %}"
+                    style="margin-top:1rem;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-user-plus"></i> Connect Now
+                </button>
+              </form>
+            {% endif %}
+
+          {% else %}
+            <!-- No relation → Connect Now -->
+            <form method="post"
+                  action="{% url 'communication:connections_request' user_id=candidate.user.id %}"
+                  style="margin-top:1rem;">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Connect Now
+              </button>
+            </form>
+          {% endif %}
+
+        {% endwith %}
       {% endif %}
     </div>
     {% endfor %}
