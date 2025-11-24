@@ -46,7 +46,7 @@ class JobSeekerProfile(AddressFields):
         ('private', 'Visible to Me Only'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='jobseekerprofile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='jobseekerprofile', blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     headline = models.CharField(max_length=255, blank=True)
@@ -71,7 +71,7 @@ class JobSeekerProfile(AddressFields):
 
 
 class RecruiterProfile(AddressFields):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='recruiterprofile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='recruiterprofile', blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     name = models.CharField(max_length=255)
     company = models.CharField(max_length=255, default="Sole Proprietorship")
