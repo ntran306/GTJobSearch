@@ -947,7 +947,7 @@
     </script>
     {% endif %}
 
-    <!-- NOTIFICATION SYSTEM SCRIPT - MOVE HERE -->
+    <!-- NOTIFICATION SYSTEM SCRIPT -->
     <script>
     {% if request.user.is_authenticated and request.user|has_recruiterprofile %}
     (function() {
@@ -1009,12 +1009,13 @@
         `).join('');
         
         document.querySelectorAll('.notification-item').forEach(item => {
-          item.addEventListener('click', function() {
-            const notificationId = this.dataset.id;
-            const candidateId = this.dataset.candidateId;
-            markAsRead(notificationId);
-            window.location.href = `/profiles/${candidateId}/`;
-          });
+            item.addEventListener('click', async function() {
+                const notificationId = this.dataset.id;
+                const candidateId = this.dataset.candidateId;
+                console.log("DEBUG: marking read:", notificationId);
+                await markAsRead(notificationId);
+                window.location.href = `/profiles/view/${candidateId}/`;
+            });
         });
       }
       

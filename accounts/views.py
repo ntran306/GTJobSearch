@@ -200,16 +200,27 @@ def edit_profile(request):
     if hasattr(user, "jobseekerprofile"):
         profile = user.jobseekerprofile
         form_class = JobSeekerProfileForm
+        is_jobseeker = True
     elif hasattr(user, "recruiterprofile"):
         profile = user.recruiterprofile
         form_class = RecruiterProfileForm
+        is_jobseeker = False
     else:
-        return redirect("accounts:profile")  # fallback if no profile
+        return redirect("accounts:profile")
 
     if request.method == "POST":
         form = form_class(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
+            profile = form.save() 
+            if hasattr(form, "save_m2m"):
+                form.save_m2m()   
+
+            
+            if is_jobseeker:
+                print("\nRUNNING MATCHING FROM EDIT PROFILE VIEW…")
+                from candidates.matching import check_candidate_against_filters
+                check_candidate_against_filters(profile)
+
             messages.success(request, "Profile updated successfully.")
             return redirect("accounts:profile")
     else:

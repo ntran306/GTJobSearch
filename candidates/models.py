@@ -1,91 +1,103 @@
+# candidates/models.py
 from django.db import models
 from django.contrib.auth.models import User
-
-#class Skill(models.Model):
-#    name = models.CharField(max_length=100)
-#
-#    def __str__(self):
-#        return self.name
-
-#class Project(models.Model):
-#    title = models.CharField(max_length=100)
-#    description = models.TextField(blank=True)
-#
-#    def __str__(self):
-#        return self.title
-
-#class Candidate(models.Model):
-#    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='candidate_profile')
-#    location = models.CharField(max_length=100, blank=True)
-#    bio = models.TextField(blank=True)
-#    skills = models.ManyToManyField(Skill, blank=True)
-#    projects = models.ManyToManyField(Project, blank=True)
-
-#    def __str__(self):
-#        return self.user.username
 
 
 class SavedFilter(models.Model):
     recruiter = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="saved_candidate_filters"
     )
+
     skill = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
     radius = models.IntegerField(null=True, blank=True)
     project = models.CharField(max_length=255, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    # NEW: Enable notifications for this filter
     notify_on_match = models.BooleanField(default=True)
-    
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def is_empty(self):
         return not (self.skill or self.location or self.project or self.radius)
-    
+
     def matches_profile(self, profile):
-        """Check if a candidate profile matches this filter"""
-        # Skip recruiter profiles
-        if profile.is_recruiter:
-            return False
-    
-        # Check skill match (skills is a CharField in your model)
+        """Return True if JobSeekerProfile matches this filter."""
+        print(f"\n--- Checking filter {self.id} for recruiter {self.recruiter.username} ---")
+        print("Filter values:", {
+            "skill": self.skill,
+            "location": self.location,
+            "project": self.project
+        })
+        print("Candidate values:", {
+            "username": profile.user.username,
+            "skills": [s.name for s in profile.skills.all()],
+            "location": profile.location,
+            "projects": profile.projects
+        })
+
+        # ---------------------------
+        # SKILLS
+        # ---------------------------
         if self.skill:
-            profile_skills = profile.skills.lower() if profile.skills else ""
-            if self.skill.lower() not in profile_skills:
+            candidate_skill_names = [s.name.lower() for s in profile.skills.all()]
+            print("Skill check →", self.skill.lower(), "IN", candidate_skill_names)
+
+            if self.skill.lower() not in candidate_skill_names:
+                print("SKILL does not match")
                 return False
-    
-        # Check location match
-        if self.location and profile.location:
-            if self.location.lower() not in profile.location.lower():
+            print("SKILL matches")
+
+        # ---------------------------
+        # LOCATION
+        # ---------------------------
+        if self.location:
+            cand_loc = " ".join(filter(None, [
+                profile.city.lower() if profile.city else "",
+                profile.state_region.lower() if profile.state_region else "",
+                profile.country.lower() if profile.country else "",
+                (profile.location.lower() if profile.location else ""),
+            ]))
+
+            print("Location check → looking for:", self.location.lower(), "in", cand_loc)
+
+            if self.location.lower() not in cand_loc:
+                print("LOCATION does not match")
                 return False
-    
-        # Check project match
-        if self.project and profile.projects:
-            if self.project.lower() not in profile.projects.lower():
+
+            print("LOCATION matches")
+
+        # ---------------------------
+        # PROJECTS
+        # ---------------------------
+        if self.project:
+            cand_proj = profile.projects.lower() if profile.projects else ""
+            print("Project check →", self.project.lower(), "IN", cand_proj)
+
+            if self.project.lower() not in cand_proj:
+                print("PROJECT does not match")
                 return False
-    
+
+            print("PROJECT matches")
+
+        print("FILTER MATCHES PROFILE!")
         return True
-    
+
     def __str__(self):
         return f"SavedFilter #{self.id} for {self.recruiter.username}"
 
 
 class FilterNotification(models.Model):
-    """Notifications for new candidate matches"""
-    NOTIFICATION_TYPES = [
-        ('new_match', 'New Candidate Match'),
-    ]
-    
     recruiter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='filter_notifications')
     saved_filter = models.ForeignKey(SavedFilter, on_delete=models.CASCADE, related_name='notifications')
     candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='match_notifications')
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='new_match')
+
+    notification_type = models.CharField(max_length=20, default='new_match')
     message = models.TextField()
+
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['-created_at']
-    
+
     def __str__(self):
         return f"Notification for {self.recruiter.username} - {self.candidate.username}"
-
